@@ -246,7 +246,7 @@ INSERT INTO cat_careers (position, title, home, what) VALUES
   (208, 'Aircraft Engine Mechanic', 'maintenance', 'Tears down, inspects, repairs and rebuilds turbine engines and their modules, accessories and propellers, balances the rotors and readies the engine for test.'),
   (209, 'Industrial Refrigeration Technician', 'maintenance', 'Runs and maintains the ammonia refrigeration plant that keeps a food or beverage plant''s rooms, freezers and process cold: compressors, condensers, vessels and defrost, the daily logs, draining oil and purging air, and the process safety work the ammonia requires.'),
   (210, 'Textile Machine Technician', 'maintenance', 'Sets up, times and repairs the machines of a textile or sewn-products plant: looms, knitting and tufting machines, spinning frames and industrial sewing machines. Changes machines over to a new style and finds why one keeps stopping or making defects.'),
-  (211, 'Field Service Technician', 'maintenance', 'Installs, commissions and repairs a machine builder''s equipment at customers'' plants: sets and starts new machines, finds mechanical, hydraulic, electrical and control faults on site, does scheduled service and teaches the operators to run what was installed.'),
+  (211, 'Equipment Field Service Technician', 'maintenance', 'Installs, commissions and repairs a machine builder''s equipment at customers'' plants: sets and starts new machines, finds mechanical, hydraulic, electrical and control faults on site, does scheduled service and teaches the operators to run what was installed.'),
   (212, 'Railcar Mechanic', 'maintenance', 'Builds, rebuilds and repairs railcars: trucks and wheelsets, couplers and draft gear, air brakes and their single car test, and the welding and bolting of the car body.'),
   (213, 'Automation Technician', 'automation', 'Keeps automated cells running: robots, conveyors, pneumatics, sensors and vision, with enough PLC to follow the logic to the fault and make small changes.'),
   (214, 'Controls Technician', 'automation', 'Troubleshoots a plant''s electrical controls and instrumentation: goes online with the PLC, tunes drives, calibrates instruments and loops, and fixes the network when devices drop.'),
@@ -1143,7 +1143,7 @@ INSERT INTO cat_links (from_title, to_title, position) VALUES
   ('Production Assembler', 'Brazer', 3),
   ('Precision Assembly Technician', 'Machine Builder', 1),
   ('Machine Builder', 'Millwright', 1),
-  ('Machine Builder', 'Field Service Technician', 2),
+  ('Machine Builder', 'Equipment Field Service Technician', 2),
   ('Automotive Assembler', 'Vehicle Final Inspector', 1),
   ('Body Fit Technician', 'Dimensional Metrology Technician', 1),
   ('Powertrain Assembler', 'Powertrain Test Technician', 1),
@@ -1468,10 +1468,11 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- A career the file does not name is left alone, and said.
+  -- A career the file does not name is left alone, and said. A military career is
+  -- another file's (data/careers/military/), and is not said here.
   PERFORM pg_temp.cat_log('not in the file', true, format('"%s" is not in the catalogue. Left as it is', o.title))
     FROM occupations o
-    WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title)
+    WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title) AND o.service_company_id IS NULL
       AND NOT EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(o.title))
     ORDER BY o.title COLLATE "C";
 
@@ -1506,7 +1507,7 @@ BEGIN
   PERFORM pg_temp.cat_log('summary', false, format(
     '%s careers of the file (%s under their title, %s renamed, %s created); %s titles folded in; %s removed; %s not in the file; %s of the file''s careers with a path, %s without; %s links',
     (SELECT COUNT(*) FROM cat_careers), n_found, n_renamed, n_created, n_folded, n_removed,
-    (SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title)),
+    (SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title) AND o.service_company_id IS NULL),
     (SELECT COUNT(*) FROM occupations o INNER JOIN cat_careers k ON k.title = o.title WHERE EXISTS (SELECT 1 FROM occupation_skills s WHERE s.occupation_id = o.id)),
     (SELECT COUNT(*) FROM occupations o INNER JOIN cat_careers k ON k.title = o.title WHERE NOT EXISTS (SELECT 1 FROM occupation_skills s WHERE s.occupation_id = o.id)),
     (SELECT COUNT(*) FROM occupation_links)));

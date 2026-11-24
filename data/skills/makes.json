@@ -2243,7 +2243,7 @@
       ]
     },
     {
-      "skill": "Transformer Testing",
+      "skill": "Transformer Electrical Testing",
       "makes": [
         "OMICRON",
         "Doble",
@@ -2277,16 +2277,6 @@
       "makes": [
         "Niehoff",
         "SAMP"
-      ]
-    },
-    {
-      "skill": "Discrete Event Simulation",
-      "makes": [
-        "FlexSim",
-        "Plant Simulation",
-        "Simio",
-        "ProModel",
-        "AnyLogic"
       ]
     },
     {
@@ -2345,46 +2335,6 @@
       ]
     },
     {
-      "skill": "Electromagnetic Simulation",
-      "makes": [
-        "HFSS",
-        "FEKO",
-        "CST",
-        "COMSOL"
-      ]
-    },
-    {
-      "skill": "Power System Studies",
-      "makes": [
-        "ETAP",
-        "SKM",
-        "EasyPower"
-      ]
-    },
-    {
-      "skill": "Thermal Analysis",
-      "makes": [
-        "Thermal Desktop",
-        "Icepak",
-        "SINDA/FLUINT"
-      ]
-    },
-    {
-      "skill": "RF Circuit Design",
-      "makes": [
-        "ADS",
-        "AWR"
-      ]
-    },
-    {
-      "skill": "Fluid System Analysis",
-      "makes": [
-        "Amesim",
-        "GFSSP",
-        "Easy5"
-      ]
-    },
-    {
       "skill": "Power Converter Design",
       "makes": [
         "PLECS"
@@ -2403,13 +2353,6 @@
         "HyperLynx",
         "SIwave",
         "Sigrity"
-      ]
-    },
-    {
-      "skill": "Fatigue and Damage Tolerance Analysis",
-      "makes": [
-        "NASGRO",
-        "AFGROW"
       ]
     }
   ]

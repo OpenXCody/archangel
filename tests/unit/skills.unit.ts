@@ -24,8 +24,8 @@ interface Catalogue {
 }
 
 const catalogue = JSON.parse(readFileSync('data/skills/catalogue.json', 'utf8')) as Catalogue;
-// The catalogue's latest migration. 0033 was the first, 0048 the second and 0057 the third; each is as it was applied.
-const MIGRATION = 'migrations/0059_skills_catalogue_4.sql';
+// The catalogue's latest migration. 0033 was the first, 0048 the second, 0057 the third and 0059 the fourth; each is as it was applied.
+const MIGRATION = 'migrations/0070_skills_catalogue_5.sql';
 /** The skills a catalogue migration keeps, by name as its SQL writes them. */
 const keptBy = (sql: string) => new Set([...sql.matchAll(/^INSERT INTO skills \(name, category\) SELECT '((?:[^']|'')+)',/gm)].map((m) => m[1]));
 
@@ -104,8 +104,9 @@ test('the migration knows every stored name before it changes anything, adds wha
   // The third restated the catalogue after the paths: it added other names and no skill, so no taxonomy follows it.
   const list = MIGRATIONS as string[];
   assert.ok(list.indexOf('0057_skills_catalogue_3.sql') > list.indexOf('0052_career_paths.sql'));
-  // The fourth adds skills, so the taxonomy that places them is the next migration.
+  // The fourth adds skills, so the taxonomy that places them is the next migration; so does the fifth.
   assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0059_skills_catalogue_4\.sql', '0060_skill_taxonomy_3\.sql'/);
+  assert.match(readFileSync('scripts/migrate.mjs', 'utf8'), /'0070_skills_catalogue_5\.sql', '0071_skill_taxonomy_5\.sql'/);
 });
 
 test('the third migration added other names only: every skill it keeps was kept by the one before', () => {
@@ -123,15 +124,16 @@ test('the third migration added other names only: every skill it keeps was kept 
   for (const action of ['name added', 'name not added', 'details restated', 'renamed, merged or removed']) assert.ok(after.includes(`'skills-catalogue', 'skill', '${action}'`), action);
 });
 
+// Read from the fourth's own file: the latest restates it with the fifth's skills added.
 test('the fourth migration adds the skills of the military careers and changes no skill that was there', () => {
   const before = readFileSync('migrations/0057_skills_catalogue_3.sql', 'utf8');
-  const after = readFileSync(MIGRATION, 'utf8');
+  const after = readFileSync('migrations/0059_skills_catalogue_4.sql', 'utf8');
   const was = keptBy(before);
   const now = keptBy(after);
   for (const name of was) assert.ok(now.has(name), `${name} is still kept`);
   const added = [...now].filter((name) => !was.has(name));
   assert.equal(added.length, 66);
-  assert.equal(catalogue.skills.length, 722);
+  assert.equal(now.size, 722);
   // Nothing is renamed, merged or removed that was not before: the lines that do so are the same lines.
   const acts = (sql: string) => sql.split('\n').filter((line) => /^(DELETE FROM skills WHERE name IN|SELECT pg_temp\.rename_skill)/.test(line));
   assert.deepEqual(acts(after), acts(before));
@@ -153,6 +155,43 @@ test('the fourth migration adds the skills of the military careers and changes n
   }
   // The broad or misnamed ones were narrowed before they were loaded.
   for (const name of ['Wheeled Vehicle Maintenance', 'Powertrain and Drivetrain Repair', 'Munitions Inspection']) assert.ok(!now.has(name), `${name} is not a skill`);
+});
+
+test('the fifth migration adds the trades of the industries the catalogue lacked and changes no skill that was there but one tools line', () => {
+  const before = readFileSync('migrations/0059_skills_catalogue_4.sql', 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const was = keptBy(before);
+  const now = keptBy(after);
+  for (const name of was) assert.ok(now.has(name), `${name} is still kept`);
+  const added = [...now].filter((name) => !was.has(name));
+  assert.equal(added.length, 302);
+  assert.equal(catalogue.skills.length, 1024);
+  // Five names come back from the removed list, three as skills of their own and two as earlier names
+  // (renamed if a database still stores them); nothing else is renamed, merged or removed.
+  const back = ['Sensory Evaluation', 'Capsule Filling', 'Shelf Life Testing', 'Extrusion Food', 'Mass Properties'];
+  const removedBy = (sql: string) => new Set(sql.split('\n').filter((line) => line.startsWith('DELETE FROM skills WHERE name IN')).flatMap((line) => [...line.matchAll(/'((?:[^']|'')+)'/g)].map((m) => m[1])));
+  assert.deepEqual([...removedBy(before)].filter((name) => !removedBy(after).has(name)).sort(), [...back].sort());
+  assert.deepEqual([...removedBy(after)].filter((name) => !removedBy(before).has(name)), []);
+  for (const name of ['Sensory Evaluation', 'Capsule Filling']) assert.ok(added.includes(name), `${name} is a skill again`);
+  const renames = (sql: string) => sql.split('\n').filter((line) => line.startsWith('SELECT pg_temp.rename_skill('));
+  const lines = new Set(before.split('\n'));
+  assert.deepEqual(renames(after).filter((line) => !lines.has(line)).sort(), [
+    "SELECT pg_temp.rename_skill('Extrusion Food', 'Food Extrusion Cooking');",
+    "SELECT pg_temp.rename_skill('Mass Properties', 'Mass Properties Control');",
+    "SELECT pg_temp.rename_skill('Shelf Life Testing', 'Shelf-Life Testing');",
+  ]);
+  assert.equal(renames(before).filter((line) => !renames(after).includes(line)).length, 0);
+  // Every new description is an added skill's, but one: a tools line that named makes now names kinds of thing.
+  const all = after.split('\n');
+  const described = all
+    .map((line, i) => ({ line, i }))
+    .filter(({ line, i }) => line.startsWith('  WHERE name = ') && all.slice(i - 2, i + 2).some((part) => !lines.has(part)))
+    .map(({ line }) => line.slice("  WHERE name = '".length, -1).replace(/''/g, "'"));
+  assert.deepEqual(described.filter((name) => !added.includes(name.replace(/'/g, "''"))), ['Industrial Network Troubleshooting']);
+  // The owner's word: a safety skill is not added (safety is ancillary).
+  for (const name of ['Combustible Dust Control', 'Molten Metal Safety', 'Job Hazard Analysis']) assert.ok(!now.has(name), `${name} is held back`);
+  // A skill is the standard one; a brand is a make of it.
+  for (const name of ['Banbury Mixing', 'Ultrasonic Welding', 'CNC Routing']) assert.ok(!now.has(name), `${name} is not a skill of its own`);
 });
 
 test('the pass kept every name it folded or renamed, as an earlier name of the skill it became', () => {

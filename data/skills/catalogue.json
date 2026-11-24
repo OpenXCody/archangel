@@ -1269,9 +1269,6 @@
       ],
       "aliases": [
         "AWS D17.1 Welder Qualification",
-        "Weld Certification",
-        "Welding Certification",
-        "Welding Qualification",
         "Welder Qualification"
       ]
     },
@@ -9907,9 +9904,7 @@
         "Requirements Engineering",
         "Requirements Flowdown",
         "Requirements Traceability",
-        "Requirements Definition",
         "Requirements Development",
-        "Requirements Capture",
         "Requirements Analysis",
         "Requirements Decomposition",
         "Requirements Derivation",
@@ -10725,7 +10720,6 @@
       "name": "Polymer Material Testing",
       "category": "Finishing & Heat Treatment",
       "aliases": [
-        "Plastics Testing",
         "Rubber Testing",
         "Melt Flow Index Testing",
         "Rheometer Testing",
@@ -10809,38 +10803,6 @@
         "Scanning electron microscopes",
         "Energy-dispersive X-ray detectors",
         "Sputter coaters"
-      ]
-    },
-    {
-      "name": "Thermal Analysis of Materials",
-      "category": "Finishing & Heat Treatment",
-      "aliases": [
-        "Differential Scanning Calorimetry",
-        "Thermogravimetric Analysis",
-        "DSC",
-        "TGA"
-      ],
-      "what": "Measuring how a material changes with temperature: melting, glass transition and cure by calorimetry, weight loss by thermogravimetry, stiffness by dynamic mechanical analysis. A person who has it prepares the specimen, picks the method and the heating programme, and reads transition temperatures, degree of cure and filler content from the curves.",
-      "learned": "Taught in polymer and materials laboratory courses and on the instruments at work.",
-      "tools": [
-        "Differential scanning calorimeters",
-        "Thermogravimetric analyzers",
-        "Dynamic mechanical analyzers"
-      ]
-    },
-    {
-      "name": "Design Allowables Development",
-      "category": "Design & Software",
-      "aliases": [
-        "Design Allowables",
-        "Material Allowables"
-      ],
-      "what": "Turning coupon tests into the strength values a designer may use: planning the test matrix across lots and conditions, reducing the data statistically and publishing the allowable with its basis. A person who has it knows how many lots and specimens a basis value needs, and when a process change makes the old value unsafe to use.",
-      "learned": "Learned on the job in aerospace materials and processes groups, to the handbooks the industry uses for metals and composites (MMPDS, CMH-17).",
-      "tools": [
-        "Coupon test matrices",
-        "Universal testing machines",
-        "Statistics software"
       ]
     },
     {
@@ -11317,7 +11279,6 @@
         "Warping",
         "Slashing",
         "Warp Sizing",
-        "Drawing-In",
         "Warp Tying",
         "Beaming"
       ],
@@ -11464,8 +11425,7 @@
       "aliases": [
         "Flat Pattern Making",
         "Apparel Pattern Making",
-        "Garment Pattern Making",
-        "Pattern Development"
+        "Garment Pattern Making"
       ],
       "what": "Making the patterns a sewn product is cut from: drafting flat patterns from measurements, sketches or a block, by hand or on pattern CAD, with seam allowances, notches, grainlines and labels, and correcting them after a fitting. A person who has it makes a production pattern that sews together without forcing and measures to the spec.",
       "learned": "Apparel and technical design programs; on the job under a senior patternmaker.",
@@ -11539,20 +11499,6 @@
       ]
     },
     {
-      "name": "Fault Tree Analysis",
-      "category": "Design & Software",
-      "aliases": [
-        "FTA"
-      ],
-      "what": "Starting from an unwanted event and working down through the combinations of failures that could cause it. A person who has it draws the tree, finds the single points of failure and the smallest sets of failures that bring the event about, and puts numbers on it where failure rates are known.",
-      "learned": "Reliability and system safety courses; employer training. Covered by ASQ's Certified Reliability Engineer.",
-      "tools": [
-        "Fault tree software",
-        "Failure rate data",
-        "System schematics"
-      ]
-    },
-    {
       "name": "Structural Hand Calculations",
       "category": "Design & Software",
       "aliases": [
@@ -11585,41 +11531,6 @@
       ]
     },
     {
-      "name": "Fatigue and Damage Tolerance Analysis",
-      "category": "Design & Software",
-      "aliases": [
-        "Damage Tolerance Analysis",
-        "Fracture Mechanics Analysis"
-      ],
-      "what": "Showing how long a structure lasts under repeated load and how big a crack it can carry: stress cycles counted from the loads, life found from the material's fatigue data, and crack growth worked out to an inspection interval. A person who has it finds the detail that will crack first and says what to change or how often to look.",
-      "learned": "Graduate courses in fatigue and fracture mechanics; on the job under a senior stress engineer, on a programme's durability and damage tolerance reports.",
-      "tools": [
-        "Crack growth and fatigue life software",
-        "Material fatigue and fracture data",
-        "Finite element stress results",
-        "Load spectra"
-      ]
-    },
-    {
-      "name": "Fluid System Analysis",
-      "category": "Design & Software",
-      "aliases": [
-        "Fluid System Sizing",
-        "Thermofluid Analysis",
-        "Fluid Network Analysis",
-        "Fluid Network Modeling",
-        "One-Dimensional Fluid Analysis"
-      ],
-      "what": "Sizing a system of lines, valves, regulators, tanks and relief devices and predicting how it behaves: pressure drop and flow split, pressurization and blowdown, chill-down and transients, by hand calculation and one-dimensional network models. A person who has it sets each line size and component rating from the calculation and checks the model against the system on test.",
-      "learned": "Fluid mechanics and thermodynamics in a mechanical, aerospace or chemical engineering degree; then on the job sizing a system and seeing it tested.",
-      "tools": [
-        "One-dimensional flow network software",
-        "Hand calculations and spreadsheets",
-        "P&IDs and component data sheets",
-        "Pressure and flow test data"
-      ]
-    },
-    {
       "name": "Mass Properties Control",
       "category": "Design & Software",
       "was": [
@@ -11645,7 +11556,6 @@
       "category": "Design & Software",
       "aliases": [
         "Stability Analysis",
-        "Hydrostatics",
         "Intact Stability",
         "Damage Stability",
         "Inclining Experiment"
@@ -11657,20 +11567,6 @@
         "Weight estimates and loading conditions",
         "Classification and Navy stability criteria",
         "Inclining experiment instruments"
-      ]
-    },
-    {
-      "name": "Thermal Analysis",
-      "category": "Design & Software",
-      "aliases": [
-        "Thermal Modeling"
-      ],
-      "what": "Predicting the temperatures of a part or a system and sizing what keeps them in limits: heat paths by conduction, convection and radiation, steady and transient cases, and the model checked against a thermal test. A person who has it builds the thermal model, finds the worst hot and cold cases and says what the design must change.",
-      "learned": "A heat transfer course in a mechanical or aerospace engineering degree, then on the job building models and correlating them to test.",
-      "tools": [
-        "Thermal network and finite difference solvers",
-        "Hand calculations and spreadsheets",
-        "Thermocouples and test data"
       ]
     },
     {
@@ -11751,72 +11647,6 @@
       ]
     },
     {
-      "name": "RF Link Budget Analysis",
-      "category": "Design & Software",
-      "aliases": [
-        "Link Budget Analysis",
-        "Link Budgets"
-      ],
-      "what": "Working out whether a radio link closes: transmit power, antenna gains, path and pointing losses, noise, and the margin left over. A person who has it can build the budget for a link, say what limits it and what a change to an antenna or an amplifier buys.",
-      "learned": "A communications or electromagnetics course, then on the job on a real link.",
-      "tools": [
-        "Link models and spreadsheets",
-        "Antenna patterns and gain tables",
-        "Noise figure and loss data",
-        "Orbit and coverage tools"
-      ]
-    },
-    {
-      "name": "Antenna Design",
-      "category": "Design & Software",
-      "aliases": [
-        "Antenna Design and Analysis",
-        "Phased Array Design"
-      ],
-      "what": "Designing an antenna or an array to a pattern, gain and bandwidth: choosing the element and the feed, modelling it, building the prototype and measuring it on a range. A person who has it can take an antenna from a requirement to a measured pattern that meets it.",
-      "learned": "An electrical engineering degree with electromagnetics, then on the job beside an antenna engineer.",
-      "tools": [
-        "Field solvers",
-        "Antenna ranges and anechoic chambers",
-        "Network analyzers",
-        "Prototype elements, feeds and radomes"
-      ]
-    },
-    {
-      "name": "Electromagnetic Simulation",
-      "category": "Design & Software",
-      "aliases": [
-        "EM Simulation",
-        "Electromagnetic Modeling",
-        "Full-Wave Simulation"
-      ],
-      "what": "Modelling how fields behave in and around hardware with a field solver: antennas, filters, transitions, board structures and enclosures. A person who has it can build the model, choose ports, boundaries and mesh, and show the result agrees with a measurement.",
-      "learned": "Graduate electromagnetics or a solver vendor's course, then on the job against measured hardware.",
-      "tools": [
-        "Full-wave field solvers",
-        "3D models and material data",
-        "Ports, boundaries and meshes",
-        "Measured patterns and S-parameters for correlation"
-      ]
-    },
-    {
-      "name": "RF Circuit Design",
-      "category": "Design & Software",
-      "aliases": [
-        "RF Design",
-        "Microwave Circuit Design",
-        "RF Front-End Design"
-      ],
-      "what": "Designing the circuits between the antenna and the digital side: amplifiers, filters, mixers, matching networks and the board they sit on, to gain, noise and linearity targets. A person who has it can simulate the chain, lay out its critical parts and bring the built hardware to the simulated figures.",
-      "learned": "An electrical engineering degree with microwave circuits, then on the job with a simulator and a bench.",
-      "tools": [
-        "RF and microwave circuit simulators",
-        "Amplifiers, filters, mixers and matching networks",
-        "Network and spectrum analyzers",
-        "Evaluation boards and test coupons"
-      ]
-    },
-    {
       "name": "Factory Layout",
       "category": "Quality & Measurement",
       "aliases": [
@@ -11834,36 +11664,6 @@
         "Flow and spaghetti diagrams",
         "From-to charts",
         "Equipment footprints and utility drops"
-      ]
-    },
-    {
-      "name": "Capacity Analysis",
-      "category": "Quality & Measurement",
-      "aliases": [
-        "Capacity Modeling",
-        "Capacity Study"
-      ],
-      "what": "Working out how much a line, a cell or a factory can make and what it takes to make more: cycle times, shifts, yield, downtime and the bottleneck. A person who has it builds the capacity model, says which machine, tool or headcount limits the rate and what a higher rate needs.",
-      "learned": "Taught in industrial engineering degrees and learned on a rate increase. Shown by a model whose answer the line then met.",
-      "tools": [
-        "Capacity models",
-        "Cycle time, yield and downtime data",
-        "Bottleneck analysis"
-      ]
-    },
-    {
-      "name": "Discrete Event Simulation",
-      "category": "Quality & Measurement",
-      "aliases": [
-        "Discrete Event Modeling",
-        "DES"
-      ],
-      "what": "Modelling a line or a factory in simulation software to see what it will make before it is built or changed: stations, cycle times, buffers, shifts and breakdowns. A person who has it builds the model from process data, checks it against the running line and uses it to find the bottleneck and to size equipment, buffers and people.",
-      "learned": "Taught in industrial engineering degrees and in the software makers' courses. Shown by a model that matches a running line.",
-      "tools": [
-        "Discrete-event simulation software",
-        "Cycle time, downtime and routing data",
-        "Input distributions"
       ]
     },
     {
@@ -12235,26 +12035,6 @@
         "Abrasive belts",
         "Calibrating and platen heads",
         "Thickness gauges"
-      ]
-    },
-    {
-      "name": "Nickel Alloy Welding",
-      "category": "Welding & Fabrication",
-      "was": [
-        "Inconel Welding"
-      ],
-      "aliases": [
-        "Inconel Welding",
-        "Nickel-Based Alloy Welding",
-        "High-Nickel Alloy Welding"
-      ],
-      "what": "Welding nickel-based alloys such as Inconel, used where a part runs hot. A person who has it keeps heat input and interpass temperature low, keeps the joint clean and shielded, and avoids the hot cracking these alloys are prone to.",
-      "learned": "Learned on the job after TIG welding of stainless, and shown by a qualification test in the alloy to the governing code.",
-      "tools": [
-        "TIG machines with pulse",
-        "Trailing and backing gas shields",
-        "Stainless brushes kept for the alloy",
-        "Temperature sticks and pyrometers"
       ]
     },
     {
@@ -12844,7 +12624,6 @@
       "aliases": [
         "Extrusion Process Setup",
         "Extrusion Die Setup",
-        "Extrusion Troubleshooting",
         "Blown Film Line Setup"
       ],
       "what": "Setting up an extrusion line and finding the cause when it makes bad product: changing dies, screws, screen packs and sizing tooling, centering the die and profiling gauge with die bolts and air ring, and tracing gels, die lines, gauge bands and melt fracture to temperature, pressure, material or tooling. A person who has it brings a line from cold to good product on a new order and fixes a defect from the process data rather than by turning knobs.",
@@ -14221,7 +14000,7 @@
       ]
     },
     {
-      "name": "Transformer Testing",
+      "name": "Transformer Electrical Testing",
       "category": "Electronics Assembly",
       "aliases": [
         "Transformer Routine Testing",
@@ -14344,22 +14123,6 @@
         "Factory and site acceptance test procedures",
         "Laptop with the controller's and drives' software",
         "Levels, indicators and alignment tools"
-      ]
-    },
-    {
-      "name": "Scanning Acoustic Microscopy",
-      "category": "Semiconductor Processing",
-      "aliases": [
-        "C-SAM",
-        "CSAM",
-        "Acoustic Microscopy"
-      ],
-      "what": "Imaging the inside of an electronic package or a bonded joint with focused ultrasound in a water bath, without cutting it open, to find delamination, voids and cracks. A person who has it picks the transducer and focus for the layer of interest, sets the gates, scans and tells a real delamination from an artifact.",
-      "learned": "On the job in a failure analysis or packaging lab; the equipment maker's training.",
-      "tools": [
-        "Scanning acoustic microscopes",
-        "Transducers and water tanks",
-        "Reference samples with known defects"
       ]
     },
     {
@@ -15978,25 +15741,6 @@
       ]
     },
     {
-      "name": "Power System Studies",
-      "category": "Maintenance & Repair",
-      "aliases": [
-        "Arc Flash Study",
-        "Short Circuit Study",
-        "Load Flow Study",
-        "Protective Device Coordination",
-        "Coordination Study"
-      ],
-      "what": "Calculating how a site's power system behaves from its one-line diagram: load flow, short-circuit currents, the coordination of protective devices and arc-flash energy. A person who has it can model the system, set the relays and breakers from the result and label the equipment.",
-      "learned": "A power engineering course and the software vendor's training, then on the job under a licensed engineer.",
-      "tools": [
-        "Power system analysis software",
-        "One-line diagrams",
-        "Relay and breaker time-current curves",
-        "Equipment ratings and utility fault data"
-      ]
-    },
-    {
       "name": "Ammonia Refrigeration System Operation",
       "category": "Maintenance & Repair",
       "aliases": [
@@ -16160,21 +15904,6 @@
         "Lumber grading scanners and optimizers",
         "Grade audit stations",
         "Grading rule books"
-      ]
-    },
-    {
-      "name": "Life Data Analysis",
-      "category": "Quality & Measurement",
-      "aliases": [
-        "Weibull Analysis",
-        "Weibull"
-      ],
-      "what": "Fitting a life distribution, usually a Weibull, to times to failure from test or from the field, to say what share will have failed by when. A person who has it accounts for the units that have not failed yet, reads the fit as early, random or wear-out failure, and states how sure the estimate is.",
-      "learned": "In reliability engineering courses and on the job; the American Society for Quality's Certified Reliability Engineer covers it.",
-      "tools": [
-        "Life data software",
-        "Probability plots",
-        "Failure and suspension records"
       ]
     },
     {
@@ -16723,6 +16452,7 @@
         "Electrochemical Grinding",
         "Electrochemical Machining",
         "Fatigue Testing",
+        "Fault Tree Analysis",
         "Foreign Object Detection",
         "Frequency Counter",
         "Glass Bead Peening",
@@ -16733,6 +16463,7 @@
         "Hydroforming",
         "Hydrogen Damage Detection",
         "IVD Aluminum Coating",
+        "Inconel Welding",
         "Induction Hardening",
         "Interlaminar Shear Test",
         "Joggle Inspection",

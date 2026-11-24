@@ -897,7 +897,7 @@
       "what": "Builds machinery from castings and components: scrapes and fits ways, installs spindles, ballscrews and guides, plumbs hydraulics and pneumatics, aligns the geometry and runs the machine off.",
       "leadsTo": [
         "Millwright",
-        "Field Service Technician"
+        "Equipment Field Service Technician"
       ],
       "was": [
         "Machine Tool Assembler",
@@ -2770,11 +2770,12 @@
       "was": []
     },
     {
-      "title": "Field Service Technician",
+      "title": "Equipment Field Service Technician",
       "home": "maintenance",
       "what": "Installs, commissions and repairs a machine builder's equipment at customers' plants: sets and starts new machines, finds mechanical, hydraulic, electrical and control faults on site, does scheduled service and teaches the operators to run what was installed.",
       "leadsTo": [],
-      "was": []
+      "was": [],
+      "note": "Not the bare 'Field Service Technician': automakers post that title for the technicians who repair their vehicles at customers, which is not manufacturing, and as this career's title it would take all of them. 'Field Service Mechanic' and 'Field Service Engineer' are left out of the other names for the same reason."
     },
     {
       "title": "Railcar Mechanic",

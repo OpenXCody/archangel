@@ -135,10 +135,6 @@
             {
               "name": "Scanning Electron Microscopy",
               "level": 3
-            },
-            {
-              "name": "Thermal Analysis of Materials",
-              "level": 3
             }
           ]
         },
@@ -147,10 +143,6 @@
           "name": "Materials engineering",
           "what": "Choosing, specifying and qualifying the materials and processes a product is made from.",
           "skills": [
-            {
-              "name": "Design Allowables Development",
-              "level": 3
-            },
             {
               "name": "Material Qualification",
               "level": 3
@@ -702,10 +694,6 @@
             {
               "name": "Reliability Prediction",
               "level": 3
-            },
-            {
-              "name": "Fault Tree Analysis",
-              "level": 3
             }
           ]
         },
@@ -723,23 +711,11 @@
               "level": 3
             },
             {
-              "name": "Fatigue and Damage Tolerance Analysis",
-              "level": 3
-            },
-            {
-              "name": "Fluid System Analysis",
-              "level": 3
-            },
-            {
               "name": "Mass Properties Control",
               "level": 3
             },
             {
               "name": "Ship Stability and Hydrostatics",
-              "level": 3
-            },
-            {
-              "name": "Thermal Analysis",
               "level": 3
             }
           ]
@@ -780,29 +756,6 @@
           ]
         },
         {
-          "slug": "rf-design",
-          "name": "RF design",
-          "what": "Designing antennas, radio-frequency circuits and the links between them.",
-          "skills": [
-            {
-              "name": "RF Link Budget Analysis",
-              "level": 2
-            },
-            {
-              "name": "Antenna Design",
-              "level": 3
-            },
-            {
-              "name": "Electromagnetic Simulation",
-              "level": 3
-            },
-            {
-              "name": "RF Circuit Design",
-              "level": 3
-            }
-          ]
-        },
-        {
           "slug": "manufacturing-engineering",
           "name": "Manufacturing engineering",
           "what": "Designing how the work is done: instructions, time standards, balanced lines, error-proof stations and the data that shows what is happening.",
@@ -829,14 +782,6 @@
             },
             {
               "name": "Factory Layout",
-              "level": 3
-            },
-            {
-              "name": "Capacity Analysis",
-              "level": 3
-            },
-            {
-              "name": "Discrete Event Simulation",
               "level": 3
             },
             {
@@ -1339,10 +1284,6 @@
             },
             {
               "name": "Aluminum-Lithium Welding",
-              "level": 3
-            },
-            {
-              "name": "Nickel Alloy Welding",
               "level": 3
             }
           ]
@@ -2893,7 +2834,7 @@
               "level": 3
             },
             {
-              "name": "Transformer Testing",
+              "name": "Transformer Electrical Testing",
               "level": 3
             }
           ]
@@ -3489,10 +3430,6 @@
           "skills": [
             {
               "name": "FIB Cross-Sectioning",
-              "level": 2
-            },
-            {
-              "name": "Scanning Acoustic Microscopy",
               "level": 2
             },
             {
@@ -4772,10 +4709,6 @@
             {
               "name": "Motor Rewinding",
               "level": 3
-            },
-            {
-              "name": "Power System Studies",
-              "level": 3
             }
           ]
         },
@@ -5287,10 +5220,6 @@
             },
             {
               "name": "Design of Experiments",
-              "level": 3
-            },
-            {
-              "name": "Life Data Analysis",
               "level": 3
             }
           ]

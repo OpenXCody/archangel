@@ -41,8 +41,9 @@ const CATALOGUE = 'data/careers/catalogue.json';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const INDUSTRY_LIST = 'data/careers/industries.json';
 const ALIASES = 'data/careers/aliases.json';
-const MIGRATION = 'migrations/0046_careers_catalogue.sql';
-const LISTS_MIGRATION = 'migrations/0056_career_lists_2.sql';
+// The latest of each. 0046 was the catalogue's first; 0047 and 0056 the lists' first and second; each is as it was applied.
+const MIGRATION = 'migrations/0073_careers_catalogue_2.sql';
+const LISTS_MIGRATION = 'migrations/0074_career_lists_3.sql';
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const catalogue = read<CatalogueFile>(CATALOGUE);
@@ -299,20 +300,24 @@ test('both migrations are in the runner\'s list, the lists after the catalogue',
   const runner = readFileSync('scripts/migrate.mjs', 'utf8');
   assert.match(runner, /'0046_careers_catalogue\.sql', '0047_career_lists\.sql'/);
   assert.ok(runner.indexOf("'0047_career_lists.sql'") < runner.indexOf("'0056_career_lists_2.sql'"), 'the second lists migration follows the first');
+  // The catalogue's second comes after the skills' fifth and its taxonomy (a home is a domain), and the lists' third right after it.
+  assert.match(runner, /'0073_careers_catalogue_2\.sql', '0074_career_lists_3\.sql'/);
+  assert.ok(runner.indexOf("'0071_skill_taxonomy_5.sql'") < runner.indexOf("'0073_careers_catalogue_2.sql'"));
 });
 
 test('a name taken back is deleted from its career only, said in the log, and listed for nobody', () => {
   const sql = readFileSync(LISTS_MIGRATION, 'utf8');
   const taken = aliases.careers.flatMap((row) => (row.not ?? []).map((name) => [row.title, name] as const));
   assert.ok(taken.length > 0, 'the list takes some names back');
-  const earlier = readFileSync('migrations/0047_career_lists.sql', 'utf8');
+  // The earlier lists, and the titles the first catalogue folded in (a title folded then may be a career of its own now).
+  const earlier = ['migrations/0047_career_lists.sql', 'migrations/0056_career_lists_2.sql', 'migrations/0046_careers_catalogue.sql'].map((file) => readFileSync(file, 'utf8')).join('\n');
   for (const [title, name] of taken) {
     assert.ok(sql.includes(`  ('${name.replace(/'/g, "''")}', '${title}')`), `${name} is taken back from ${title}`);
     // A name that means other work elsewhere is not another career's either.
     for (const row of aliases.careers) assert.ok(!row.aliases.some((alias) => alias.toLowerCase() === name.toLowerCase()), `"${name}" is not listed for ${row.title}`);
     // It was a name the career had: a folded title of the catalogue, or an everyday name of the earlier list.
     const folded = catalogue.careers.find((career) => career.title === title)?.was.some((was) => was.toLowerCase() === name.toLowerCase());
-    assert.ok(folded || earlier.includes(`('${name}', '${title}')`), `"${name}" was a name of ${title}`);
+    assert.ok(folded || earlier.includes(`('${name}', '${title}')`) || earlier.includes(`('${title}', '${name}')`), `"${name}" was a name of ${title}`);
   }
   const at = (text: string) => {
     const i = sql.indexOf(text);
@@ -326,6 +331,36 @@ test('a name taken back is deleted from its career only, said in the log, and li
   assert.equal(sql.match(/DELETE FROM occupation_aliases/g)?.length, 1, 'no other name is deleted');
   at("'name added'");
   at("'name not added'");
+});
+
+test('the second catalogue adds the trades of the industries it lacked: each with a home, a description and a place on the lists', () => {
+  const before = readFileSync('migrations/0046_careers_catalogue.sql', 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const titles = (sql: string) => new Set([...sql.matchAll(/^ {2}\(\d+, '((?:[^']|'')+)', '[a-z]+', '(?:[^']|'')*'\)[,;]$/gm)].map((m) => m[1].replace(/''/g, "'")));
+  const was = titles(before);
+  const now = titles(after);
+  assert.equal(was.size, 156);
+  assert.equal(now.size, 231);
+  for (const title of was) assert.ok(now.has(title), `${title} is still a career`);
+  const added = [...now].filter((title) => !was.has(title));
+  assert.equal(added.length, 75);
+  const named = new Map(industries.industries.flatMap((row) => row.careers.map((title) => [title, row.industry] as const)));
+  for (const title of added) assert.ok(named.has(title), `${title} is typical of an industry`);
+  // A level, a single machine, a product or an employer's program is another name, never a career.
+  for (const title of ['Kiln Operator', 'Field Service Technician', 'Thermoforming Operator', 'Wire Drawing Operator', 'Head Brewer', 'Cellar Worker']) assert.ok(!now.has(title), `${title} is not a career of its own`);
+  // Names that moved: the molding technician's names are the process technician's now, not the operator's.
+  const operator = catalogue.careers.find((career) => career.title === 'Injection Molding Operator')!;
+  const technician = aliases.careers.find((row) => row.title === 'Plastics Process Technician')!;
+  for (const name of ['molding technician', 'mold technician', 'injection molding process technician']) {
+    assert.ok(operator.dropAliases?.includes(name), `${name} must not follow Injection Molding Operator`);
+    assert.ok(technician.aliases.includes(name), `${name} is Plastics Process Technician's`);
+  }
+  // The careers that leave a ladder at the bottom have a rung above them now.
+  const leads = new Map(catalogue.careers.map((career) => [career.title, career.leadsTo]));
+  assert.ok(leads.get('Food Processing Operator')!.includes('Baker'));
+  assert.ok(leads.get('Welder')!.includes('Pipefitter'));
+  assert.ok(leads.get('Metal Fabricator')!.includes('Shipfitter'));
+  assert.ok(leads.get('Wire Harness Assembler')!.includes('Marine Electrician'));
 });
 
 test('the check refuses a name both listed for a career and taken back from it', () => {

@@ -2675,7 +2675,7 @@
     "Transformer Core Stacking",
     "Core and Coil Assembly",
     "Transformer Processing and Oil Filling",
-    "Transformer Testing"
+    "Transformer Electrical Testing"
    ]
   },
   {
@@ -4830,8 +4830,8 @@
    ]
   },
   {
-   "title": "Field Service Technician",
-   "basis": "Machinery makers hire under this title, separately from their customers' maintenance staff. The work is the builder's own machines, at many plants, and installation and start-up are its core. Postings ask for commissioning and start-up experience over plant maintenance, and for travel.",
+   "title": "Equipment Field Service Technician",
+   "basis": "Machinery, electrical and electronic equipment makers hire field service technicians apart from their customers' maintenance staff: the work is the builder's own machines, at many plants, and installation and start-up are its core. Postings ask for commissioning and start-up experience over plant maintenance, and for travel.",
    "skills": [
     "Shop Safety Practices",
     "Lockout Tagout",
