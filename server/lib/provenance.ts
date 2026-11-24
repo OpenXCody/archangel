@@ -15,6 +15,7 @@ const FIELD_FACT: Record<string, PlantFact> = {
   industry: 'industry',
   address: 'address',
   city: 'city',
+  zipCode: 'zip',
   latitude: 'coordinates',
   longitude: 'coordinates',
   workforceSize: 'headcount',

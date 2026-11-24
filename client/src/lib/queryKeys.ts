@@ -82,6 +82,10 @@ export const publicKeys = {
   /** One company, factory, career or skill: its page, the map's panel and a list row's prefetch read it here. */
   record: (entity: EntityType, id: string | null | undefined) => [entity, id] as const,
   counts: ['entity-counts'] as const,
+  /** A typed address, looked up by the geocoder (Admin Tools' factory forms). */
+  address: (typed: object) => ['address', typed] as const,
+  /** The companies whose mark was set by hand. */
+  marks: ['company-marks'] as const,
   /** The whole skill taxonomy: every domain, group and skill. */
   taxonomy: ['skill-taxonomy'] as const,
   /** Companies' versions of careers: a company's list, and one version by company (id or slug) and career. */

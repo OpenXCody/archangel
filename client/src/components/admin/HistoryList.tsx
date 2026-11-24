@@ -23,6 +23,10 @@ const ACTION: Record<string, string> = {
   'career version added': 'Career version added',
   'career version changed': 'Career version changed',
   'career version deleted': 'Career version deleted',
+  // A company's mark, set by hand in its editor.
+  'mark set by hand': 'Mark set by hand',
+  'mark replaced': 'Mark replaced',
+  'mark back to automatic': 'Mark back to automatic',
   'made admin': 'Made admin',
   'admin role removed': 'Admin role removed',
   'password reset link': 'Password reset link made',
@@ -62,6 +66,7 @@ const FIELD: Record<string, string> = {
   longitude: 'longitude',
   city: 'city',
   address: 'address',
+  zipCode: 'ZIP code',
   onetCode: 'O*NET code',
   // `category` is in lines written before skills had groups.
   category: 'category',
@@ -168,6 +173,9 @@ function detailWords(entry: AuditEntry): string | null {
   }
   // A factory merge: what the kept row took from the other. Kept apart: the factory it is not.
   if (Array.isArray(detail.took) && detail.took.length > 0) parts.push(`took ${detail.took.map((fact) => FACT[String(fact)] ?? String(fact)).join(', ')}`);
+  // A mark set by hand: the kind of image and its size.
+  const mark = detail.mark as { type?: unknown; kb?: unknown } | undefined;
+  if (mark && typeof mark.type === 'string') parts.push(`${mark.type}${typeof mark.kb === 'number' ? `, ${mark.kb} KB` : ''}`);
   const other = (detail.other as { name?: unknown } | undefined)?.name;
   if (typeof other === 'string') parts.push(`from ${other}`);
   const moved = attachedWords(detail.moved as Record<string, number> | undefined);

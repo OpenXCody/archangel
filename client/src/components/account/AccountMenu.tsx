@@ -34,7 +34,7 @@ export function accountPageTitle(pathname: string, isAdmin: boolean): string | n
   if (pathname === '/me') return 'Profile';
   if (pathname === '/employer') return 'Your jobs';
   if (pathname === '/settings') return 'Settings';
-  if (pathname === '/admin') return isAdmin ? 'Admin Tools' : null;
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) return isAdmin ? 'Admin Tools' : null;
   return null;
 }
 
@@ -48,7 +48,7 @@ const itemClass = 'cursor-pointer gap-2.5 px-2.5 py-2.5 text-sm text-text-1 focu
  * here because the menu is on every page.
  */
 function useSeenOnVisit(news: News | undefined): void {
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
   const { mutate } = useMarkSeen();
   // A job's page, by the number its address ends in (shared/jobs.ts).
   const jobNumber = readJobNumber(/^\/jobs\/[^/]+\/[^/]+\/(\d+)$/.exec(pathname)?.[1]);
@@ -59,7 +59,7 @@ function useSeenOnVisit(news: News | undefined): void {
     ? null
     : news.applicants && (pathname === '/employer' || (jobId !== undefined && job.data?.canManage === true))
       ? 'applicants'
-      : news.access && pathname === '/admin' && new URLSearchParams(search).get('tab') === 'access'
+      : news.access && pathname === '/admin/access'
         ? 'access'
         : null;
   useEffect(() => {
@@ -191,7 +191,7 @@ export default function AccountMenu() {
         {viewer.admin && (
           <DropdownMenuItem asChild className={pageItemClass(news?.access)}>
             {/* With a request waiting, straight to the requests. */}
-            <Link to={news?.access ? '/admin?tab=access' : '/admin'} data-has-news={news?.access || undefined}>
+            <Link to={news?.access ? '/admin/access' : '/admin'} data-has-news={news?.access || undefined}>
               <ShieldCheck className={pageIconClass(news?.access)} />
               Admin Tools
             </Link>

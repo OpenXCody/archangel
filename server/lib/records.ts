@@ -62,7 +62,7 @@ export const NOT_FOUND: Record<RecordKind, string> = {
  * is brought down to the bare host ("tesla.com"). Null when emptied, false when
  * what is left is not a domain.
  */
-function cleanDomain(value: unknown): string | null | false {
+export function cleanDomain(value: unknown): string | null | false {
   if (value === null) return null;
   if (typeof value !== 'string') return false;
   let host = value.trim().toLowerCase();
@@ -126,7 +126,7 @@ function oneLine(value: unknown, max: number): string | null | undefined | false
   return text || null;
 }
 
-function refuse(field: string, message: string): never {
+export function refuse(field: string, message: string): never {
   throw new RecordRefusal(400, message, { field });
 }
 
@@ -262,6 +262,7 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
         companyName: companies.name,
         address: factories.address,
         city: factories.city,
+        zip: factories.zipCode,
         state: factories.state,
         latitude: factories.latitude,
         longitude: factories.longitude,
@@ -458,6 +459,8 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
   if (city === false) refuse('city', 'A city is text of up to 120 characters.');
   const address = optionalText(body.address, 300);
   if (address === false) refuse('address', 'An address is text of up to 300 characters.');
+  const zip = optionalText(body.zip, 10);
+  if (zip === false || (zip && !/^\d{5}(-\d{4})?$/.test(zip))) refuse('zip', 'A ZIP code is five digits.');
   const industry = optionalText(body.industry, 120);
   if (industry === false) refuse('industry', 'Choose an industry from the list.');
   const specialization = optionalText(body.specialization, 300);
@@ -496,6 +499,7 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
       longitude: longitude ?? before.longitude,
       city: city === undefined ? before.city : city,
       address: address === undefined ? before.address : address,
+      zipCode: zip === undefined ? before.zipCode : zip,
       primaryNaicsDescription: industry === undefined ? before.primaryNaicsDescription : industry,
       // The code belongs to the industry it was filed under: a plant moved to another industry has none on record.
       primaryNaics: industry === undefined || industry === before.primaryNaicsDescription ? before.primaryNaics : null,
@@ -549,6 +553,7 @@ async function changeFactory(id: string, body: Body, actor: Actor): Promise<Save
       'longitude',
       'city',
       'address',
+      'zipCode',
       'industry',
       'specialization',
       'description',

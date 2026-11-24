@@ -20,7 +20,7 @@ a source's download ──► scripts/ingest/sources/<slug>.mjs   (an adapter: r
                                    │
         scripts/ingest/run.mjs  stage ──► intake_records   what the source said, one row per record
                                 resolve ─► intake_links     which of our plants each record is
-                                   │       intake_review    the ones a person must decide (Admin Tools, Data)
+                                   │       intake_review    the ones a person must decide (Admin Tools, Review)
                                 apply ───► factories        facts, by one rule (intake_fact_wins)
                                            external_references   the source's id against our record
                                            fact_sources          where each fact came from
@@ -457,7 +457,7 @@ seconds.
 employer daily (09:23 UTC) and by hand, against `INGEST_DATABASE_URL`, and
 keeps the report as an artifact. Without the secret it says so and ends
 green. A refusal or a site that does not answer is recorded and is not a red
-run; a changed feed is. Admin Tools, Data shows each employer's latest run
+run; a changed feed is. Admin Tools, Activity shows each employer's latest run
 (read, kept, new, changed, closed, waiting; what refused; a listing read in
 part) and "Postings
 with no plant": point a place at a plant and every posting naming it becomes a
@@ -557,7 +557,7 @@ and writes nothing.
 Reading it: `SELECT * FROM load_log WHERE load = 'plant-duplicates' AND look`
 (merges across two company rows or placed far apart, company rows merged or
 left without plants, every pair left for review, the summary). The pairs left
-are listed in Admin Tools, Data, "Plants listed twice"
+are listed in Admin Tools, Review, "Factories listed twice"
 (`GET /api/admin/plants/pairs?list=id`): Merge, with the row to keep chosen
 there, or Two plants. The quality table's Duplicates count opens the plants
 of one company on one spot the same way (`list=spot&state=TX`).

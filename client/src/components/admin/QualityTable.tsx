@@ -3,7 +3,7 @@ import { cn, focusRing } from '@/lib/utils';
 import { useDataQuality, type QualityRow } from '../../lib/admin';
 import { stateName } from '../../lib/places';
 import { LoadError, RowsSkeleton, SegmentedChoice, cardClass } from '../account/parts';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { Link } from 'react-router-dom';
 import { pairsPath } from './PlantPairs';
 
@@ -108,7 +108,7 @@ export default function QualityTable() {
   );
 
   return (
-    <PageSection
+    <Panel
       title="Data quality"
       description="How complete the factory data is, by state. Counted now, from the database."
     >
@@ -125,13 +125,13 @@ export default function QualityTable() {
             <table className="w-full min-w-[40rem] border-collapse whitespace-nowrap text-sm tabular-nums">
               <thead>
                 <tr className="border-b border-line">
-                  {heading('state', 'State', 'sticky left-0 z-10 bg-bg')}
+                  {heading('state', 'State', 'sticky left-0 z-10 bg-surface')}
                   {COLUMNS.map((column) => heading(column.key, column.label))}
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-line-strong font-medium text-text-1" data-quality-total>
-                  <th scope="row" className="sticky left-0 z-10 bg-bg px-2.5 py-2.5 text-left font-medium">
+                  <th scope="row" className="sticky left-0 z-10 bg-surface px-2.5 py-2.5 text-left font-medium">
                     <span className="sm:hidden">All</span>
                     <span className="hidden sm:inline">All states</span>
                   </th>
@@ -149,7 +149,7 @@ export default function QualityTable() {
                 </tr>
                 {rows.map((row) => (
                   <tr key={row.state ?? 'none'} className="border-b border-line last:border-b-0" data-quality-row={row.state ?? ''}>
-                    <th scope="row" className="sticky left-0 z-10 max-w-[9rem] truncate bg-bg px-2.5 py-2 text-left font-normal text-text-1">
+                    <th scope="row" className="sticky left-0 z-10 max-w-[9rem] truncate bg-surface px-2.5 py-2 text-left font-normal text-text-1">
                       {row.state ? (
                         <>
                           <span className="sm:hidden">{row.state}</span>
@@ -196,7 +196,7 @@ export default function QualityTable() {
           </dl>
         </>
       )}
-    </PageSection>
+    </Panel>
   );
 }
 

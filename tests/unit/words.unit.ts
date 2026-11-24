@@ -267,7 +267,7 @@ test('every value the check lets through is there as often as the list says', ()
 
 test('what the database words for a screen says factory', () => {
   // The reason a source's match waits for a person is composed in SQL by the intake runner and shown as written
-  // (Admin Tools, Data: components/admin/MatchReview.tsx).
+  // (Admin Tools, Review: components/admin/MatchReview.tsx).
   const pipeline = readFileSync(path.join(root, 'scripts/ingest/lib/pipeline.mjs'), 'utf8');
   const reasons = [...pipeline.matchAll(/concat_ws\('; ',([\s\S]*?)\) AS why/g)].map((match) => match[1]);
   assert.equal(reasons.length, 1, "the reasons of a match to review are one concat_ws(...) AS why in pipeline.mjs's resolve");

@@ -7,9 +7,9 @@ import { distance } from '../../lib/intake';
 import { PAIRS_PAGE, useKeepApart, useMergePlants, usePairList, type PairList, type PlantPair, type PlantSide } from '../../lib/plantPairs';
 import { stateName } from '../../lib/places';
 import { onGroupArrowKeys } from '../../lib/roving';
-import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass, rowHoverClass } from '../account/parts';
+import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, outlineButtonClass } from '../account/parts';
 import ConfirmDialog from '../layout/ConfirmDialog';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 import { attachedWords } from './HistoryList';
 import { FACT_WORD, PlantFacts } from './MatchReview';
@@ -35,9 +35,9 @@ function takesWords(side: PlantSide): string {
   return side.takes.map((fact) => FACT_WORD[fact] ?? fact).join(', ');
 }
 
-/** Where a list of pairs lives: the Data tab, taken over by it. */
+/** Where a list of pairs lives: Review, taken over by it. */
 export function pairsPath(list: PairList, state?: string | null): string {
-  return `/admin?tab=data&pairs=${list}${state ? `&state=${state}` : ''}`;
+  return `/admin/review?pairs=${list}${state ? `&state=${state}` : ''}`;
 }
 
 interface PairCardProps {
@@ -239,8 +239,8 @@ const LISTS: Record<PairList, { title: string; description: string; none: string
 };
 
 /**
- * One list of pairs, worked through a page at a time: the Data tab, taken
- * over by it (`?tab=data&pairs=id|spot`, `&state=TX`, `&at=<offset>`). A pair
+ * One list of pairs, worked through a page at a time: Review, taken
+ * over by it (`/admin/review?pairs=id|spot`, `&state=TX`, `&at=<offset>`). A pair
  * that is decided leaves, and the next comes up in its place.
  */
 export function PairsView({ list }: { list: PairList }) {
@@ -262,11 +262,11 @@ export function PairsView({ list }: { list: PairList }) {
 
   return (
     <div data-pairs-view={list}>
-      <Link to="/admin?tab=data" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
+      <Link to="/admin/review" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-text-2 transition-colors hover:text-text-1">
         <ArrowLeft className="h-4 w-4" />
-        Back
+        Everything to review
       </Link>
-      <PageSection title={state ? `${words.title}: ${state === 'none' ? 'no state' : stateName(state)}` : words.title} description={words.description}>
+      <Panel title={state ? `${words.title}: ${state === 'none' ? 'no state' : stateName(state)}` : words.title} description={words.description}>
         {page.isPending ? (
           <RowsSkeleton rows={3} />
         ) : page.isError ? (
@@ -310,31 +310,12 @@ export function PairsView({ list }: { list: PairList }) {
             )}
           </>
         )}
-      </PageSection>
+      </Panel>
     </div>
   );
 }
 
-/**
- * The way into the list of rows that carry one registry id, on the Data tab:
- * one line, drawn only while some wait.
- */
-export function PairsWaiting() {
-  const page = usePairList('id', null, 0, 1);
-  const total = page.data?.total ?? 0;
-  if (total === 0) return null;
-  return (
-    <PageSection title={LISTS.id.title} description="Two rows that carry one registry id, which the cleanup was not sure are one factory.">
-      <Link
-        to={pairsPath('id')}
-        className={cn(rowHoverClass, 'flex items-center justify-between gap-4 py-3')}
-        data-pairs-waiting
-      >
-        <span className="min-w-0 text-sm text-text-1">Open the list</span>
-        <span className="shrink-0 text-xs tabular-nums text-text-3">
-          {total.toLocaleString('en-US')} {total === 1 ? 'pair' : 'pairs'}
-        </span>
-      </Link>
-    </PageSection>
-  );
+/** How many pairs of rows carrying one registry id wait for a person: the count beside "Factories listed twice" on Review. */
+export function usePairsWaiting(): number | undefined {
+  return usePairList('id', null, 0, 1).data?.total;
 }

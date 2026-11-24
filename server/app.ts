@@ -57,6 +57,8 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   }
   next();
 });
+// A mark set by hand arrives as base64 in JSON: 200 KB of image is about 270 KB of text.
+app.use('/api/companies/:id/mark', express.json({ limit: '400kb' }));
 app.use(express.json());
 
 // Health check

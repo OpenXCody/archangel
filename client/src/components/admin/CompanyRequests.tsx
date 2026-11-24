@@ -7,7 +7,7 @@ import type { AdminCompany } from '../../lib/admin';
 import { useAdminCompanyRequests, useAnswerCompanyRequest, type AdminCompanyRequest } from '../../lib/employerCompanies';
 import { ErrorNote, busyButtonClass, cardClass, outlineButtonClass, rowClass, Dot } from '../account/parts';
 import { formatOnDay } from '../../lib/dates';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import CompanyPicker from './CompanyPicker';
 
 /**
@@ -16,21 +16,21 @@ import CompanyPicker from './CompanyPicker';
  * its members). Shown on the Access tab under the requests to join, and only
  * when there is one.
  *
- * A company is added under Data (company, then its factory), then chosen here:
- * that gives the person access to it. A factory is added under Data and the
+ * A company is added under Add (with its first factory), then chosen here:
+ * that gives the person access to it. A factory is added under Add and the
  * request marked added. Either can be declined. The person is told by email.
  */
 export default function CompanyRequests() {
   const requests = useAdminCompanyRequests();
   if (!requests.data || requests.data.length === 0) return null;
   return (
-    <PageSection
+    <Panel
       title="Companies and factories to add"
       description={
         <>
           Asked for by people who could not find them. Add the record under{' '}
-          <Link to="/admin?tab=data" className="font-medium text-text-1 underline hover:no-underline">
-            Data
+          <Link to="/admin/add" className="font-medium text-text-1 underline hover:no-underline">
+            Add
           </Link>
           , then answer the request here.
         </>
@@ -41,7 +41,7 @@ export default function CompanyRequests() {
           <RequestRow key={request.id} request={request} />
         ))}
       </ul>
-    </PageSection>
+    </Panel>
   );
 }
 

@@ -33,7 +33,7 @@ import {
   SegmentedChoice,
 } from '../account/parts';
 import { DAY_MS, formatDay } from '../../lib/dates';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 import CompanyPicker from './CompanyPicker';
 import CopyLinkField from './CopyLinkField';
@@ -65,13 +65,13 @@ export default function InvitesTab() {
   };
   return (
     <>
-      <PageSection
+      <Panel
         title="New invite"
         description={emailOn ? 'The link is emailed to the address, and shown here once.' : 'No email is sent. The link is passed on by hand.'}
       >
         <InviteForm onCreated={setCreated} />
         {created && <InviteLink created={created} />}
-      </PageSection>
+      </Panel>
       <PendingInvites
         onRevoked={(inviteId) => {
           if (created?.invite.id === inviteId) setCreated(null);
@@ -235,7 +235,7 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
   const shown = all.filter((invite) => !wanted || invite.email.includes(wanted) || (invite.companyName ?? '').toLowerCase().includes(wanted));
 
   return (
-    <PageSection title="Pending">
+    <Panel title="Pending">
       {invites.isPending ? (
         <RowsSkeleton rows={2} />
       ) : invites.isError ? (
@@ -302,7 +302,7 @@ function PendingInvites({ onRevoked }: { onRevoked: (inviteId: string) => void }
         </>
       )}
       <ErrorNote error={revoke.error} className="mt-2" />
-    </PageSection>
+    </Panel>
   );
 }
 
@@ -311,7 +311,7 @@ function EarlierInvites() {
   const past = useAdminPastInvites();
   if (!past.data || past.data.length === 0) return null;
   return (
-    <PageSection title="Earlier" description="Accepted, or expired without being used. Revoked invites are under History.">
+    <Panel title="Earlier" description="Accepted, or expired without being used. Revoked invites are under History.">
       <ul className={cardClass} data-earlier-invites>
         {past.data.map((invite) => (
           <li key={invite.id} className={cn(rowClass, 'py-3')} data-earlier-invite={invite.state}>
@@ -327,6 +327,6 @@ function EarlierInvites() {
           </li>
         ))}
       </ul>
-    </PageSection>
+    </Panel>
   );
 }

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useChangeMakes, type EditorMake, type MakeChange, type RecordView } from '../../lib/records';
 import { ErrorNote, busyButtonClass, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
 import ConfirmDialog from '../layout/ConfirmDialog';
-import { PageSection } from '../layout/Page';
+import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
 
 const MAKES_MAX = 12;
@@ -64,7 +64,7 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
     send({ act: 'remove', makeId: make.id }, `Removed ${make.name} from the makes of ${record.name}.`, () => setRemoving(null), '#make-add');
 
   return (
-    <PageSection title="Makes" description="The named equipment and software this skill is run on, in the order they are shown. A person who has the skill marks the ones they have run.">
+    <Panel title="Makes" description="The named equipment and software this skill is run on, in the order they are shown. A person who has the skill marks the ones they have run.">
       <div className={cardClass} data-makes-editor>
         {makes.length === 0 ? (
           <p className="text-sm text-text-2">None yet.</p>
@@ -214,6 +214,6 @@ export default function MakesEditor({ record, onChanged }: { record: RecordView;
           onCancel={() => setRemoving(null)}
         />
       </div>
-    </PageSection>
+    </Panel>
   );
 }
