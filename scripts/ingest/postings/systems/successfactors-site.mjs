@@ -131,7 +131,9 @@ export async function* pages(board, { get }) {
     const said = tiled ? /jobRecordsFound:\s*parseInt\("(\d+)"\)/.exec(html)?.[1] : /paginationLabel[^>]*>[\s\S]*?of\s*<b>\s*([\d,.]+)\s*<\/b>/.exec(html)?.[1];
     const total = Number(String(said ?? '0').replace(/[,.]/g, ''));
     from += rows.length;
-    const last = rows.length === 0 || from >= total;
+    // A page that gives no count is no evidence that it is the last: the listing goes on until a page shows nothing
+    // new, so a listing is never taken to be complete (and what it did not show gone) after its first page.
+    const last = rows.length === 0 || (total > 0 ? from >= total : postings.length === 0);
     yield { postings, next: last ? null : from };
     if (last) return;
   }

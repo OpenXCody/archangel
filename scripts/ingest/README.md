@@ -312,7 +312,10 @@ passed as a hint and used where the text says nothing.
 
 Two adapters read web pages, where the system publishes no feed a robot may
 read: `successfactors-site` (the listing is `/search/?startrow=<n>`, as a
-table or as tiles, and a posting's text is its page; the feed under
+table or as tiles, and a posting's text is its page; a place is written
+"City, Region, CC, postal code" and the country it names is passed on, so
+"Bangalore, KA, IN, 560066" is abroad and not in Indiana, while a line that
+does not say, "Lafayette, IN", is left to the reader; the feed under
 `/services/` is disallowed by these sites' robots files and is never asked
 for, and no keyword is sent, which some of them disallow too) and `icims`
 (the listing is `/jobs/search?pr=<page>`, a place is written `US-CT-Groton`,
@@ -332,16 +335,20 @@ seconds is kept, a longer one leaves the employer for a person). A host with
 no robots file (any answer but 200, 403, 429 or a server error) is taken to
 allow. Requests to one host are at least a second apart: 1.5 for Oracle, two
 for Jibe (five where its robots file asks, as Rivian's and Panasonic's do),
-four for Workday. An employer has a ceiling of 400 requests a run, and Oracle
-of 60 texts a board a run: postings past either wait for the next run, staged
-as they were.
+for iCIMS portals and for SuccessFactors career sites, four for Workday. A
+platform with a budget is paced as one site: its requests keep that distance
+whichever of its tenants they are for, the robots files included, so one
+Workday board after another is still four seconds apart. An employer has a
+ceiling of 400 requests a run, and Oracle, iCIMS portals and SuccessFactors
+career sites of 60 texts a board a run: postings past either wait for the next
+run, staged as they were.
 
 **A platform's budget.** Every Workday board is a tenant of one platform, and
 the platform turns a busy robot away (it reset the scout after about 870
 requests in an hour, and answered 429 to a first request the same day). So
 the platform has a budget for the whole run, across all of its boards: 300
 requests (`budget` in `systems/workday.mjs`; `--budget <n>` for another
-number), four seconds apart, twenty minutes. The boards without a budget are
+number), four seconds apart whichever board they are for, twenty minutes. The boards without a budget are
 read first, in the registry's order. Then the budget is spent where it is
 most needed (`inTurn` in `jobs.mjs`): a listing an earlier run left cut first,
 then a board whose last complete listing is a week old or more (its jobs

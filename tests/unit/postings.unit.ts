@@ -462,6 +462,15 @@ test('SuccessFactors career sites: the search pages are the listing, as a table 
   for (const [line, country] of lines) assert.equal(countryOf(line), country, line);
 });
 
+test('a portal or a career site whose pages give no count is read until a page shows nothing new, never taken to end at its first page', async () => {
+  const portal = await read('icims', 'careers-quietyard.icims.com');
+  assert.deepEqual(portal.listed.map((posting) => posting.id), ['4001', '4002', '4003']);
+  assert.equal(portal.session.requests, 4, 'the robots file, two pages, and the page past the end that repeats the last');
+  const site = await read('successfactors-site', 'careers.quietyard.example');
+  assert.deepEqual(site.listed.map((posting) => posting.id), ['5000001', '5000002', '5000003']);
+  assert.equal(site.session.requests, 4, 'the robots file, two pages, and the empty page past the end');
+});
+
 test('a career site that answers with a challenge page where its listing was asked for is a refusal, not a changed shape', async () => {
   put('refuse/careers-walled.icims.com', 'challenge after 1');
   const session: Session = fetcherHere().session('walled');

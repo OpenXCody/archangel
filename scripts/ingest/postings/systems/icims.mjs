@@ -82,8 +82,10 @@ export async function* pages(board, { get }) {
         hints: {},
       });
     }
-    const count = Number(/Page\s+\d+\s+of\s+(\d+)/i.exec(plain(html.slice(0, 400_000)) ?? '')?.[1] ?? 1);
-    const last = links.length === 0 || page + 1 >= count;
+    // "Page 2 of 7". A page that does not say is no evidence that it is the last: the listing goes on until a page
+    // shows nothing new, so a listing is never taken to be complete (and what it did not show gone) after its first page.
+    const said = /Page\s+\d+\s+of\s+(\d+)/i.exec(plain(html.slice(0, 400_000)) ?? '')?.[1];
+    const last = links.length === 0 || (said ? page + 1 >= Number(said) : postings.length === 0);
     yield { postings, next: last ? null : page + 1 };
     if (last) return;
   }
