@@ -14,6 +14,8 @@
 //   oracle/<host>/list.json                   the requisitions, served 100 at a time; detail-<id>.json each
 //   workday/<tenant>/list.json                { jobPostings, facets }, served 20 at a time; detail/<path>.json each
 //   successfactors/<host>.xml                 the feed
+//   successfactors-site/<host>/search-<n>.html   a career site's search page that starts at posting n; job-<id>.html each
+//   icims/<host>/search-<n>.html              a portal's search page n (from 0); job-<id>.html each
 //   refuse/<host>                             a file holding 403, 429, challenge or reset: every request to that host gets it.
 //                                             "403 after 2" answers the first two requests made since the file was written
 //                                             (the robots file and a first page, say) and refuses from the third
@@ -104,6 +106,15 @@ export function feedServer(dir) {
       }
       if ((found = /^\/wday\/cxs\/([^/]+)\/([^/]+)(\/job\/.+)$/.exec(route))) {
         return send(res, file('workday', found[1], 'detail', `${found[3].replace(/[^A-Za-z0-9]+/g, '_')}.json`));
+      }
+      // Career sites whose listing is their own pages.
+      if (existsSync(file('icims', host))) {
+        if (route === '/jobs/search') return send(res, file('icims', host, `search-${Number(url.searchParams.get('pr') ?? 0)}.html`), 'text/html');
+        if ((found = /^\/jobs\/(\d+)\/[^/]+\/job$/.exec(route))) return send(res, file('icims', host, `job-${found[1]}.html`), 'text/html');
+      }
+      if (existsSync(file('successfactors-site', host))) {
+        if (route === '/search/') return send(res, file('successfactors-site', host, `search-${Number(url.searchParams.get('startrow') ?? 0)}.html`), 'text/html');
+        if ((found = /^\/job\/.+\/(\d+)\/?$/.exec(route))) return send(res, file('successfactors-site', host, `job-${found[1]}.html`), 'text/html');
       }
       if (existsSync(file('successfactors', `${host}.xml`))) return send(res, file('successfactors', `${host}.xml`), 'application/rss+xml');
       return json(res, 404, { error: 'not found' });
