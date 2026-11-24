@@ -825,7 +825,7 @@ input {
 /* A domain is open: the rest of the plate is veiled to a whisper, in one shape. */
 .atlas-veil {
   fill: var(--bg);
-  fill-opacity: 0.9;
+  fill-opacity: 0.94;
   pointer-events: none;
   animation: atlas-arrive 0.45s ease 0.25s both;
 }

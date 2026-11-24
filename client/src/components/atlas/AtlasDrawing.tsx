@@ -550,8 +550,8 @@ function zoomFor(layout: AtlasLayout, domain: AtlasDomain | null, radiusPx: numb
   const gap = phone ? 14 : 22;
   const edge = 16 / radiusPx;
   const anchorX = frame - (labelPx + gap) / radiusPx;
-  // From a little inside the groups' tips to the rim, across the frame's left part.
-  let scale = (anchorX + frame - edge) / (g.ring - (g.group - 0.05));
+  // From just inside the Fundamentals' band to the rim, across the frame's left part: every skill of the domain is in sight.
+  let scale = (anchorX + frame - edge) / (g.ring - (g.bands[1].from - 0.045));
   // And the domain's whole sweep inside the frame's height.
   const half = domain ? Math.min(Math.PI / 2, Math.max(0.05, (domain.to - domain.from) / 2)) : 0.3;
   scale = Math.min(scale, (frame - 3 * edge) / (g.ring * Math.sin(half)));

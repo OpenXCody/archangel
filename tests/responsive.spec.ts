@@ -480,13 +480,16 @@ test('the Atlas draws every skill, opens a domain and a group, and takes a caree
       expect(offset >= one.size - 1e-6 && Math.PI * 2 - offset >= other.size - 1e-6, `${a.slug} and ${b.slug} do not overlap on the rim`).toBe(true);
     }
   }
-  // Each domain has its hue: no name is its neighbour's colour, and a domain's leaves and rim arc are its name's.
-  rim.forEach((name, i) => expect(name.fill, `${name.slug} and the next domain differ in colour`).not.toBe(rim[(i + 1) % rim.length].fill));
+  // Each domain has its hue, on the rim: no arc is its neighbour's colour, a domain's leaves are tinted with its arc's
+  // colour, and the swatch beside its word in the panel is the same. The names are ink, all one colour and none a hue.
+  const arcs = await plate.locator('.atlas-base .atlas-ring').evaluateAll((rings) => rings.map((ring) => getComputedStyle(ring).stroke));
+  expect(arcs.length).toBe(taxonomy.domains.length);
+  arcs.forEach((arc, i) => expect(arc, `${taxonomy.domains[i].slug} and the next domain differ in colour`).not.toBe(arcs[(i + 1) % arcs.length]));
   const firstDomain = plate.locator(`.atlas-base [data-domain="${taxonomy.domains[0].slug}"]`);
-  expect(await firstDomain.locator('.atlas-leaf').first().evaluate((leaf) => getComputedStyle(leaf).fill)).toBe(rim[0].fill);
-  expect(await firstDomain.locator('.atlas-ring').evaluate((arc) => getComputedStyle(arc).stroke)).toBe(rim[0].fill);
-  // The same hue is the swatch beside the domain's word in the panel.
-  expect(await page.locator(`[data-atlas-row="${taxonomy.domains[0].slug}"] .domain-swatch`).evaluate((swatch) => getComputedStyle(swatch).backgroundColor)).toBe(rim[0].fill);
+  expect(await firstDomain.locator('.atlas-leaf').first().evaluate((leaf) => getComputedStyle(leaf).fill)).toBe(arcs[0]);
+  expect(await page.locator(`[data-atlas-row="${taxonomy.domains[0].slug}"] .domain-swatch`).evaluate((swatch) => getComputedStyle(swatch).backgroundColor)).toBe(arcs[0]);
+  expect(new Set(rim.map((name) => name.fill)).size, 'the names are one ink').toBe(1);
+  expect(arcs, 'no name is set in a hue').not.toContain(rim[0].fill);
   expect(box && Math.abs(box.width - box.height) <= 1, 'the plate is square').toBe(true);
   expect(box && box.x >= 0 && box.x + box.width <= width + 1, 'the plate is inside the page').toBe(true);
   if (width < 600) expect(box && box.width >= width - 40, 'on a phone the plate is the full width').toBe(true);
@@ -515,7 +518,24 @@ test('the Atlas draws every skill, opens a domain and a group, and takes a caree
   await panel.locator(`[data-atlas-row="${domain.slug}"]`).click();
   await expect(page).toHaveURL(new RegExp(`/atlas\\?domain=${domain.slug}$`));
   await expect(plate).toHaveAttribute('data-atlas-view', 'domain');
-  await expect(plate.locator('[data-atlas-label="group"]:not([data-far])')).toHaveCount(domain.groups.length);
+  await expect(plate.locator('[data-atlas-label="group"]')).toHaveCount(domain.groups.length);
+  // Its groups are named level, in one column inside the frame, none on another, and clear of the way back to the whole.
+  await page.waitForTimeout(900);
+  const frameBox = await plate.boundingBox();
+  const whole = await page.locator('[data-atlas-whole]').boundingBox();
+  const named = await plate.locator('[data-atlas-label]').evaluateAll((labels) =>
+    labels.map((label) => {
+      const box = label.getBoundingClientRect();
+      return { x: box.x, y: box.y, right: box.right, bottom: box.bottom, level: !label.hasAttribute('transform') };
+    })
+  );
+  for (const [i, label] of named.entries()) {
+    expect(label.level, 'a name beside the open domain is level').toBe(true);
+    if (frameBox) expect(label.x >= frameBox.x && label.right <= frameBox.x + frameBox.width + 1 && label.y >= frameBox.y && label.bottom <= frameBox.y + frameBox.height + 1, 'inside the frame').toBe(true);
+    if (i > 0) expect(label.y, 'one under another').toBeGreaterThanOrEqual(named[i - 1].bottom - 2);
+    if (whole) expect(label.x > whole.x + whole.width || label.bottom < whole.y || label.y > whole.y + whole.height, 'clear of "Whole atlas"').toBe(true);
+  }
+  expect(new Set(named.map((label) => Math.round(label.x))).size, 'one column').toBe(1);
   await expect(panel.locator('[data-atlas-heading]')).toHaveText(domain.name);
   await expect(panel.locator('[data-atlas-row]')).toHaveCount(domain.groups.length);
   await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', `/explore?tab=skills&domain=${domain.slug}`);
@@ -566,7 +586,10 @@ test('the Atlas draws every skill, opens a domain and a group, and takes a caree
   const inks = await plate.locator('.atlas-base .atlas-leaf').evaluateAll((leaves) => [...new Set(leaves.map((leaf) => getComputedStyle(leaf).fill))]);
   expect(inks.length, 'the leaves under a career are one ink').toBe(1);
   await expect(plate.locator('[data-atlas-reached]')).toHaveCount(domains);
-  await expect(plate.locator('.atlas-name[data-off]')).toHaveCount(taxonomy.domains.length - domains);
+  // Every domain the career reaches is named; the others in a quieter ink, or, where the rim has no room for all sixteen, not at all.
+  await expect(plate.locator('.atlas-name:not([data-off])')).toHaveCount(domains);
+  const off = await plate.locator('.atlas-name[data-off]').count();
+  expect([0, taxonomy.domains.length - domains], 'the domains it does not reach').toContain(off);
   await assertHealthyLayout(page, '/atlas?career');
 
   // A second career over the first: what they share is told apart from what is each one's own.
@@ -1737,6 +1760,15 @@ test("a career's path is seen on the Atlas: its shape and its skills as tags, wi
   expect(box && Math.abs(box.width - box.height) <= 1, 'the plate is square').toBe(true);
   expect(box && box.x >= 0 && box.x + box.width <= size.width + 1, 'the plate is inside the page').toBe(true);
   if (size.width < 600) expect(box && box.width >= Math.min(size.width - 40, size.height * 0.47 - 1), 'on a phone the plate takes the room it is given').toBe(true);
+  // From 1024px the view stands in the page's column: the plate under the Path heading, the tags under the switch, and the plate no taller than the window.
+  if (size.width >= 1024) {
+    const heading = await page.locator('#skills h2').first().boundingBox();
+    const switchBox = await views.boundingBox();
+    const list = await view.locator('.career-atlas-list').boundingBox();
+    expect(box && heading && Math.abs(box.x - heading.x) <= 2, 'the plate starts under the heading').toBe(true);
+    expect(list && switchBox && Math.abs(list.x + list.width - (switchBox.x + switchBox.width)) <= 2, 'the tags end under the switch').toBe(true);
+    expect(box && box.height <= size.height - 56, 'the plate fits the window under the header').toBe(true);
+  }
   await assertHealthyLayout(page, '/occupations/:id?path=atlas');
 
   // On a screen tall enough the plate holds still while the tags move under it.
