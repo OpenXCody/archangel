@@ -53,13 +53,14 @@ export default function AddPage() {
     setRound((value) => value + 1);
     notice.say(said, { links });
     // The form is new: put focus back at its start, ready for the next one.
+    window.scrollTo({ top: 0 });
     window.setTimeout(() => document.getElementById(focusId)?.focus({ preventScroll: true }), 0);
   };
 
   return (
     <>
       <SegmentedChoice label="What to add" options={KIND_OPTIONS} value={kind} onChange={choose} className="mb-4 grid-cols-4 sm:mb-5 sm:max-w-md" optionClassName="min-w-0 truncate px-1" />
-      <Panel title={TITLE[kind]} description={SAYS[kind]} data-add={kind}>
+      <Panel title={TITLE[kind]} description={SAYS[kind]} className="max-w-3xl" data-add={kind}>
         {kind === 'company' ? (
           <CompanyAddForm
             key={round}
@@ -84,7 +85,7 @@ export default function AddPage() {
       </Panel>
 
       {added.length > 0 && (
-        <Panel title="Added this visit" data-added>
+        <Panel title="Added this visit" className="max-w-3xl" data-added>
           <ul>
             {added.map((item) => (
               <li key={item.key} className={`${rowClass} py-3 text-sm`} data-record-added>

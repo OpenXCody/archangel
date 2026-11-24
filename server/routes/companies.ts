@@ -138,6 +138,8 @@ router.get('/', async (req: Request, res: Response) => {
 // with the version its image is served under. Few rows; CompanyLogo reads it once.
 router.get('/marks', async (_req: Request, res: Response) => {
   try {
+    // No stale answer while a fresh one is fetched: the admin who set a mark sees it at once.
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=30');
     res.json({ marks: await listMarks() });
   } catch (error) {
     console.error('Error listing marks:', error);

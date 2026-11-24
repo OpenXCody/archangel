@@ -140,14 +140,18 @@ export function AdminNoticeBar() {
           onBlur={() => setHeld(false)}
           className="pointer-events-auto mx-auto flex w-full max-w-2xl items-start gap-3 rounded-lg border border-line-strong bg-surface py-2 pl-4 pr-2 focus:outline-none"
         >
-          <p className="min-w-0 flex-1 break-words py-1.5 text-sm text-text-1">
-            <span data-admin-notice-message>{notice.message}</span>
-            {notice.links?.map((link) => (
-              <Link key={link.to} to={link.to} className={cn(textButtonClass, 'ml-3 inline-block')} data-admin-notice-link>
-                {link.label}
-              </Link>
-            ))}
-          </p>
+          <div className="min-w-0 flex-1 break-words py-1.5 text-sm text-text-1">
+            <p data-admin-notice-message>{notice.message}</p>
+            {notice.links && notice.links.length > 0 && (
+              <p className="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+                {notice.links.map((link) => (
+                  <Link key={link.to} to={link.to} className={textButtonClass} data-admin-notice-link>
+                    {link.label}
+                  </Link>
+                ))}
+              </p>
+            )}
+          </div>
           {notice.undo && (
             <button type="button" onClick={notice.undo} className={cn(textButtonClass, 'min-h-9 shrink-0 px-1')} data-admin-notice-undo>
               Undo

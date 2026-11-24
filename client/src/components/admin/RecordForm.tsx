@@ -687,7 +687,7 @@ export default function RecordForm({ kind, record, onStart, onSaved }: RecordFor
         <>
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-4 gap-y-4">
             <div className="pt-7">
-              <CompanyLogo name={name || record?.name || ''} domain={previewDomain} size={42} />
+              <CompanyLogo name={name || record?.name || ''} domain={previewDomain} size={42} image={false} />
             </div>
             <Field
               label="Domain"

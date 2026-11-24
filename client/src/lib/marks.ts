@@ -42,12 +42,13 @@ export function useHandMarks() {
 export function useSetMark(companyId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (image: string | null): Promise<unknown> =>
+    mutationFn: (image: string | null): Promise<HandMark | null> =>
       image === null
-        ? request(`/companies/${companyId}/mark`, { method: 'DELETE' })
-        : request(`/companies/${companyId}/mark`, { method: 'PUT', body: { image } }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: publicKeys.marks });
+        ? request(`/companies/${companyId}/mark`, { method: 'DELETE' }).then(() => null)
+        : request<HandMark>(`/companies/${companyId}/mark`, { method: 'PUT', body: { image } }),
+    onSuccess: (mark) => {
+      // The list is corrected here and now, from the answer: this browser shows the new mark without asking again.
+      queryClient.setQueryData<HandMark[]>(publicKeys.marks, (marks = []) => [...marks.filter((item) => item.id !== companyId), ...(mark ? [mark] : [])]);
       void queryClient.invalidateQueries({ queryKey: accountKeys.adminAudit });
     },
   });

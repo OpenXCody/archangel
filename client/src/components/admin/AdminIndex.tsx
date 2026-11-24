@@ -37,9 +37,13 @@ export default function AdminIndex() {
                 <span className="min-w-0 flex-1">
                   <span className="block text-base font-semibold text-text-1">{page.label}</span>
                   <span className="mt-0.5 block text-sm text-text-2">{page.says}</span>
+                  {/* On a phone the count is a line of its own: beside the words it would squeeze them. */}
+                  {count ? (
+                    <span className="mt-1 block text-sm font-semibold tabular-nums text-text-1 sm:hidden">{count.toLocaleString('en-US')} waiting</span>
+                  ) : null}
                 </span>
                 {count ? (
-                  <span className="shrink-0 text-right text-sm tabular-nums text-text-1" data-admin-waiting={page.slug}>
+                  <span className="hidden shrink-0 text-right text-sm tabular-nums text-text-1 sm:block" data-admin-waiting={page.slug}>
                     <span className="font-semibold">{count.toLocaleString('en-US')}</span> <span className="text-text-2">waiting</span>
                   </span>
                 ) : null}
