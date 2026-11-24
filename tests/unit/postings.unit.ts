@@ -350,6 +350,35 @@ test('iCIMS/Jibe: pages of the list with text; the place and street come as fiel
   assert.equal(one?.country, 'US');
 });
 
+test('iCIMS/Jibe: a posting at several sites names each, each with its own country: one abroad is left out, the others kept', async () => {
+  const { listed, session } = await read('jibe', 'careers.manysites.test');
+  wellFormed(listed, true);
+  assert.equal(session.requests, 2, 'the robots file and the one page: the other sites are in the listing');
+  const at = (id: string) => listed.find((posting) => posting.id === id);
+  const sites = (id: string) => ({ locations: at(id)?.locations, address: at(id)?.address, country: at(id)?.country });
+  assert.deepEqual(sites('7001'), { locations: ['Normal, Illinois', 'Social Circle, Georgia'], address: '1 Works Way, 61761; 100 Works Parkway, 30025', country: 'US' },
+    'its first site and the other at home, in order; the one in Ontario left out');
+  assert.equal(at('7001')?.location, 'Normal, Illinois');
+  assert.deepEqual(sites('7002'), { locations: ['Normal, Illinois'], address: '1 Works Way, 61761', country: 'US' }, 'listed first abroad and kept at its site at home');
+  assert.deepEqual(sites('7003'), { locations: ['Social Circle, Georgia'], address: '100 Works Parkway, 30025', country: 'US' }, 'one site, as before');
+  assert.deepEqual(sites('7004'), { locations: ['Windsor, Ontario'], address: '9 Lakeshore Road, N9A 1A1', country: 'CA' }, 'abroad at every site: its first, whose country says so');
+  assert.deepEqual(sites('7005'), { locations: ['Normal, Illinois'], address: '1 Works Way, 61761; 40 Press Road, 61761', country: 'US' }, 'two streets in one town are one place');
+
+  // Read through: a posting is kept at every site at home, each to be a job at its own factory.
+  const entry = { slug: 'manysites', employer: 'Manysites', company: 'Manysites Works', system: 'jibe', board: 'careers.manysites.test' };
+  const fresh: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('manysites', { pace: 0 });
+  const collected = await collect(noRows, entry, { session: fresh, reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' });
+  const placesOf = (id: string) => collected.kept.get(id)?.facts.reading.places.map((place: { city: string; state: string }) => `${place.city}, ${place.state}`);
+  assert.deepEqual([...collected.kept.keys()], ['7001', '7002', '7003', '7005']);
+  assert.deepEqual(placesOf('7001'), ['Normal, IL', 'Social Circle, GA']);
+  assert.equal(collected.kept.get('7001')?.facts.location, 'Normal, Illinois; Social Circle, Georgia');
+  assert.deepEqual(placesOf('7002'), ['Normal, IL']);
+  assert.deepEqual(placesOf('7005'), ['Normal, IL']);
+  assert.equal(collected.counts.abroad, 1, 'the posting at sites abroad alone');
+  assert.equal(collected.counts.notCareer, 1);
+  assert.deepEqual(collected.unplaced, [], 'every site at home was read as a place');
+});
+
 test('Oracle: a list without text, then one request for a posting\'s text', async () => {
   const { listed, session, tools } = await read('oracle', 'efds.fa.em5.oraclecloud.com/CX_1');
   wellFormed(listed, false);

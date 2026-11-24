@@ -355,6 +355,17 @@ one again (after the reader changed). An adapter decides nothing: a field the
 feed states on its own (Lever's and Ashby's pay, a shift, full-time) is
 passed as a hint and used where the text says nothing.
 
+A Jibe posting at more than one site (`multipleLocations`) names the others
+in `additional_locations`, each with its own city, state, street and
+country. The adapter reads every site, the job's own first: a site whose
+country is not the United States is left out and the others are kept, so a
+posting listed first in Ontario and also in Illinois is kept in Illinois, and
+one abroad at every site is abroad. Each site is a line of `locations`
+("Normal, Illinois", as the feed writes it), once each, and its street joins
+`address`; a posting at one site reads exactly as it did before. Each place
+is a job of its own (`<posting id>@<place key>`), so a posting already kept
+at its first site keeps that job and gains one at each other site.
+
 Two adapters read web pages, where the system publishes no feed a robot may
 read: `successfactors-site` (the listing is `/search/?startrow=<n>`, as a
 table or as tiles, and a posting's text is its page; a place is written
