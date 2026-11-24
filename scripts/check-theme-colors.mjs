@@ -19,6 +19,13 @@
 // replaced (text-fg-muted, bg-bg-elevated, bg-tint/5, var(--color-…), shadcn's
 // bg-primary, bg-muted …) fail too, so they cannot come back.
 //
+// One thing in the product is coloured by kind: the Atlas, whose sixteen
+// domains each have a hue (--domain-<slug>, per theme, in the token file like
+// every other colour). Those hues are handed out by the stylesheet alone
+// (`[data-domain]` gives --domain-hue to the Atlas's rules and to
+// `.domain-swatch`): a component names a domain by its slug and never a hue,
+// so `--domain-` anywhere but the stylesheet fails too.
+//
 // Not checked: company logos (client/public/logos, images). Two static files a
 // browser reads before any stylesheet must each carry a literal colour, the
 // `theme-color` tag in client/index.html and the manifest's two; they are held
@@ -122,6 +129,11 @@ for await (const file of walk(path.join(client, 'src'))) {
   files += 1;
   const rel = path.relative(repo, file).split(path.sep).join('/');
   const text = await readFile(file, 'utf8');
+  if (rel !== TOKEN_FILE) {
+    text.split('\n').forEach((line, index) => {
+      for (const match of line.matchAll(/--domain-[a-z-]+/g)) problems.push(`${rel}:${index + 1}  a domain's hue named outside the stylesheet: ${match[0]}`);
+    });
+  }
   check(rel, file.endsWith('.css') ? stylesheetLines(text) : text.split('\n').map((line) => ({ text: line })));
 }
 

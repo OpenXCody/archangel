@@ -428,6 +428,65 @@ test('the Atlas draws every skill, opens a domain and a group, and takes a caree
   await expect(plate.locator('.atlas-name').first()).toBeVisible();
   const box = await plate.boundingBox();
   const width = page.viewportSize()?.width ?? 0;
+  // The rim, read from the drawing itself: where each domain's name is set, in the drawing's own units, and its colour.
+  await page.evaluate(() => document.fonts.ready);
+  const rim = await plate.locator('.atlas-name').evaluateAll((names) =>
+    names.map((name) => {
+      const text = name as SVGTextElement;
+      const count = text.getNumberOfChars();
+      const start = text.getStartPositionOfChar(0);
+      const end = text.getEndPositionOfChar(count - 1);
+      const middle = text.getStartPositionOfChar(Math.floor(count / 2));
+      const clock = (point: DOMPoint) => (Math.atan2(point.x, -point.y) + Math.PI * 2) % (Math.PI * 2);
+      const view = (text.ownerSVGElement as SVGSVGElement).viewBox.baseVal;
+      return {
+        slug: text.getAttribute('data-atlas-domain'),
+        row: text.getAttribute('data-row'),
+        // Whichever way the text runs, its two ends as angles clockwise from the top.
+        ends: [clock(start), clock(end)],
+        x: middle.x,
+        y: middle.y,
+        reach: Math.max(Math.hypot(start.x, start.y), Math.hypot(end.x, end.y)),
+        half: view.width / 2,
+        fill: getComputedStyle(text).fill,
+        size: parseFloat(getComputedStyle(text).fontSize) * (text.ownerSVGElement as SVGSVGElement).getBoundingClientRect().width / view.width,
+      };
+    })
+  );
+  expect(rim.length).toBe(taxonomy.domains.length);
+  // The last domain (Safety) is never at the top: its name is in the lower left of the plate, and the name at the top is another's.
+  const lastName = rim[rim.length - 1];
+  expect(lastName.x < 0 && lastName.y > 0, `the last domain, ${lastName.slug}, is at the lower left`).toBe(true);
+  const topName = [...rim].sort((a, b) => a.y - b.y)[0];
+  expect(topName.slug, 'the name at the top of the plate').not.toBe(lastName.slug);
+  expect(rim.every((name) => name.y >= topName.y), 'nothing is above the top name').toBe(true);
+  // Every name is whole and inside the frame, large enough to read, and none runs into another on its row.
+  for (const name of rim) {
+    expect(name.reach, `${name.slug} is inside the frame`).toBeLessThan(name.half);
+    expect(name.size, `${name.slug} is set at a readable size`).toBeGreaterThanOrEqual(9.5);
+  }
+  const span = (ends: number[]) => {
+    // The short way between the two ends: a name never takes half the rim.
+    const [a, b] = ends;
+    const gap = (b - a + Math.PI * 2) % (Math.PI * 2);
+    return gap <= Math.PI ? { from: a, size: gap } : { from: b, size: Math.PI * 2 - gap };
+  };
+  for (const a of rim) {
+    for (const b of rim) {
+      if (a === b || a.row !== b.row) continue;
+      const one = span(a.ends);
+      const other = span(b.ends);
+      const offset = (other.from - one.from + Math.PI * 2) % (Math.PI * 2);
+      expect(offset >= one.size - 1e-6 && Math.PI * 2 - offset >= other.size - 1e-6, `${a.slug} and ${b.slug} do not overlap on the rim`).toBe(true);
+    }
+  }
+  // Each domain has its hue: no name is its neighbour's colour, and a domain's leaves and rim arc are its name's.
+  rim.forEach((name, i) => expect(name.fill, `${name.slug} and the next domain differ in colour`).not.toBe(rim[(i + 1) % rim.length].fill));
+  const firstDomain = plate.locator(`.atlas-base [data-domain="${taxonomy.domains[0].slug}"]`);
+  expect(await firstDomain.locator('.atlas-leaf').first().evaluate((leaf) => getComputedStyle(leaf).fill)).toBe(rim[0].fill);
+  expect(await firstDomain.locator('.atlas-ring').evaluate((arc) => getComputedStyle(arc).stroke)).toBe(rim[0].fill);
+  // The same hue is the swatch beside the domain's word in the panel.
+  expect(await page.locator(`[data-atlas-row="${taxonomy.domains[0].slug}"] .domain-swatch`).evaluate((swatch) => getComputedStyle(swatch).backgroundColor)).toBe(rim[0].fill);
   expect(box && Math.abs(box.width - box.height) <= 1, 'the plate is square').toBe(true);
   expect(box && box.x >= 0 && box.x + box.width <= width + 1, 'the plate is inside the page').toBe(true);
   if (width < 600) expect(box && box.width >= width - 40, 'on a phone the plate is the full width').toBe(true);
@@ -502,6 +561,12 @@ test('the Atlas draws every skill, opens a domain and a group, and takes a caree
     `${list.data[0].title} · ${first.length} ${first.length === 1 ? 'skill' : 'skills'} across ${domains} ${domains === 1 ? 'domain' : 'domains'}`
   );
   await expect(plate.locator('.atlas-base')).toHaveAttribute('data-dim', 'true');
+  // Under a career the plate is ink again, so the accent reads alone: every leaf one colour, and only the domains
+  // the career reaches keep their hue, on the rim.
+  const inks = await plate.locator('.atlas-base .atlas-leaf').evaluateAll((leaves) => [...new Set(leaves.map((leaf) => getComputedStyle(leaf).fill))]);
+  expect(inks.length, 'the leaves under a career are one ink').toBe(1);
+  await expect(plate.locator('[data-atlas-reached]')).toHaveCount(domains);
+  await expect(plate.locator('.atlas-name[data-off]')).toHaveCount(taxonomy.domains.length - domains);
   await assertHealthyLayout(page, '/atlas?career');
 
   // A second career over the first: what they share is told apart from what is each one's own.
