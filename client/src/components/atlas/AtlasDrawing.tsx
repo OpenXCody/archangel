@@ -117,11 +117,11 @@ const fixed = (value: number, digits = 2) => Number(value.toFixed(digits));
  * mark covers its neighbours.
  */
 function dotRadius(layout: AtlasLayout, leaf: AtlasLeaf): number {
-  return 0.0048 + 0.0026 * leafWeight(leaf.careers, layout.maxCareers);
+  return 0.0052 + 0.0026 * leafWeight(leaf.careers, layout.maxCareers);
 }
 
 function leafOpacity(layout: AtlasLayout, leaf: AtlasLeaf): number {
-  return 0.42 + 0.58 * leafWeight(leaf.careers, layout.maxCareers);
+  return 0.5 + 0.5 * leafWeight(leaf.careers, layout.maxCareers);
 }
 
 // ---------------------------------------------------------------------------

@@ -123,14 +123,14 @@ test('no two leaves overlap', () => {
     const gap = layout.leaves[i].angle - layout.leaves[i - 1].angle;
     assert.ok(gap >= layout.step - 1e-9, `${layout.leaves[i].name} has its own step of angle`);
   }
-  // Nor two marks: any two leaves near each other round the plate are further apart than two of the smallest marks are wide (radius 0.0048).
+  // Nor two marks: any two leaves near each other round the plate are further apart than two of the smallest marks are wide (radius 0.0052).
   for (let i = 0; i < total; i++) {
     for (let j = i + 1; j < Math.min(total, i + 12); j++) {
       const a = layout.leaves[i];
       const b = layout.leaves[j];
       const [ax, ay] = point(a.angle, a.radius);
       const [bx, by] = point(b.angle, b.radius);
-      assert.ok(Math.hypot(ax - bx, ay - by) > 0.0048 * 2, `${a.name} and ${b.name} are apart`);
+      assert.ok(Math.hypot(ax - bx, ay - by) > 0.0052 * 2, `${a.name} and ${b.name} are apart`);
     }
   }
   // A domain's rim arc ends before the next one's begins, all the way round.
