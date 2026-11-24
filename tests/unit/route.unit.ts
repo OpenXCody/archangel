@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildRoute, nextOf, routeSkills, shareOf, NEXT_SKILLS, type RouteStatus } from '../../shared/route';
+import { buildRoute, groupRoute, nextOf, routeSkills, shareOf, NEXT_SKILLS, type RouteStatus } from '../../shared/route';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const group = (slug: string) => ({ slug, name: slug.replace(/-/g, ' ') });
@@ -109,4 +109,22 @@ test('the flow is gone: nothing draws a path by level columns', () => {
   const said = client('client/src').filter((file) => /PathFlow|buildPath\(|\.path-flow|path-level/.test(readFileSync(path.join(root, file), 'utf8')));
   // The admin's path editor still lays a path out by level; it is replaced by the builder, in its own ship.
   assert.deepEqual(said.map((file) => file.split(path.sep).join('/')), ['client/src/components/admin/PathEditor.tsx']);
+});
+
+test('by group, a path is each group once, where the route first reaches it, with its skills in the route\'s order', () => {
+  const grouped = (skills: { id: string; group: { slug: string; name: string } | null }[]) =>
+    groupRoute(skills).map((stop) => (stop.kind === 'section' ? `${stop.group.slug}[${stop.skills.map((each) => each.id).join(' ')}]` : stop.skill.id));
+  // A group the route comes back to is one section, and a group of one skill is a section too.
+  assert.deepEqual(
+    grouped([skill('a', 'cnc'), skill('b', 'cnc'), skill('c', 'inspection'), skill('d', 'safety'), skill('e', 'cnc'), skill('f', 'inspection')]),
+    ['cnc[a b e]', 'inspection[c f]', 'safety[d]']
+  );
+  // A skill no taxonomy placed stands by itself, where it is.
+  assert.deepEqual(grouped([skill('a', 'cnc'), skill('x', null), skill('b', 'cnc')]), ['cnc[a b]', 'x']);
+  assert.deepEqual(grouped([]), []);
+  // Each section is keyed by its group, so what a person opened holds while the career's groups do.
+  const route = groupRoute([skill('a', 'cnc'), skill('c', 'inspection'), skill('b', 'cnc')]);
+  assert.deepEqual(route.map((stop) => stop.key), ['cnc', 'inspection']);
+  // Every skill is there once.
+  assert.deepEqual(routeSkills(route).map((each) => each.id).sort(), ['a', 'b', 'c']);
 });

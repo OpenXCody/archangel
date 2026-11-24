@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildRoute, nextOf, routeSkills, type RouteStop } from '@shared/route';
+import { buildRoute, groupRoute, nextOf, type RouteStop } from '@shared/route';
 import { cn, focusRing, labelClass, plural } from '@/lib/utils';
 import { readStored, writeStored } from '../../lib/storage';
 import type { LadderCareer, PlacedSkill, SkillMarks } from '../path/model';
@@ -32,10 +32,18 @@ interface RouteProps {
   renderRow?: (skill: RouteSkill, context: RowContext) => React.ReactNode;
   /** What a person's own opening and closing of sections is kept under for the visit: the career, or the career at a company. */
   keepAs?: string;
+  /**
+   * The path by skill group (a career's page): each group one section, where
+   * the route first reaches it, closed until it is opened. Without it the
+   * route is its stops in order, as the employer's editor draws it.
+   */
+  grouped?: boolean;
+  /** The section's heading, drawn on the route's first line beside "Open all" in place of the count. */
+  heading?: React.ReactNode;
   className?: string;
 }
 
-/** A route this short is open whole, for everyone. */
+/** A route of stops this short is open whole, for everyone. */
 const OPEN_WHOLE = 3;
 
 /**
@@ -44,25 +52,31 @@ const OPEN_WHOLE = 3;
  * one skill group: one line that opens and closes) or a single skill with its
  * group under its name. No domain and no level is named here.
  *
+ * On a career's page the route is by group (`grouped`): each skill group is
+ * one section, in the order the route first reaches it, and every section is
+ * closed to its one line ("Arc welding · 4") until it is opened, for
+ * everyone; "Open all" opens them together.
+ *
  * For a seeker each skill is held, being learned, one of the next three, or
  * later; the first of the three is said above the route (`NextUp`) and, from
  * 1024 px, in a column that holds still beside it (`RouteSide`). The sections
  * that hold a next skill are the open ones when the page arrives. Everyone
- * else sees the same stops with every section open and nothing marked.
+ * else sees the same sections, closed, and nothing marked.
  *
  * The route is read-only: it shows what a person holds and nothing here
  * marks a skill (that is done on Profile). When their marks change elsewhere
  * every figure follows, a section that Next has moved into opens, and none
  * closes by itself during a visit.
  */
-export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], renderRow, keepAs, className }: RouteProps) {
-  const route = useMemo(() => buildRoute(skills), [skills]);
+export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], renderRow, keepAs, grouped = false, heading, className }: RouteProps) {
+  const route = useMemo(() => (grouped ? groupRoute(skills) : buildRoute(skills)), [skills, grouped]);
   const sections = useMemo(() => route.filter((stop) => stop.kind === 'section'), [route]);
   // A person's marks are read once the list has arrived: until then nothing is next and nothing opens.
   const ready = !marks || !marks.pending;
   const next = useMemo(
-    () => (marks && ready ? nextOf(routeSkills(route), (id) => marks.statusOf(id) === 'held') : []),
-    [marks, ready, route]
+    // In the route's own order, whichever way its stops are cut.
+    () => (marks && ready ? nextOf(skills, (id) => marks.statusOf(id) === 'held') : []),
+    [marks, ready, skills]
   );
   const nextIds = useMemo(() => next.map((skill) => skill.id), [next]);
 
@@ -86,7 +100,8 @@ export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], rend
     if (fresh.length > 0) setChosen((current) => (fresh.some((key) => current[key] === false) ? without(current, fresh) : current));
   }, [marks, ready, holdingNext]);
 
-  const everyoneOpen = !marks || route.length <= OPEN_WHOLE;
+  // By group, every section starts closed (a path of one group is that group, open); cut into stops, a visitor's are open.
+  const everyoneOpen = grouped ? route.length <= 1 : !marks || route.length <= OPEN_WHOLE;
   const isOpen = useCallback(
     (key: string): boolean => chosen[key] ?? (everyoneOpen || Boolean(entered?.has(key))),
     [chosen, everyoneOpen, entered]
@@ -142,13 +157,14 @@ export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], rend
       data-route-two={marks && next.length > 0 ? '' : undefined}
       data-route-marked={marks ? '' : undefined}
     >
-      {marks && next.length > 0 && <NextUp skill={next[0]} onGo={goTo} className="route-next" />}
       <div className="route-main">
-        <div className="flex min-h-11 items-center justify-between gap-3">
-          {/* Where the rows are switches, the page above says how many are on; the route does not count them again. */}
-          <p className={labelClass} data-route-count>
-            {plain ? 'Path' : plural(count, 'skill', 'skills')}
-          </p>
+        <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3">
+          {heading ?? (
+            // Where the rows are switches, the page above says how many are on; the route does not count them again.
+            <p className={labelClass} data-route-count>
+              {plain ? 'Path' : plural(count, 'skill', 'skills')}
+            </p>
+          )}
           {sections.length > 0 && (
             <button
               type="button"
@@ -160,6 +176,7 @@ export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], rend
             </button>
           )}
         </div>
+        {marks && next.length > 0 && <NextUp skill={next[0]} onGo={goTo} className="route-next mt-1" />}
         {comesFrom.length > 0 && <Ladder label="Comes from" careers={comesFrom} place="before" />}
         <ol className="route-stops">
           {route.map((stop, index) => {

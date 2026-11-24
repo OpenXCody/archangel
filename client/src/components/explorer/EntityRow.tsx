@@ -109,12 +109,15 @@ function FactoryRow({ data, onMouseEnter }: Props<Factory>) {
 
 function OccupationRow({ data, onMouseEnter }: Props<Occupation>) {
   // "Machining · 17 skills": its home and the size of its path. How the skills fall by level is the career's page.
-  // A military career, listed only when the list was asked for them, says its kind and code first: "Navy rating · HT".
+  // A military career, listed only when the list was asked for them, says its kind and code first: "Navy rating · HT",
+  // led by its service's mark, as a factory's line is led by its company's.
+  const service = data.service ?? null;
   return (
     <Row
       to={`/occupations/${data.id}`}
       name={data.title}
       summary={data.description}
+      factsLeading={service ? <CompanyLogo name={service.name} domain={service.domain} size={20} className="rounded" /> : null}
       facts={[kindLine(data.kind, data.code), data.home?.name, count(data.skillCount, 'skill', 'skills')]}
       onMouseEnter={onMouseEnter}
     />

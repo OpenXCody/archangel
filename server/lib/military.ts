@@ -65,6 +65,8 @@ export interface CareerService {
   name: string;
   slug: string | null;
   key: ServiceKey;
+  /** Its website domain, which its mark is found by, as a company's is. */
+  domain: string | null;
 }
 
 export interface MilitaryFacts {
@@ -92,6 +94,7 @@ export const serviceColumns = {
   serviceName: companies.name,
   serviceSlug: companies.slug,
   serviceKey: companies.service,
+  serviceDomain: companies.domain,
   code: occupations.code,
   codeSystem: occupations.codeSystem,
   officialTitle: occupations.officialTitle,
@@ -105,6 +108,7 @@ interface ServiceRow {
   serviceName: string | null;
   serviceSlug: string | null;
   serviceKey: string | null;
+  serviceDomain: string | null;
   code: string | null;
   codeSystem: string | null;
   officialTitle: string | null;
@@ -115,7 +119,7 @@ export function militaryOf(row: ServiceRow): MilitaryFacts {
   if (!row.serviceId || !row.serviceName || !isServiceKey(row.serviceKey)) return NOT_MILITARY;
   const codeSystem = isCodeSystem(row.codeSystem) ? row.codeSystem : null;
   return {
-    service: { id: row.serviceId, name: row.serviceName, slug: row.serviceSlug, key: row.serviceKey },
+    service: { id: row.serviceId, name: row.serviceName, slug: row.serviceSlug, key: row.serviceKey, domain: row.serviceDomain },
     code: row.code,
     codeSystem,
     kind: careerKind(codeSystem),
@@ -130,7 +134,7 @@ export async function militaryFacts(
 ): Promise<MilitaryFacts> {
   if (!career.serviceCompanyId) return NOT_MILITARY;
   const [service] = await executor
-    .select({ serviceId: companies.id, serviceName: companies.name, serviceSlug: companies.slug, serviceKey: companies.service })
+    .select({ serviceId: companies.id, serviceName: companies.name, serviceSlug: companies.slug, serviceKey: companies.service, serviceDomain: companies.domain })
     .from(companies)
     .where(eq(companies.id, career.serviceCompanyId))
     .limit(1);
@@ -155,7 +159,11 @@ export function notAnEmployerHere(name: string): string {
 
 /** The company that is this service; null when it is not stored. */
 export async function findService(executor: Executor, key: ServiceKey): Promise<CareerService | null> {
-  const [row] = await executor.select({ id: companies.id, name: companies.name, slug: companies.slug }).from(companies).where(eq(companies.service, key)).limit(1);
+  const [row] = await executor
+    .select({ id: companies.id, name: companies.name, slug: companies.slug, domain: companies.domain })
+    .from(companies)
+    .where(eq(companies.service, key))
+    .limit(1);
   return row ? { ...row, key } : null;
 }
 

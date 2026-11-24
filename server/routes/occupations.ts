@@ -158,10 +158,10 @@ router.get('/', async (req: Request, res: Response) => {
     const hasMore = offsetNum + result.length < total;
 
     res.json({
-      data: result.map(({ homeSlug, homeName, serviceId, serviceName, serviceSlug, serviceKey, code, codeSystem, officialTitle, ...row }) => ({
+      data: result.map(({ homeSlug, homeName, serviceId, serviceName, serviceSlug, serviceKey, serviceDomain, code, codeSystem, officialTitle, ...row }) => ({
         ...row,
         home: homeOf({ homeSlug, homeName }),
-        ...militaryOf({ serviceId, serviceName, serviceSlug, serviceKey, code, codeSystem, officialTitle }),
+        ...militaryOf({ serviceId, serviceName, serviceSlug, serviceKey, serviceDomain, code, codeSystem, officialTitle }),
       })),
       total,
       offset: offsetNum,

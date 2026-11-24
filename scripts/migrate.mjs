@@ -31,6 +31,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0061_career_service.sql', '0062_military_employers.sql',
   // The military careers, then their paths, every one a draft.
   '0063_military_careers.sql', '0064_military_paths.sql',
+  // The plants behind employers' postings: the plants we lacked and four employers we did not list (a research file),
+  // rows filed under an employer that are another firm's, and the places postings name that are decided by the data.
+  '0065_posting_employers.sql', '0066_rows_not_theirs.sql', '0067_posting_places.sql',
   // The domains in a new order, Safety last. No group or skill moves.
   '0068_skill_taxonomy_4.sql',
 
@@ -39,7 +42,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
 
   // Texas completed hub by hub: Austin and its ring, Houston and Beaumont, Dallas-Fort Worth, San Antonio
   // and the Valley, the rest of Texas (data/employers/texas-hubs.json). 0070 to 0075 are other work's.
-  '0076_texas_hubs.sql'];
+  '0076_texas_hubs.sql',
+  // The four services' descriptions, replaced where each is still the file's earlier one.
+  '0077_military_employers_2.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
