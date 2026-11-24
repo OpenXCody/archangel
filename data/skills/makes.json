@@ -21,7 +21,8 @@
         "Okuma",
         "Heidenhain",
         "Mitsubishi",
-        "ProtoTRAK"
+        "ProtoTRAK",
+        "CELOS"
       ]
     },
     {
@@ -123,7 +124,11 @@
         "GibbsCAM",
         "ESPRIT",
         "hyperMILL",
-        "PowerMill"
+        "PowerMill",
+        "AlphaCAM",
+        "Cabinet Vision",
+        "Microvellum",
+        "enRoute"
       ]
     },
     {
@@ -553,7 +558,8 @@
       "makes": [
         "Kulicke & Soffa",
         "ASMPT",
-        "Hesse"
+        "Hesse",
+        "West·Bond"
       ]
     },
     {
@@ -631,7 +637,8 @@
         "Yokogawa CENTUM",
         "ABB 800xA",
         "Foxboro",
-        "Siemens PCS 7"
+        "Siemens PCS 7",
+        "Valmet DNA"
       ]
     },
     {
@@ -774,7 +781,9 @@
         "NI",
         "HBK",
         "Dewesoft",
-        "Keysight"
+        "Keysight",
+        "cDAQ",
+        "FlexLogger"
       ]
     },
     {
@@ -792,7 +801,8 @@
         "NI VeriStand",
         "Speedgoat",
         "Vector CANoe",
-        "Typhoon HIL"
+        "Typhoon HIL",
+        "OPAL-RT"
       ]
     },
     {
@@ -801,7 +811,8 @@
         "Vector CANalyzer",
         "PCAN",
         "Kvaser",
-        "Vehicle Spy"
+        "Vehicle Spy",
+        "CANape"
       ]
     },
     {
@@ -918,7 +929,10 @@
         "GX Works",
         "Sysmac Studio",
         "Allen-Bradley",
-        "Siemens"
+        "Siemens",
+        "Beckhoff",
+        "Omron",
+        "Schneider Electric"
       ]
     },
     {
@@ -1043,7 +1057,8 @@
         "Cognex",
         "Keyence",
         "SICK",
-        "Omron"
+        "Omron",
+        "Basler"
       ]
     },
     {
@@ -1062,7 +1077,8 @@
         "Windchill",
         "3DEXPERIENCE",
         "SolidWorks PDM",
-        "Arena"
+        "Arena",
+        "ENOVIA"
       ]
     },
     {
@@ -1082,7 +1098,9 @@
         "Inventor",
         "Autodesk Fusion",
         "Solid Edge",
-        "Onshape"
+        "Onshape",
+        "ShipConstructor",
+        "Rhino"
       ]
     },
     {
@@ -1099,7 +1117,12 @@
         "Abaqus",
         "Nastran",
         "LS-DYNA",
-        "Femap"
+        "Femap",
+        "ANSA",
+        "OptiStruct",
+        "HyperWorks",
+        "HyperMesh",
+        "Patran"
       ]
     },
     {
@@ -1138,7 +1161,8 @@
         "SQL",
         "MATLAB",
         "Power BI",
-        "Tableau"
+        "Tableau",
+        "VBA"
       ]
     },
     {
@@ -1147,6 +1171,1245 @@
         "DOORS",
         "Jama Connect",
         "Polarion"
+      ]
+    },
+    {
+      "skill": "Ammonia Refrigeration System Operation",
+      "makes": [
+        "Frick",
+        "Vilter",
+        "Mycom",
+        "GEA"
+      ]
+    },
+    {
+      "skill": "Form-Fill-Seal Bagging",
+      "makes": [
+        "Ishida",
+        "TNA",
+        "Syntegon",
+        "Triangle",
+        "Hayssen"
+      ]
+    },
+    {
+      "skill": "Vacuum and Modified Atmosphere Packaging",
+      "makes": [
+        "Multivac",
+        "Cryovac",
+        "Harpak-ULMA"
+      ]
+    },
+    {
+      "skill": "Food Extrusion Cooking",
+      "makes": [
+        "Wenger",
+        "Clextral",
+        "Bühler"
+      ]
+    },
+    {
+      "skill": "Chocolate Tempering and Enrobing",
+      "makes": [
+        "Sollich",
+        "Aasted"
+      ]
+    },
+    {
+      "skill": "Food Chemistry Testing",
+      "makes": [
+        "Anton Paar",
+        "FOSS",
+        "AquaLab",
+        "Mettler Toledo"
+      ]
+    },
+    {
+      "skill": "Food Pathogen Testing",
+      "makes": [
+        "Neogen",
+        "Hygiena",
+        "bioMérieux",
+        "Bio-Rad"
+      ]
+    },
+    {
+      "skill": "Feed Pelleting",
+      "makes": [
+        "CPM",
+        "Andritz",
+        "Bühler"
+      ]
+    },
+    {
+      "skill": "Milk Separation and Standardization",
+      "makes": [
+        "GEA",
+        "Alfa Laval",
+        "Tetra Pak"
+      ]
+    },
+    {
+      "skill": "Beverage Clarification and Filtration",
+      "makes": [
+        "GEA",
+        "Alfa Laval",
+        "Pall"
+      ]
+    },
+    {
+      "skill": "Plastic Extrusion",
+      "makes": [
+        "Davis-Standard",
+        "Reifenhäuser",
+        "Windmöller & Hölscher",
+        "Battenfeld-Cincinnati",
+        "Coperion",
+        "KraussMaffei"
+      ]
+    },
+    {
+      "skill": "Resin Drying and Handling",
+      "makes": [
+        "Conair",
+        "Novatec",
+        "Piovan",
+        "Motan",
+        "Wittmann"
+      ]
+    },
+    {
+      "skill": "Thermoforming",
+      "makes": [
+        "Brown",
+        "Irwin",
+        "Kiefel",
+        "Illig",
+        "GN"
+      ]
+    },
+    {
+      "skill": "Plastic Welding",
+      "makes": [
+        "Branson",
+        "Dukane",
+        "Herrmann Ultrasonics",
+        "Sonics & Materials",
+        "Telsonic"
+      ]
+    },
+    {
+      "skill": "Rubber Mixing and Milling",
+      "makes": [
+        "Banbury",
+        "HF Mixing Group",
+        "Kobelco"
+      ]
+    },
+    {
+      "skill": "Rubber Molding and Curing",
+      "makes": [
+        "REP",
+        "Desma",
+        "LWB Steinl"
+      ]
+    },
+    {
+      "skill": "Polymer Material Testing",
+      "makes": [
+        "Alpha Technologies",
+        "MonTech",
+        "TA Instruments",
+        "Dynisco",
+        "Instron"
+      ]
+    },
+    {
+      "skill": "Wet Chemical Analysis",
+      "makes": [
+        "Metrohm",
+        "Mettler Toledo"
+      ]
+    },
+    {
+      "skill": "Laboratory Information Management System Use",
+      "makes": [
+        "LabWare",
+        "STARLIMS",
+        "LabVantage",
+        "SampleManager"
+      ]
+    },
+    {
+      "skill": "UV-Visible and Infrared Spectroscopy",
+      "makes": [
+        "Thermo Fisher",
+        "Agilent",
+        "PerkinElmer",
+        "Shimadzu",
+        "Bruker"
+      ]
+    },
+    {
+      "skill": "Mass Spectrometry",
+      "makes": [
+        "Agilent",
+        "Waters",
+        "Thermo Fisher",
+        "Sciex",
+        "Shimadzu"
+      ]
+    },
+    {
+      "skill": "Bioreactor Operation",
+      "makes": [
+        "Sartorius",
+        "Thermo Fisher",
+        "Cytiva"
+      ]
+    },
+    {
+      "skill": "Process Chromatography",
+      "makes": [
+        "ÄKTA",
+        "Sartorius",
+        "Repligen"
+      ]
+    },
+    {
+      "skill": "Tangential Flow Filtration",
+      "makes": [
+        "Repligen",
+        "Millipore",
+        "Sartorius",
+        "Pall"
+      ]
+    },
+    {
+      "skill": "Sterile Filtration and Filter Integrity Testing",
+      "makes": [
+        "Sartorius",
+        "Millipore",
+        "Pall"
+      ]
+    },
+    {
+      "skill": "Thermal Validation",
+      "makes": [
+        "Kaye",
+        "Ellab"
+      ]
+    },
+    {
+      "skill": "Capsule Filling",
+      "makes": [
+        "Syntegon",
+        "IMA",
+        "MG2"
+      ]
+    },
+    {
+      "skill": "Filtration and Centrifugation",
+      "makes": [
+        "Alfa Laval",
+        "GEA",
+        "Andritz"
+      ]
+    },
+    {
+      "skill": "Pigment Dispersion",
+      "makes": [
+        "Hockmeyer",
+        "Myers",
+        "Netzsch"
+      ]
+    },
+    {
+      "skill": "Liquid and Semisolid Compounding",
+      "makes": [
+        "Ross",
+        "Silverson",
+        "IKA"
+      ]
+    },
+    {
+      "skill": "Microbial Identification",
+      "makes": [
+        "VITEK",
+        "MALDI Biotyper"
+      ]
+    },
+    {
+      "skill": "Kraft Pulping",
+      "makes": [
+        "Valmet",
+        "Andritz"
+      ]
+    },
+    {
+      "skill": "Paper Machine Wet End Operation",
+      "makes": [
+        "Valmet",
+        "Voith",
+        "Andritz"
+      ]
+    },
+    {
+      "skill": "Paper Machine Dry End Operation",
+      "makes": [
+        "Valmet",
+        "Voith",
+        "Andritz"
+      ]
+    },
+    {
+      "skill": "Tissue Creping",
+      "makes": [
+        "Valmet",
+        "Toscotec",
+        "Voith",
+        "Andritz"
+      ]
+    },
+    {
+      "skill": "Recovery Boiler Operation",
+      "makes": [
+        "Valmet",
+        "Andritz",
+        "Babcock & Wilcox"
+      ]
+    },
+    {
+      "skill": "Pulp and Paper Testing",
+      "makes": [
+        "L&W",
+        "Thwing-Albert"
+      ]
+    },
+    {
+      "skill": "Corrugator Wet End Operation",
+      "makes": [
+        "BHS Corrugated",
+        "Fosber",
+        "BW Papersystems",
+        "Mitsubishi Heavy Industries"
+      ]
+    },
+    {
+      "skill": "Corrugator Dry End Operation",
+      "makes": [
+        "BHS Corrugated",
+        "Fosber",
+        "BW Papersystems",
+        "Mitsubishi Heavy Industries"
+      ]
+    },
+    {
+      "skill": "Flexo Folder Gluer Operation",
+      "makes": [
+        "Bobst",
+        "EMBA",
+        "Göpfert",
+        "Sun Automation"
+      ]
+    },
+    {
+      "skill": "Folder Gluer Operation",
+      "makes": [
+        "Bobst",
+        "Vega"
+      ]
+    },
+    {
+      "skill": "Die Cutting",
+      "makes": [
+        "Bobst",
+        "Masterwork",
+        "Kama",
+        "Young Shin"
+      ]
+    },
+    {
+      "skill": "Slitting and Rewinding",
+      "makes": [
+        "Valmet",
+        "Voith",
+        "Kampf"
+      ]
+    },
+    {
+      "skill": "Guillotine Cutting",
+      "makes": [
+        "Polar",
+        "Challenge",
+        "Wohlenberg"
+      ]
+    },
+    {
+      "skill": "Sheet Folding",
+      "makes": [
+        "MBO",
+        "Horizon",
+        "GUK"
+      ]
+    },
+    {
+      "skill": "Saddle Stitching",
+      "makes": [
+        "Muller Martini",
+        "Horizon",
+        "Duplo"
+      ]
+    },
+    {
+      "skill": "Perfect Binding",
+      "makes": [
+        "Muller Martini",
+        "Horizon",
+        "Kolbus"
+      ]
+    },
+    {
+      "skill": "Foil Stamping and Embossing",
+      "makes": [
+        "Bobst",
+        "Kluge",
+        "Gietz"
+      ]
+    },
+    {
+      "skill": "Offset Press Operation",
+      "makes": [
+        "Heidelberg",
+        "Komori",
+        "Koenig & Bauer",
+        "Manroland",
+        "RMGT"
+      ]
+    },
+    {
+      "skill": "Flexographic Press Operation",
+      "makes": [
+        "Mark Andy",
+        "Nilpeter",
+        "Bobst",
+        "Comexi",
+        "Windmöller & Hölscher",
+        "Omet",
+        "Uteco"
+      ]
+    },
+    {
+      "skill": "Digital Press Operation",
+      "makes": [
+        "HP Indigo",
+        "Xerox",
+        "Canon",
+        "Konica Minolta",
+        "Kodak",
+        "Ricoh"
+      ]
+    },
+    {
+      "skill": "Screen Printing",
+      "makes": [
+        "M&R",
+        "ROQ",
+        "Anatol"
+      ]
+    },
+    {
+      "skill": "Press Color Control",
+      "makes": [
+        "X-Rite",
+        "Techkon"
+      ]
+    },
+    {
+      "skill": "Preflight and Imposition",
+      "makes": [
+        "Esko Automation Engine",
+        "Kodak Prinergy",
+        "Heidelberg Prinect",
+        "Enfocus PitStop"
+      ]
+    },
+    {
+      "skill": "Computer-to-Plate Imaging",
+      "makes": [
+        "Kodak",
+        "Heidelberg",
+        "SCREEN"
+      ]
+    },
+    {
+      "skill": "Flexographic Plate Making and Mounting",
+      "makes": [
+        "Esko",
+        "Miraclon",
+        "XSYS",
+        "AV Flexologic"
+      ]
+    },
+    {
+      "skill": "Proofing and Color Management",
+      "makes": [
+        "GMG",
+        "Fiery",
+        "X-Rite"
+      ]
+    },
+    {
+      "skill": "Log Breakdown Sawing",
+      "makes": [
+        "USNR",
+        "BID Group"
+      ]
+    },
+    {
+      "skill": "Edging and Trimming",
+      "makes": [
+        "USNR",
+        "BID Group"
+      ]
+    },
+    {
+      "skill": "Automated Lumber Grading",
+      "makes": [
+        "Lucidyne",
+        "USNR",
+        "Microtec"
+      ]
+    },
+    {
+      "skill": "Saw Grinding",
+      "makes": [
+        "Vollmer",
+        "Iseli",
+        "Armstrong"
+      ]
+    },
+    {
+      "skill": "Wood Moisture Content Measurement",
+      "makes": [
+        "Wagner",
+        "Delmhorst",
+        "Lignomat"
+      ]
+    },
+    {
+      "skill": "CNC Router Operation",
+      "makes": [
+        "Biesse",
+        "Homag",
+        "SCM",
+        "Thermwood",
+        "C.R. Onsrud",
+        "Anderson",
+        "MultiCam",
+        "AXYZ",
+        "ShopBot"
+      ]
+    },
+    {
+      "skill": "Edgebanding",
+      "makes": [
+        "Homag",
+        "Biesse",
+        "SCM",
+        "Holz-Her",
+        "IMA Schelling"
+      ]
+    },
+    {
+      "skill": "Panel Saw Operation",
+      "makes": [
+        "Homag",
+        "Biesse",
+        "SCM",
+        "Striebig",
+        "Safety Speed"
+      ]
+    },
+    {
+      "skill": "Planer and Moulder Setup",
+      "makes": [
+        "Weinig",
+        "Leadermac",
+        "SCM",
+        "Newman Whitney"
+      ]
+    },
+    {
+      "skill": "Wide-Belt Sanding",
+      "makes": [
+        "Timesavers",
+        "Heesemann",
+        "SCM",
+        "Biesse"
+      ]
+    },
+    {
+      "skill": "Flatline Finishing",
+      "makes": [
+        "Cefla",
+        "Superfici",
+        "Venjakob"
+      ]
+    },
+    {
+      "skill": "Veneer Peeling",
+      "makes": [
+        "Raute",
+        "Meinan",
+        "USNR"
+      ]
+    },
+    {
+      "skill": "Panel Hot Pressing",
+      "makes": [
+        "Siempelkamp",
+        "Dieffenbacher"
+      ]
+    },
+    {
+      "skill": "Truss Layout",
+      "makes": [
+        "MiTek",
+        "Alpine"
+      ]
+    },
+    {
+      "skill": "Truss Design",
+      "makes": [
+        "MiTek",
+        "Alpine"
+      ]
+    },
+    {
+      "skill": "Fabric Cutting",
+      "makes": [
+        "Lectra",
+        "Gerber",
+        "Zünd",
+        "Eastman",
+        "Bullmer"
+      ]
+    },
+    {
+      "skill": "Industrial Sewing",
+      "makes": [
+        "Juki",
+        "Dürkopp Adler",
+        "Pfaff",
+        "Brother",
+        "Pegasus",
+        "Union Special",
+        "Yamato"
+      ]
+    },
+    {
+      "skill": "Sewing Machine Repair",
+      "makes": [
+        "Juki",
+        "Brother",
+        "Dürkopp Adler",
+        "Pfaff",
+        "Pegasus",
+        "Union Special",
+        "Yamato"
+      ]
+    },
+    {
+      "skill": "Fiber Opening and Carding",
+      "makes": [
+        "Trützschler",
+        "Rieter"
+      ]
+    },
+    {
+      "skill": "Yarn Spinning",
+      "makes": [
+        "Rieter",
+        "Saurer",
+        "Murata",
+        "Toyota"
+      ]
+    },
+    {
+      "skill": "Yarn Winding and Twisting",
+      "makes": [
+        "Murata",
+        "Saurer",
+        "Savio"
+      ]
+    },
+    {
+      "skill": "Spinning Machine Setup and Repair",
+      "makes": [
+        "Trützschler",
+        "Rieter",
+        "Saurer",
+        "Murata"
+      ]
+    },
+    {
+      "skill": "Warp Preparation",
+      "makes": [
+        "Karl Mayer",
+        "Benninger",
+        "Stäubli"
+      ]
+    },
+    {
+      "skill": "Loom Operation",
+      "makes": [
+        "Picanol",
+        "Toyota",
+        "Tsudakoma",
+        "Dornier",
+        "Itema",
+        "Stäubli"
+      ]
+    },
+    {
+      "skill": "Loom Setup and Repair",
+      "makes": [
+        "Picanol",
+        "Toyota",
+        "Tsudakoma",
+        "Dornier",
+        "Itema",
+        "Stäubli"
+      ]
+    },
+    {
+      "skill": "Knitting Machine Operation",
+      "makes": [
+        "Mayer & Cie",
+        "Terrot",
+        "Santoni",
+        "Lonati",
+        "Karl Mayer",
+        "Shima Seiki",
+        "Stoll"
+      ]
+    },
+    {
+      "skill": "Knitting Machine Setup and Repair",
+      "makes": [
+        "Mayer & Cie",
+        "Terrot",
+        "Santoni",
+        "Lonati",
+        "Karl Mayer",
+        "Shima Seiki",
+        "Stoll"
+      ]
+    },
+    {
+      "skill": "Tufting Machine Operation",
+      "makes": [
+        "Card-Monroe",
+        "Tuftco",
+        "Cobble"
+      ]
+    },
+    {
+      "skill": "Tufting Machine Setup and Repair",
+      "makes": [
+        "Card-Monroe",
+        "Tuftco",
+        "Cobble"
+      ]
+    },
+    {
+      "skill": "Braiding Machine Operation",
+      "makes": [
+        "Steeger",
+        "Herzog",
+        "Wardwell"
+      ]
+    },
+    {
+      "skill": "Nonwoven Line Operation",
+      "makes": [
+        "Reifenhäuser",
+        "Andritz",
+        "Dilo",
+        "Trützschler"
+      ]
+    },
+    {
+      "skill": "Textile Dyeing",
+      "makes": [
+        "Thies",
+        "Then",
+        "Gaston County",
+        "Loris Bellini"
+      ]
+    },
+    {
+      "skill": "Textile Finishing",
+      "makes": [
+        "Monforts",
+        "Brückner"
+      ]
+    },
+    {
+      "skill": "Dye Recipe Formulation",
+      "makes": [
+        "Datacolor",
+        "X-Rite"
+      ]
+    },
+    {
+      "skill": "Textile Testing",
+      "makes": [
+        "Uster",
+        "James Heal",
+        "SDL Atlas"
+      ]
+    },
+    {
+      "skill": "Fabric Spreading",
+      "makes": [
+        "Gerber",
+        "Lectra",
+        "Eastman",
+        "Bullmer"
+      ]
+    },
+    {
+      "skill": "Leather Cutting",
+      "makes": [
+        "Atom",
+        "Comelz",
+        "Lectra",
+        "Gerber"
+      ]
+    },
+    {
+      "skill": "Pattern Drafting",
+      "makes": [
+        "Gerber AccuMark",
+        "Lectra Modaris",
+        "Optitex",
+        "Tukatech"
+      ]
+    },
+    {
+      "skill": "Pattern Grading",
+      "makes": [
+        "Gerber AccuMark",
+        "Lectra Modaris",
+        "Optitex",
+        "Tukatech"
+      ]
+    },
+    {
+      "skill": "Marker Making",
+      "makes": [
+        "Gerber AccuMark",
+        "Lectra Diamino",
+        "Optitex",
+        "Tukatech"
+      ]
+    },
+    {
+      "skill": "Microscope Assembly",
+      "makes": [
+        "Leica",
+        "Zeiss",
+        "Nikon",
+        "Evident",
+        "Vision Engineering"
+      ]
+    },
+    {
+      "skill": "UV Adhesive Bonding",
+      "makes": [
+        "Dymax",
+        "Nordson EFD",
+        "OmniCure",
+        "Loctite"
+      ]
+    },
+    {
+      "skill": "Catheter Reflow and Tipping",
+      "makes": [
+        "Beahm Designs",
+        "PlasticWeld Systems"
+      ]
+    },
+    {
+      "skill": "Sterile Barrier Sealing",
+      "makes": [
+        "Multivac",
+        "Accu-Seal",
+        "Van der Stahl",
+        "Belco"
+      ]
+    },
+    {
+      "skill": "Radiation Sterilization",
+      "makes": [
+        "IBA",
+        "Mevex",
+        "Nordion"
+      ]
+    },
+    {
+      "skill": "Dental CAD Design",
+      "makes": [
+        "exocad",
+        "3Shape",
+        "inLab"
+      ]
+    },
+    {
+      "skill": "Dental Milling and Sintering",
+      "makes": [
+        "Roland",
+        "Amann Girrbach",
+        "Ivoclar",
+        "Dentsply Sirona",
+        "vhf"
+      ]
+    },
+    {
+      "skill": "Dental Ceramics Layering",
+      "makes": [
+        "Ivoclar",
+        "VITA",
+        "Dekema"
+      ]
+    },
+    {
+      "skill": "Lens Surfacing",
+      "makes": [
+        "Satisloh",
+        "Schneider",
+        "Coburn Technologies",
+        "OptoTech"
+      ]
+    },
+    {
+      "skill": "Lens Coating",
+      "makes": [
+        "Satisloh",
+        "Schneider",
+        "Bühler Leybold Optics"
+      ]
+    },
+    {
+      "skill": "Lens Edging and Mounting",
+      "makes": [
+        "Essilor",
+        "Nidek",
+        "Huvitz",
+        "National Optronics"
+      ]
+    },
+    {
+      "skill": "Lens Power Verification",
+      "makes": [
+        "Topcon",
+        "Nidek",
+        "Huvitz"
+      ]
+    },
+    {
+      "skill": "Channel Letter Fabrication",
+      "makes": [
+        "SDS Automation"
+      ]
+    },
+    {
+      "skill": "Large-Format Digital Printing",
+      "makes": [
+        "HP",
+        "Roland",
+        "Mimaki",
+        "EFI",
+        "Canon",
+        "Epson"
+      ]
+    },
+    {
+      "skill": "Vinyl Graphics Application",
+      "makes": [
+        "Graphtec",
+        "Roland",
+        "Summa"
+      ]
+    },
+    {
+      "skill": "Induction Furnace Melting",
+      "makes": [
+        "Inductotherm",
+        "Ajax Tocco",
+        "ABP Induction"
+      ]
+    },
+    {
+      "skill": "Automatic Molding Line Operation",
+      "makes": [
+        "DISA",
+        "Hunter",
+        "Sinto",
+        "Künkel Wagner"
+      ]
+    },
+    {
+      "skill": "Gating and Riser Design",
+      "makes": [
+        "MAGMASOFT",
+        "ProCAST",
+        "FLOW-3D CAST",
+        "SOLIDCast"
+      ]
+    },
+    {
+      "skill": "Cold Heading",
+      "makes": [
+        "National Machinery",
+        "Sacma",
+        "Nedschroef",
+        "Carlo Salvi"
+      ]
+    },
+    {
+      "skill": "Glass Container Forming",
+      "makes": [
+        "Emhart Glass",
+        "Heye",
+        "Bottero"
+      ]
+    },
+    {
+      "skill": "Flat Glass Cutting",
+      "makes": [
+        "Bottero",
+        "Hegla",
+        "Intermac",
+        "Lisec"
+      ]
+    },
+    {
+      "skill": "Glass Tempering",
+      "makes": [
+        "Glaston",
+        "LandGlass"
+      ]
+    },
+    {
+      "skill": "Insulating Glass Unit Assembly",
+      "makes": [
+        "Lisec",
+        "Erdman",
+        "GED"
+      ]
+    },
+    {
+      "skill": "Charpy Impact Testing",
+      "makes": [
+        "Tinius Olsen",
+        "Instron",
+        "ZwickRoell"
+      ]
+    },
+    {
+      "skill": "Cable Penetration Sealing",
+      "makes": [
+        "Roxtec",
+        "MCT Brattberg"
+      ]
+    },
+    {
+      "skill": "Interferometric Optical Testing",
+      "makes": [
+        "Zygo",
+        "4D Technology",
+        "Trioptics"
+      ]
+    },
+    {
+      "skill": "Optical Polishing",
+      "makes": [
+        "OptoTech",
+        "Satisloh",
+        "QED"
+      ]
+    },
+    {
+      "skill": "Transformer Testing",
+      "makes": [
+        "OMICRON",
+        "Doble",
+        "Megger"
+      ]
+    },
+    {
+      "skill": "Ship Stability and Hydrostatics",
+      "makes": [
+        "GHS",
+        "Maxsurf",
+        "NAPA"
+      ]
+    },
+    {
+      "skill": "Gelcoat Spraying",
+      "makes": [
+        "Magnum Venus Products",
+        "Graco"
+      ]
+    },
+    {
+      "skill": "Spray-Up Lamination",
+      "makes": [
+        "Magnum Venus Products",
+        "Graco"
+      ]
+    },
+    {
+      "skill": "Wire Drawing",
+      "makes": [
+        "Niehoff",
+        "SAMP"
+      ]
+    },
+    {
+      "skill": "Discrete Event Simulation",
+      "makes": [
+        "FlexSim",
+        "Plant Simulation",
+        "Simio",
+        "ProModel",
+        "AnyLogic"
+      ]
+    },
+    {
+      "skill": "Time Study",
+      "makes": [
+        "MODAPTS",
+        "MTM"
+      ]
+    },
+    {
+      "skill": "Tube Bending and Flaring",
+      "makes": [
+        "BLM"
+      ]
+    },
+    {
+      "skill": "Industrial Network Troubleshooting",
+      "makes": [
+        "EtherNet/IP",
+        "PROFINET",
+        "EtherCAT",
+        "Modbus",
+        "PROFIBUS",
+        "Wireshark"
+      ]
+    },
+    {
+      "skill": "Building Automation System Operation",
+      "makes": [
+        "Metasys",
+        "Niagara"
+      ]
+    },
+    {
+      "skill": "Wire Harness Design",
+      "makes": [
+        "Zuken",
+        "Siemens Capital",
+        "VeSys",
+        "RapidHarness"
+      ]
+    },
+    {
+      "skill": "Model-Based Systems Engineering",
+      "makes": [
+        "Cameo",
+        "Rhapsody"
+      ]
+    },
+    {
+      "skill": "Computational Fluid Dynamics",
+      "makes": [
+        "Ansys Fluent",
+        "STAR-CCM+",
+        "OpenFOAM"
+      ]
+    },
+    {
+      "skill": "Electromagnetic Simulation",
+      "makes": [
+        "HFSS",
+        "FEKO",
+        "CST",
+        "COMSOL"
+      ]
+    },
+    {
+      "skill": "Power System Studies",
+      "makes": [
+        "ETAP",
+        "SKM",
+        "EasyPower"
+      ]
+    },
+    {
+      "skill": "Thermal Analysis",
+      "makes": [
+        "Thermal Desktop",
+        "Icepak",
+        "SINDA/FLUINT"
+      ]
+    },
+    {
+      "skill": "RF Circuit Design",
+      "makes": [
+        "ADS",
+        "AWR"
+      ]
+    },
+    {
+      "skill": "Fluid System Analysis",
+      "makes": [
+        "Amesim",
+        "GFSSP",
+        "Easy5"
+      ]
+    },
+    {
+      "skill": "Power Converter Design",
+      "makes": [
+        "PLECS"
+      ]
+    },
+    {
+      "skill": "BIOS and BMC Configuration",
+      "makes": [
+        "iDRAC",
+        "iLO"
+      ]
+    },
+    {
+      "skill": "Signal and Power Integrity Analysis",
+      "makes": [
+        "HyperLynx",
+        "SIwave",
+        "Sigrity"
+      ]
+    },
+    {
+      "skill": "Fatigue and Damage Tolerance Analysis",
+      "makes": [
+        "NASGRO",
+        "AFGROW"
       ]
     }
   ]

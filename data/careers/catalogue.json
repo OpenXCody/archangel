@@ -1,5 +1,5 @@
 {
-  "note": "The careers the product lists, and the only place they are decided. A career is a real job at the grain of a trade or role. Each has a `title`, a `home` (the slug of one domain in data/skills/taxonomy.json), `what` (one or two sentences, stored as its description), `leadsTo` (up to three titles from this file: the next rungs, in the order shown; no chain of them may come back to where it started) and `was` (titles the product used to list separately: finer tasks, single machines, products, an employer's or a program's words, certification levels. Each is folded into this career and kept as another name for it). `dropAliases` are other names a folded title carries that must not follow it here, because they mean a different job; where one belongs to another career it is listed for that career in data/careers/aliases.json. A name that is now a career's own title is never kept as another name. `note` is for whoever writes the career's path and is shown nowhere. `removed` are titles that are not manufacturing careers and are deleted, each group with its reason. Careers are in the taxonomy's domain order. A title appears once in the whole file, in any letter case. Loaded by scripts/build-careers-sql.mjs (--check validates and writes nothing) into migrations/0046_careers_catalogue.sql; once that has been applied to production a change here goes out as a new generated migration. The careers typical of each industry are in data/careers/industries.json and name these titles.",
+  "note": "The careers the product lists, and the only place they are decided. A career is a real job at the grain of a trade or role. Each has a `title`, a `home` (the slug of one domain in data/skills/taxonomy.json), `what` (one or two sentences, stored as its description), `leadsTo` (up to three titles from this file: the next rungs, in the order shown; no chain of them may come back to where it started) and `was` (titles the product used to list separately: finer tasks, single machines, products, an employer's or a program's words, certification levels. Each is folded into this career and kept as another name for it). `dropAliases` are other names a folded title carries that must not follow it here, because they mean a different job; where one belongs to another career it is listed for that career in data/careers/aliases.json. A name that is now a career's own title is never kept as another name. `note` is for whoever writes the career's path and is shown nowhere. `removed` are titles that are not manufacturing careers and are deleted, each group with its reason. Careers are in the taxonomy's domain order. A title appears once in the whole file, in any letter case. Loaded by scripts/build-careers-sql.mjs (--check validates and writes nothing) into a migration (0046 first; 0073, which added the trades of the industries the catalogue lacked, is the latest); a change here goes out as a new generated migration. The careers typical of each industry are in data/careers/industries.json and name these titles.",
   "careers": [
     {
       "title": "Production Operator",
@@ -25,7 +25,8 @@
       "home": "production",
       "what": "Changes production machines over from one job to the next: installs the tooling, die or mold, sets the machine, runs the first parts and gets them approved before operators take over.",
       "leadsTo": [
-        "Maintenance Technician"
+        "Maintenance Technician",
+        "Plastics Process Technician"
       ],
       "was": [],
       "note": "The present path is a CNC machinist's (offsets, CAM, G-code); CNC set-up now belongs to CNC Machinist. Rewrite this one around changeover: Quick Changeover, Die Setting, First Article Inspection, Lockout Tagout, Overhead Crane Operation, Process Equipment Troubleshooting. It is the listed career of plastics, paper, printing and textile plants, which is why it stays general."
@@ -153,6 +154,33 @@
       "note": "The present path is a toolroom machinist's and overlaps Tool and Die Maker. Rewrite it toward building and setting tooling: Workholding and Fixturing, Structural Steel Fabrication, MIG and TIG Welding, Laser Tracker Metrology, Tolerance Stack-Up Analysis, Layup Tool Preparation."
     },
     {
+      "title": "Sawmill Operator",
+      "home": "machining",
+      "what": "Runs the stations that turn logs into lumber: the head rig and canter, edgers, gangs and trimmers, the sorter and stacker, the dry kilns and the planer. Saws for the most value from each log, mostly from a booth with scanners and optimizers.",
+      "leadsTo": [
+        "Saw Filer",
+        "Lumber Grader",
+        "Millwright"
+      ],
+      "was": []
+    },
+    {
+      "title": "Saw Filer",
+      "home": "machining",
+      "what": "Keeps a sawmill's band and circular saws cutting straight: grinds, swages and tips the teeth, and levels and tensions the blades on the bench. The skilled trade of the mill's filing room.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Woodworking Machine Operator",
+      "home": "machining",
+      "what": "Sets up and runs the machines of a wood plant (panel saws, CNC routers, edgebanders, moulders and wide-belt sanders), cutting and shaping parts for cabinets, furniture, doors and millwork.",
+      "leadsTo": [
+        "Cabinetmaker"
+      ],
+      "was": []
+    },
+    {
       "title": "MIG Welder",
       "home": "fabrication",
       "what": "Welds steel and aluminum parts with the MIG process on a production line or in a fabrication shop, fitting the joint, setting the machine and checking each weld by eye.",
@@ -168,7 +196,9 @@
       "home": "fabrication",
       "what": "Joins metal with several processes (stick, MIG, flux-cored, TIG) in all positions, on structural steel, pipe and plate, and holds the performance qualifications the work calls for.",
       "leadsTo": [
-        "Metal Fabricator"
+        "Metal Fabricator",
+        "Pipefitter",
+        "Welding Engineer"
       ],
       "was": [
         "Certified Welder"
@@ -256,7 +286,8 @@
       "home": "fabrication",
       "what": "Builds frames, weldments and structures from plate, tube and structural shapes: cuts and fits the pieces to the print, tacks and welds them, and checks the result square and to size.",
       "leadsTo": [
-        "Jig and Fixture Builder"
+        "Jig and Fixture Builder",
+        "Shipfitter"
       ],
       "was": []
     },
@@ -351,10 +382,19 @@
       "home": "fabrication",
       "what": "Runs injection molding machines that make plastic parts: starts and monitors the press, clears and inspects parts, trims gates and keeps the cell supplied.",
       "leadsTo": [
-        "Setup Technician"
+        "Setup Technician",
+        "Plastics Process Technician"
       ],
       "was": [],
-      "note": "The catalogue has no plastics skills at all (molding machine operation, mold setting, process parameters, material drying). A path today can only be shared floor skills; plastics is one of the 21 industries and needs its own skills written."
+      "note": "The catalogue has no plastics skills at all (molding machine operation, mold setting, process parameters, material drying). A path today can only be shared floor skills; plastics is one of the 21 industries and needs its own skills written.",
+      "dropAliases": [
+        "process technician molding",
+        "injection molding process technician",
+        "injection molding technician",
+        "molding technician",
+        "mold tech",
+        "mold technician"
+      ]
     },
     {
       "title": "Additive Manufacturing Technician",
@@ -379,6 +419,217 @@
       "leadsTo": [],
       "was": [],
       "note": "The catalogue describes what lasers are used for (Laser Cutting, Laser Welding, Laser Brazing, Laser Safety) but not the technician's own work: optics alignment, beam delivery, power measurement, laser source service."
+    },
+    {
+      "title": "Plastics Extrusion Operator",
+      "home": "fabrication",
+      "what": "Runs the extrusion lines that make plastic film, sheet, pipe, profile and compounded pellets, and the thermoforming lines that form sheet into cups, trays and parts: keeps resin dried and fed, watches barrel and die temperatures, melt pressure and line speed, checks gauge and dimensions, and winds, cuts, trims or packs the product.",
+      "leadsTo": [
+        "Plastics Process Technician"
+      ],
+      "was": [],
+      "note": "Thermoforming is part of this career, as a skill on its path: most thermoforming lines are fed by their own sheet extruder, and the thermoformer is the smallest of the plastics operator trades."
+    },
+    {
+      "title": "Rubber Molding Operator",
+      "home": "fabrication",
+      "what": "Makes rubber goods and tire components: mixes and mills the compound, forms it by extruder or calender, vulcanizes it in compression, transfer, injection or tire curing presses, and deflashes and checks what comes out.",
+      "leadsTo": [
+        "Tire Builder",
+        "Setup Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Plastics Process Technician",
+      "home": "fabrication",
+      "what": "Sets up and dials in plastics processes (injection molding, extrusion, blow molding, thermoforming): hangs molds and changes dies and screws, brings a new job to good product, and finds the cause of a defect in the process data rather than by chasing settings.",
+      "leadsTo": [
+        "Process Engineer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Blow Molding Operator",
+      "home": "fabrication",
+      "what": "Runs blow molding machines that make bottles, jugs, tanks and hollow parts from an extruded parison or a reheated preform: keeps material fed, watches heats, parison and blow pressures, checks weight, wall and top load, and clears, packs and palletizes the line.",
+      "leadsTo": [
+        "Plastics Process Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Tire Builder",
+      "home": "fabrication",
+      "what": "Builds green tires on a tire building machine from inner liner, body plies, beads, belts and tread, placing, splicing and stitching each component to the specification at rate, ready for the curing press.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Converting Machine Operator",
+      "home": "fabrication",
+      "what": "Sets up and runs the machines that turn paper and paperboard into products: die cutters, folder gluers, flexo folder gluers, slitter rewinders, sheeters, and bag and cup machines. Makes ready each order, holds cut, fold and glue quality at speed and changes over to the next.",
+      "leadsTo": [
+        "Setup Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Corrugator Operator",
+      "home": "fabrication",
+      "what": "Runs the corrugator that makes corrugated board from rolls of liner and medium: the starch kitchen, roll stands and single facers at the wet end, and the double backer, slitter-scorer and knife at the dry end. Holds bond, caliper and warp through order changes made on the fly.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Bindery Operator",
+      "home": "fabrication",
+      "what": "Turns printed sheets into finished pieces: cuts on the guillotine, folds, stitches and binds, and die-cuts, foil-stamps and embosses. Sets each machine to the job and checks the work as it runs.",
+      "leadsTo": [
+        "Printing Press Operator"
+      ],
+      "was": []
+    },
+    {
+      "title": "Dental Laboratory Technician",
+      "home": "fabrication",
+      "what": "Makes crowns, bridges, implant restorations and dentures to a dentist's prescription: prepares models, designs in dental CAD, mills, prints or casts the restoration and layers and fires porcelain to match the patient's teeth.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Sign Fabricator",
+      "home": "fabrication",
+      "what": "Builds signs in a sign plant: cuts and routes faces and cabinets, bends and assembles channel letters, welds and paints, prints and applies graphics, and wires the lighting so the sign can be listed and installed.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Ophthalmic Laboratory Technician",
+      "home": "fabrication",
+      "what": "Makes prescription spectacle lenses in an optical laboratory: surfaces the prescription into a lens blank, coats it, edges it to the frame and mounts it, and verifies the finished pair against the prescription.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Bench Jeweler",
+      "home": "fabrication",
+      "what": "Makes and repairs jewelry at the bench: cleans up castings, fabricates, solders and sizes in gold, platinum and silver, sets stones, laser welds and polishes and plates the finished piece.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Rolling Mill Operator",
+      "home": "fabrication",
+      "what": "Runs the mills that roll steel, aluminum and copper into plate, sheet, strip, bar, rod and shapes, and the lines that roll strip into profiles and welded tube: threads and sets the stands, watches gauge, shape and surface, and changes rolls and guides.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Casting Finisher",
+      "home": "fabrication",
+      "what": "Cleans castings after shakeout: cuts off gates and risers, gouges and grinds them to contour, blasts off the sand, and weld-repairs the defects inspection finds.",
+      "leadsTo": [
+        "Welder"
+      ],
+      "was": []
+    },
+    {
+      "title": "Glass Fabricator",
+      "home": "fabrication",
+      "what": "Turns flat glass into finished pieces and units: cuts it on CNC tables, edges and drills it, tempers or laminates it and builds insulating glass units, checking each piece for size and defects.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Foundry Molder",
+      "home": "fabrication",
+      "what": "Makes the sand molds and cores castings are poured in, by hand, on molding machines or on an automatic line, and the ceramic shells of investment casting: keeps the sand right, sets cores, closes the molds and sends them to pour.",
+      "leadsTo": [
+        "Melter"
+      ],
+      "was": []
+    },
+    {
+      "title": "Melter",
+      "home": "fabrication",
+      "what": "Melts and refines metal for casting in a steel mill or a foundry: charges and runs the arc or induction furnace, samples and corrects chemistry and temperature, treats the metal in the ladle, keeps the linings and taps or pours.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Forge Operator",
+      "home": "fabrication",
+      "what": "Shapes metal on hammers, presses, upsetters, ring mills and cold headers: heats the stock, forges it in open or impression dies, sets the dies, and checks the forgings or fasteners to the drawing.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Extrusion Press Operator",
+      "home": "fabrication",
+      "what": "Runs an aluminum extrusion press and its line: heats billets, changes and preheats dies, sets ram speed and temperatures, pulls, quenches, stretches and saws the profile, and checks it to the drawing.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Caster Operator",
+      "home": "fabrication",
+      "what": "Casts liquid metal into slabs, blooms, billets or ingots on a steel continuous caster or an aluminum direct-chill casting pit: prepares the tundish or table, opens the ladle, holds mold level, speed and cooling, and cuts, marks and checks the product.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Glass Forming Operator",
+      "home": "fabrication",
+      "what": "Runs the individual-section machines that blow bottles and jars from molten glass: sets the feeder and section timing, swabs and changes molds, corrects forming defects and makes the job changes.",
+      "leadsTo": [
+        "Maintenance Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Shipfitter",
+      "home": "fabrication",
+      "what": "Builds a ship's steel or aluminum structure: lays out plate and shapes from the drawings, fits frames, stiffeners and bulkheads into units and blocks, tacks them for the welders, and takes out distortion with heat.",
+      "leadsTo": [
+        "CAD Designer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Pipefitter",
+      "home": "fabrication",
+      "what": "Fabricates, installs and tests piping systems in a ship, a factory or a process plant: lays out, cuts and bends pipe, fits and tacks it for welding or brazes it, makes up flanges and fittings, hangs it, and proves it by hydrostatic test.",
+      "leadsTo": [
+        "CAD Designer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Brazer",
+      "home": "fabrication",
+      "what": "Joins copper, brass, steel and aluminum tubing and parts by torch, induction or furnace brazing on a production line, mostly the refrigerant circuits of air conditioners, refrigerators and heat exchangers: fits and cleans the joint, brazes it under a nitrogen purge, and proves the circuit tight by pressure and leak test.",
+      "leadsTo": [
+        "TIG Welder"
+      ],
+      "was": []
+    },
+    {
+      "title": "Wire and Cable Operator",
+      "home": "fabrication",
+      "what": "Makes wire and cable: draws steel, copper or aluminum rod down to wire, anneals it, strands and bunches it into conductors, extrudes insulation and jacket over it, cables the conductors together and takes the finished wire or cable up on reels, holding size, temper, concentricity and the spark test.",
+      "leadsTo": [
+        "Setup Technician"
+      ],
+      "was": [],
+      "note": "One trade for drawing, stranding and insulating wire and cable; a steel wire mill's drawer runs the same drawing skill. Tube drawing is not this career."
+    },
+    {
+      "title": "Welding Engineer",
+      "home": "fabrication",
+      "what": "Decides how a weld is made and proves it: develops and qualifies the welding procedure, sets parameters and fixturing for manual and automated processes, reads the test and inspection results, and finds the cause when welds fail.",
+      "leadsTo": [],
+      "was": []
     },
     {
       "title": "Heat Treat Operator",
@@ -572,12 +823,59 @@
       "was": []
     },
     {
+      "title": "Printing Press Operator",
+      "home": "materials",
+      "what": "Makes ready and runs printing presses (offset, flexographic, digital or screen) on paper, board, labels and film. Brings color and register to the approved proof and holds them through the run.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Prepress Technician",
+      "home": "materials",
+      "what": "Gets a job ready for press: checks and imposes the customer's files, makes the proofs and the printing plates (offset or flexographic), and keeps prepress, proof and press on one color standard.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Furniture Finisher",
+      "home": "materials",
+      "what": "Finishes wood furniture, cabinets and millwork: sands, stains, glazes and tones to a master color, sprays sealers and topcoats or runs the flatline, and repairs finish damage so it cannot be seen.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Textile Machine Operator",
+      "home": "materials",
+      "what": "Tends the machines that turn fiber into yarn and yarn into fabric: spinning frames, winders, looms, knitting, tufting and braiding machines and nonwoven lines. Pieces up broken ends, keeps the machines fed and running and catches defects before they spread.",
+      "leadsTo": [
+        "Textile Machine Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Dyeing and Finishing Operator",
+      "home": "materials",
+      "what": "Dyes and finishes fiber, yarn, fabric or carpet: weighs dyes and chemicals to the recipe, runs dyeing machines and ranges and the tenters, compactors and coating lines after them, and checks shade, width and shrinkage before the goods move on.",
+      "leadsTo": [
+        "Textile Colorist"
+      ],
+      "was": []
+    },
+    {
+      "title": "Textile Colorist",
+      "home": "materials",
+      "what": "Works out and approves the dye recipes of a dye house: matches customer standards in the color laboratory by spectrophotometer and lab dip, scales recipes to production, approves production lots for shade and runs the laboratory's colorfastness and physical tests.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
       "title": "Production Assembler",
       "home": "assembly",
       "what": "Puts components together into products at a bench or on a line, following work instructions with hand and power tools, and checks each unit before it moves on.",
       "leadsTo": [
         "Precision Assembly Technician",
-        "Quality Control Inspector"
+        "Quality Control Inspector",
+        "Brazer"
       ],
       "was": [
         "Assembly Line Worker"
@@ -598,7 +896,8 @@
       "home": "assembly",
       "what": "Builds machinery from castings and components: scrapes and fits ways, installs spindles, ballscrews and guides, plumbs hydraulics and pneumatics, aligns the geometry and runs the machine off.",
       "leadsTo": [
-        "Millwright"
+        "Millwright",
+        "Field Service Technician"
       ],
       "was": [
         "Machine Tool Assembler",
@@ -937,7 +1236,8 @@
       "home": "assembly",
       "what": "Assembles medical devices (catheters, implants, instruments, pumps) by hand and under a microscope in a controlled room, to documented procedures and with full lot records.",
       "leadsTo": [
-        "Quality Control Inspector"
+        "Quality Control Inspector",
+        "Medical Device Manufacturing Technician"
       ],
       "was": [
         "Catheter Assembler",
@@ -959,12 +1259,78 @@
       "note": "Fifteen single products. The catalogue has the regulated-room skills but nothing device-specific (catheter bonding, laser welding of implants, microscope assembly)."
     },
     {
+      "title": "Truss Builder",
+      "home": "assembly",
+      "what": "Builds roof and floor trusses and wall panels in a component plant: cuts members on the component saw, sets the table's jigs to the truss drawing, and places and presses the connector plate at each joint.",
+      "leadsTo": [
+        "Truss Designer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Cabinetmaker",
+      "home": "assembly",
+      "what": "Builds cabinets, casework, millwork and furniture from shop drawings: machines parts, joins and assembles them, veneers and laminates, fits hardware and finishes. The bench trade of a cabinet or furniture plant.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Upholsterer",
+      "home": "assembly",
+      "what": "Builds and covers upholstered furniture: installs springs and webbing, shapes foam and padding, cuts and sews covers, and fits them to the frame smooth and square.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Sewing Machine Operator",
+      "home": "assembly",
+      "what": "Sews the cut pieces of garments and other sewn products together on industrial sewing machines, one operation or the whole piece, to the tech pack, and checks the work before it moves on.",
+      "leadsTo": [
+        "Apparel Patternmaker",
+        "Textile Machine Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Medical Device Manufacturing Technician",
+      "home": "assembly",
+      "what": "Builds the harder subassemblies of medical devices and keeps their processes running in a controlled room: sets up and proves bonding, reflow, welding and sealing equipment, runs qualification protocols, troubleshoots and trains assemblers.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Fabric Cutter",
+      "home": "assembly",
+      "what": "Cuts fabric and leather into the pieces of sewn products: spreads and lays up cloth to the marker or reads hides for flaws, cuts by knife, die or automated cutter, and bundles and tickets the pieces for the sewing floor.",
+      "leadsTo": [
+        "Apparel Patternmaker"
+      ],
+      "was": []
+    },
+    {
+      "title": "Shoemaker",
+      "home": "assembly",
+      "what": "Builds shoes and boots in a footwear plant: cuts leather, lasts the stitched upper, attaches the bottom by welt, stitchdown or cement, and finishes the shoe.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "RV Assembler",
+      "home": "assembly",
+      "what": "Builds recreational vehicles on a moving line: laminates the walls and roof, lays the roof membrane, installs the plumbing, propane and 12- and 120-volt wiring, sets the cabinets and interior, and water-tests the unit.",
+      "leadsTo": [
+        "Quality Control Inspector"
+      ],
+      "was": []
+    },
+    {
       "title": "Electronics Assembler",
       "home": "electronics",
       "what": "Builds electronic assemblies by hand: places and solders components, fits boards, cables and hardware into the enclosure, and inspects the work to IPC standards.",
       "leadsTo": [
         "PCB Rework Technician",
-        "Test Technician"
+        "Test Technician",
+        "Optical Technician"
       ],
       "was": [
         "PCB Assembler",
@@ -1024,7 +1390,8 @@
       "what": "Builds wire harnesses and cable assemblies on a form board: cuts, strips and crimps, pins connectors, laces and labels, and tests every circuit.",
       "leadsTo": [
         "Aircraft Electrician",
-        "Electrical Panel Builder"
+        "Electrical Panel Builder",
+        "Marine Electrician"
       ],
       "was": [
         "Wire Harness Fabricator",
@@ -1185,6 +1552,36 @@
         "Speaker Assembly Tech"
       ],
       "note": "Eight folded titles are Apple products or parts (iPhone, iPad, Mac, Watch, AirPods, Face ID, Touch ID). Path: Device Battery Installation, Camera Module Assembly, Display Module Assembly, Device Sensor Calibration, Device Enclosure Sealing, ESD Control."
+    },
+    {
+      "title": "Marine Electrician",
+      "home": "electronics",
+      "what": "Wires ships and boats: pulls and bands cable through the hull, takes it through stuffing tubes and cable transits, terminates and tests it, and installs power distribution, lighting and equipment, from a ship's three-phase power to a boat's DC system.",
+      "leadsTo": [
+        "Industrial Electrician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Transformer Assembler",
+      "home": "electronics",
+      "what": "Builds distribution and power transformers: winds the coils, stacks the core, assembles core and coil, connects the leads and tap changer, dries and tanks the unit, fills it with oil and runs its routine tests.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "PCB Fabrication Technician",
+      "home": "electronics",
+      "what": "Makes bare printed circuit boards: images the copper layers, etches and plates them, presses multilayer stacks, drills and routes the panels, and tests every net for opens and shorts.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Optical Technician",
+      "home": "electronics",
+      "what": "Builds, aligns and tests optical and electro-optical assemblies (lenses, mirrors, lasers, sensors and fiber), and in an optics shop grinds and polishes the optics themselves.",
+      "leadsTo": [],
+      "was": []
     },
     {
       "title": "Wafer Fab Operator",
@@ -1607,17 +2004,18 @@
         "Motor Potting Technician",
         "Motor Assembly Tech",
         "Servo Motor Assembler",
-        "Generator Assembler",
-        "Transformer Assembler"
+        "Generator Assembler"
       ],
-      "note": "Hairpin Stator Technician's draft path is the base; the others bring Stator Winding, Rotor Magnet Installation, Dynamic Balancing and Stator Impregnation and Potting. Transformer Assembler shares the winding work; core stacking and tanking are not in the catalogue."
+      "note": "Hairpin Stator Technician's draft path is the base; the others bring Stator Winding, Rotor Magnet Installation, Dynamic Balancing and Stator Impregnation and Potting. Transformer Assembler, which shares the winding work, is a career of its own, with the core, the coil and the tank."
     },
     {
       "title": "Food Processing Operator",
       "home": "process",
       "what": "Makes food to the recipe: weighs and blends the batch, runs the cooking, forming, drying or sterilising equipment, and keeps the line clean and its safety records true.",
       "leadsTo": [
-        "Maintenance Technician"
+        "Maintenance Technician",
+        "Baker",
+        "Cheesemaker"
       ],
       "was": [
         "Food Batch Operator",
@@ -1647,7 +2045,9 @@
       "home": "process",
       "what": "Runs a bottling or canning line: prepares the syrup, carbonates, fills and seams or caps, and checks fill, Brix and closures through the shift.",
       "leadsTo": [
-        "Maintenance Technician"
+        "Maintenance Technician",
+        "Brewer",
+        "Distiller"
       ],
       "was": [
         "Beverage Filler Operator",
@@ -1689,7 +2089,9 @@
       "title": "Chemical Operator",
       "home": "process",
       "what": "Runs chemical and compounding processes: charges raw materials, controls reactors, mixers and transfers from the board and the floor, samples the batch and handles hazardous materials safely.",
-      "leadsTo": [],
+      "leadsTo": [
+        "Refinery Operator"
+      ],
       "was": [
         "Chemical Processing Operator",
         "Soap Making Operator",
@@ -1719,7 +2121,9 @@
       "title": "Aseptic Filling Technician",
       "home": "process",
       "what": "Fills sterile drug product into vials and syringes in a classified cleanroom or isolator: gowns to qualification, sets up the line aseptically, runs filling and freeze drying, and monitors the room.",
-      "leadsTo": [],
+      "leadsTo": [
+        "Validation Specialist"
+      ],
       "was": [
         "Aseptic Fill Operator",
         "Vial Fill Operator",
@@ -1734,7 +2138,9 @@
       "title": "Sterilization Technician",
       "home": "process",
       "what": "Runs the sterilizers that medical devices and drug components pass through (steam, ethylene oxide), loads to the validated pattern and releases each cycle on its records.",
-      "leadsTo": [],
+      "leadsTo": [
+        "Validation Specialist"
+      ],
       "was": [
         "Sterilizer Operator"
       ]
@@ -1779,6 +2185,163 @@
         "Chemical Engineer"
       ],
       "note": "Present path is five unrelated skills; rewrite around P&ID Reading, Statistical Process Control, Process Capability Analysis, Design of Experiments, Process Validation, Root Cause Analysis. Discrete-part processes belong to Manufacturing Engineer."
+    },
+    {
+      "title": "Meat Cutter",
+      "home": "process",
+      "what": "Breaks chilled beef, pork, lamb or poultry carcasses into cuts on a plant's fabrication floor, then bones and trims them to the customer's specification with a knife, a powered trimmer and a band saw, at line speed.",
+      "leadsTo": [
+        "Food Safety and Quality Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Slaughterer",
+      "home": "process",
+      "what": "Works the harvest floor of a meat or poultry plant: moves and stuns the animals humanely, bleeds, dresses and eviscerates the carcass, splits it and trims it clean, and sends it washed to the cooler.",
+      "leadsTo": [
+        "Food Safety and Quality Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Baker",
+      "home": "process",
+      "what": "Makes bread, buns, cakes, cookies or crackers at production scale: scales and mixes the dough to temperature, ferments and proofs it, runs the make-up line and the oven to the bake profile, and judges each stage by eye and hand.",
+      "leadsTo": [
+        "Food Scientist"
+      ],
+      "was": []
+    },
+    {
+      "title": "Sanitation Technician",
+      "home": "process",
+      "what": "Cleans and sanitizes a food plant's production equipment between runs and through the night: locks out and takes the line apart, dry-cleans, foams, scrubs, rinses and sanitizes it to the written procedure, reassembles it and has it inspected before production starts.",
+      "leadsTo": [
+        "Food Safety and Quality Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Food Safety and Quality Technician",
+      "home": "process",
+      "what": "Checks a food plant's product and process through the shift: verifies the critical control points and the pre-operational clean, swabs the environment, tests samples for weight, pH, moisture and taste, checks labels and codes, and holds what does not meet the specification.",
+      "leadsTo": [
+        "Food Safety Specialist"
+      ],
+      "was": []
+    },
+    {
+      "title": "Brewer",
+      "home": "process",
+      "what": "Makes beer from grain to bright tank: mills and mashes the grain, lauters and boils the wort with hops, pitches and manages the yeast through fermentation and conditioning, and filters, carbonates and checks the beer before it is packaged.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Winemaker",
+      "home": "process",
+      "what": "Makes wine in a winery's cellar, from the grapes to the bottle: receives, crushes and presses the fruit, manages the fermentations, racks, tops and ages the wine in tank and barrel, fines and filters it, tests it in the lab and blends it for bottling.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Grain Miller",
+      "home": "process",
+      "what": "Runs a flour, corn, rice or feed mill: receives, cleans and tempers the grain, sets the roller mills and sifters, or the hammer mills and pellet mills, to the flow, checks the product's moisture, ash and protein, and keeps the dust and the bins safe.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Food Safety Specialist",
+      "home": "process",
+      "what": "Owns a food plant's food safety system: writes and reassesses the HACCP and preventive-controls plans, runs the environmental monitoring, allergen, sanitation and supplier programs, leads the certification and regulatory audits, and investigates every deviation and recall.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Food Scientist",
+      "home": "process",
+      "what": "Develops a food company's products and keeps them right: formulates new products and reformulates old ones, scales them from the bench to the plant, runs the sensory panels and shelf-life studies, and writes the specification and the label.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Cheesemaker",
+      "home": "process",
+      "what": "Makes cheese from milk: receives and standardizes the milk, pasteurizes it, sets it with culture and rennet, cuts, cooks and drains the curd, salts, moulds and presses it, and brines and ages it to grade.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Distiller",
+      "home": "process",
+      "what": "Makes spirits: cooks and mashes the grain, ferments it, runs the pot or column stills and makes the cuts, fills and ages the spirit in barrels, and proofs, blends and gauges it for bottling.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Chemical Laboratory Technician",
+      "home": "process",
+      "what": "Tests raw materials, process samples and finished product in a chemical, refinery or resin plant laboratory, by titration and physical tests, chromatography and spectroscopy, and reports the results the plant runs and ships on.",
+      "leadsTo": [
+        "Quality Control Chemist"
+      ],
+      "was": []
+    },
+    {
+      "title": "Biomanufacturing Technician",
+      "home": "process",
+      "what": "Makes biologic drugs (antibodies, proteins, vaccines) under GMP: prepares media and buffers, grows cells or microbes in bioreactors, harvests and purifies the product by centrifuge, filtration and chromatography, and keeps the equipment clean, sterile and on its batch record.",
+      "leadsTo": [
+        "Validation Specialist"
+      ],
+      "was": []
+    },
+    {
+      "title": "Refinery Operator",
+      "home": "process",
+      "what": "Runs a refinery's process units (crude distillation, hydrotreating, reforming, catalytic cracking and the tank farm) from the field and the control room: makes rounds, lights and holds fired heaters, starts compressors and pumps, takes samples and keeps the unit on specification.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Validation Specialist",
+      "home": "process",
+      "what": "Proves that a drug or medical device plant's equipment, cleaning and sterilization do what they claim: writes and executes qualification protocols (IQ, OQ, PQ), maps temperatures, samples for cleaning residues, and reports results and deviations.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Paper Machine Operator",
+      "home": "process",
+      "what": "Runs a paper, board or tissue machine as one of its crew, from stock preparation through the wet end, dryers and calender to the reel and winder. Rises from fifth hand to back tender and machine tender, who answers for the sheet's weight, moisture, strength and every break.",
+      "leadsTo": [
+        "Process Engineer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Pulp Mill Operator",
+      "home": "process",
+      "what": "Runs the fiber line and chemical recovery of a kraft pulp mill from the control room and the floor: the digesters, washers and bleach plant, the evaporators, recausticizing and lime kiln, and at the top the recovery boiler.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Engineered Wood Operator",
+      "home": "process",
+      "what": "Runs the lines that make plywood, LVL, OSB, particleboard and MDF: veneer lathes and dryers, resin blenders, layup and mat forming, and the hot press. Holds moisture, resin, weight and bond to each panel's grade.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Mineral Kiln Operator",
+      "home": "process",
+      "what": "Runs the kilns of a cement, lime, brick, refractory or ceramics plant, and the mills that grind for them: holds feed, fuel, flame and draft, or the firing curve, so the clinker, lime or ware comes out right.",
+      "leadsTo": [],
+      "was": [],
+      "note": "Not the bare 'Kiln Operator': sawmills (dry kilns), battery cathode plants and ceramics shops post that title as well, and as this career's title it would take all of them."
     },
     {
       "title": "Quality Control Inspector",
@@ -1882,6 +2445,13 @@
         "AS9100 Lead Auditor"
       ],
       "note": "Supplier Quality Engineer has a draft path and brings PPAP Submission and Acceptance Sampling; auditing brings the quality-system skills (ISO 9001, AS9100, IATF 16949, ISO 13485)."
+    },
+    {
+      "title": "Lumber Grader",
+      "home": "quality",
+      "what": "Grades every board for its value by eye, to a grading agency's rules or the hardwood association's, at the planer or the green chain, and oversees the scanners that grade automatically.",
+      "leadsTo": [],
+      "was": []
     },
     {
       "title": "NDT Technician (Penetrant)",
@@ -2133,7 +2703,11 @@
       "was": [
         "Chemical Delivery Engineer",
         "Gas Delivery Engineer",
-        "Ultrapure Water Engineer"
+        "Ultrapure Water Engineer",
+        "Power Systems Engineer",
+        "High Power Engineer",
+        "Power Generation Engineer",
+        "Facilities Electrical Engineer"
       ]
     },
     {
@@ -2176,6 +2750,38 @@
         "APU Mechanic"
       ],
       "note": "No folded title had a path. Path: Borescope Inspection, Dynamic Balancing, Bearing Installation, Gearbox Repair, Safety Wire Installation, Aircraft Maintenance Manual Use, Aircraft Maintenance Record Entries, Fluorescent Penetrant Inspection, Aircraft Engine Ground Run. Blade blending and module build have no skills of their own."
+    },
+    {
+      "title": "Industrial Refrigeration Technician",
+      "home": "maintenance",
+      "what": "Runs and maintains the ammonia refrigeration plant that keeps a food or beverage plant's rooms, freezers and process cold: compressors, condensers, vessels and defrost, the daily logs, draining oil and purging air, and the process safety work the ammonia requires.",
+      "leadsTo": [
+        "Facilities Engineer"
+      ],
+      "was": []
+    },
+    {
+      "title": "Textile Machine Technician",
+      "home": "maintenance",
+      "what": "Sets up, times and repairs the machines of a textile or sewn-products plant: looms, knitting and tufting machines, spinning frames and industrial sewing machines. Changes machines over to a new style and finds why one keeps stopping or making defects.",
+      "leadsTo": [
+        "Maintenance Technician"
+      ],
+      "was": []
+    },
+    {
+      "title": "Field Service Technician",
+      "home": "maintenance",
+      "what": "Installs, commissions and repairs a machine builder's equipment at customers' plants: sets and starts new machines, finds mechanical, hydraulic, electrical and control faults on site, does scheduled service and teaches the operators to run what was installed.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Railcar Mechanic",
+      "home": "maintenance",
+      "what": "Builds, rebuilds and repairs railcars: trucks and wheelsets, couplers and draft gear, air brakes and their single car test, and the welding and bolting of the car body.",
+      "leadsTo": [],
+      "was": []
     },
     {
       "title": "Automation Technician",
@@ -2308,7 +2914,8 @@
       "what": "Turns an engineer's concept into models and drawings: 3D parts and assemblies, detail drawings with dimensions and tolerances, and their revisions in the data system.",
       "leadsTo": [
         "Tooling Engineer",
-        "Mechanical Engineer"
+        "Mechanical Engineer",
+        "Naval Architect"
       ],
       "was": [
         "CAD Technician",
@@ -2374,6 +2981,29 @@
       "leadsTo": [],
       "was": [],
       "note": "Present path is five general skills. Path: SolidWorks, Engineering Drawing Creation, Tolerance Stack-Up Analysis, Design FMEA, Design for Manufacturability, ISO 13485 Quality System Requirements, Process Validation."
+    },
+    {
+      "title": "Truss Designer",
+      "home": "engineering",
+      "what": "Lays out a building's roof and floor trusses from its plans and designs each truss for its loads in truss design software, producing the placement plan for the builder and the cutting and table files for the plant.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Apparel Patternmaker",
+      "home": "engineering",
+      "what": "Makes and grades the patterns sewn products are cut from, lays out markers for the cutting room and corrects the patterns from fittings until the product fits and sews as specified.",
+      "leadsTo": [],
+      "was": []
+    },
+    {
+      "title": "Naval Architect",
+      "home": "engineering",
+      "what": "Designs ships and boats: hull form, structure, stability and weight, and the arrangement and production drawings a shipyard builds from; then supports the build, the inclining experiment and trials.",
+      "leadsTo": [
+        "Systems Engineer"
+      ],
+      "was": []
     }
   ],
   "removed": [

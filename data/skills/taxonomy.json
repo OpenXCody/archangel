@@ -20,7 +20,7 @@
     {
       "slug": "materials",
       "name": "Materials",
-      "what": "Changing what a material is or how its surface behaves: heat treatment, surface treatment, peening and thermal spray, paint, composites and materials testing.",
+      "what": "Changing what a material is or how its surface looks and behaves: heat treatment, surface treatment, peening and thermal spray, paint and wood finishing, composites, printing, making, dyeing and finishing yarn and fabric, and materials testing and engineering.",
       "groups": [
         {
           "slug": "heat-treatment",
@@ -113,7 +113,50 @@
               "level": 2
             },
             {
+              "name": "Polymer Material Testing",
+              "level": 2
+            },
+            {
+              "name": "Textile Testing",
+              "level": 2
+            },
+            {
+              "name": "Charpy Impact Testing",
+              "level": 2
+            },
+            {
               "name": "Metallographic Examination",
+              "level": 3
+            },
+            {
+              "name": "Failure Analysis of Materials",
+              "level": 3
+            },
+            {
+              "name": "Scanning Electron Microscopy",
+              "level": 3
+            },
+            {
+              "name": "Thermal Analysis of Materials",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "materials-engineering",
+          "name": "Materials engineering",
+          "what": "Choosing, specifying and qualifying the materials and processes a product is made from.",
+          "skills": [
+            {
+              "name": "Design Allowables Development",
+              "level": 3
+            },
+            {
+              "name": "Material Qualification",
+              "level": 3
+            },
+            {
+              "name": "Material and Process Specification Writing",
               "level": 3
             }
           ]
@@ -145,6 +188,10 @@
             },
             {
               "name": "Electroless Nickel Plating",
+              "level": 2
+            },
+            {
+              "name": "Hot-Dip Galvanizing",
               "level": 2
             },
             {
@@ -254,6 +301,79 @@
           ]
         },
         {
+          "slug": "wood-finishing",
+          "name": "Wood finishing",
+          "what": "Finishing wood: sanding, staining and glazing, flatline coating, and touch-up and repair.",
+          "skills": [
+            {
+              "name": "Finish Sanding",
+              "level": 1
+            },
+            {
+              "name": "Flatline Finishing",
+              "level": 2
+            },
+            {
+              "name": "Wood Finish Touch-Up and Repair",
+              "level": 2
+            },
+            {
+              "name": "Wood Staining and Glazing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "printing",
+          "name": "Printing",
+          "what": "Putting ink on paper, board, labels and film on offset, flexographic, digital and screen presses, and holding its color by measurement.",
+          "skills": [
+            {
+              "name": "Digital Press Operation",
+              "level": 2
+            },
+            {
+              "name": "Flexographic Press Operation",
+              "level": 2
+            },
+            {
+              "name": "Offset Press Operation",
+              "level": 2
+            },
+            {
+              "name": "Screen Printing",
+              "level": 2
+            },
+            {
+              "name": "Press Color Control",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "prepress",
+          "name": "Prepress",
+          "what": "Preparing every print job: checking and imposing the files, making the plates and proofs, and keeping prepress, proof and press on one color standard.",
+          "skills": [
+            {
+              "name": "Computer-to-Plate Imaging",
+              "level": 2
+            },
+            {
+              "name": "Flexographic Plate Making and Mounting",
+              "level": 2
+            },
+            {
+              "name": "Preflight and Imposition",
+              "level": 2
+            },
+            {
+              "name": "Proofing and Color Management",
+              "level": 3
+            }
+          ]
+        },
+        {
           "slug": "composite-fabrication",
           "name": "Composite fabrication",
           "what": "Building a laminate: cutting and kitting plies, preparing the tool, laying up by hand and by machine, winding, infusing, and trimming the cured part.",
@@ -301,6 +421,21 @@
             {
               "name": "Laminate Layup Inspection",
               "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "open-molding",
+          "name": "Open molding",
+          "what": "Making fiberglass parts in an open mold: spraying the gelcoat and laminating it by chopper gun.",
+          "skills": [
+            {
+              "name": "Gelcoat Spraying",
+              "level": 2
+            },
+            {
+              "name": "Spray-Up Lamination",
+              "level": 2
             }
           ]
         },
@@ -388,6 +523,79 @@
               "level": 3
             }
           ]
+        },
+        {
+          "slug": "yarn-making",
+          "name": "Yarn making",
+          "what": "Turning fiber into yarn: opening and carding, spinning, winding and twisting, and piecing up ends.",
+          "skills": [
+            {
+              "name": "Yarn Piecing and Knotting",
+              "level": 1
+            },
+            {
+              "name": "Fiber Opening and Carding",
+              "level": 2
+            },
+            {
+              "name": "Yarn Spinning",
+              "level": 2
+            },
+            {
+              "name": "Yarn Winding and Twisting",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "fabric-forming",
+          "name": "Fabric forming",
+          "what": "Turning yarn or fiber into fabric: warp preparation, weaving, knitting, tufting, braiding and nonwoven lines.",
+          "skills": [
+            {
+              "name": "Braiding Machine Operation",
+              "level": 2
+            },
+            {
+              "name": "Knitting Machine Operation",
+              "level": 2
+            },
+            {
+              "name": "Loom Operation",
+              "level": 2
+            },
+            {
+              "name": "Nonwoven Line Operation",
+              "level": 2
+            },
+            {
+              "name": "Tufting Machine Operation",
+              "level": 2
+            },
+            {
+              "name": "Warp Preparation",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "textile-dyeing-and-finishing",
+          "name": "Dyeing and finishing",
+          "what": "Giving a textile its color and its final width, hand and performance: dyeing, finishing, and working out the dye recipe.",
+          "skills": [
+            {
+              "name": "Textile Dyeing",
+              "level": 2
+            },
+            {
+              "name": "Textile Finishing",
+              "level": 2
+            },
+            {
+              "name": "Dye Recipe Formulation",
+              "level": 3
+            }
+          ]
         }
       ]
     },
@@ -420,6 +628,33 @@
             {
               "name": "CAD Assembly Modeling",
               "level": 2
+            },
+            {
+              "name": "Engineering Change Management",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "pattern-design",
+          "name": "Pattern design",
+          "what": "Drafting, grading and marking the patterns sewn products are cut from, and correcting them from fittings.",
+          "skills": [
+            {
+              "name": "Marker Making",
+              "level": 2
+            },
+            {
+              "name": "Pattern Grading",
+              "level": 2
+            },
+            {
+              "name": "Garment Fit Evaluation",
+              "level": 3
+            },
+            {
+              "name": "Pattern Drafting",
+              "level": 3
             }
           ]
         },
@@ -441,6 +676,10 @@
               "level": 2
             },
             {
+              "name": "Materials Selection",
+              "level": 2
+            },
+            {
               "name": "Design FMEA",
               "level": 3
             },
@@ -450,6 +689,57 @@
             },
             {
               "name": "Fixture and Tooling Design",
+              "level": 3
+            },
+            {
+              "name": "Design Controls",
+              "level": 3
+            },
+            {
+              "name": "Medical Device Risk Management",
+              "level": 3
+            },
+            {
+              "name": "Reliability Prediction",
+              "level": 3
+            },
+            {
+              "name": "Fault Tree Analysis",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "engineering-analysis",
+          "name": "Engineering analysis",
+          "what": "Working out by calculation and simulation whether a design will hold, cool, float and flow as it must.",
+          "skills": [
+            {
+              "name": "Structural Hand Calculations",
+              "level": 2
+            },
+            {
+              "name": "Computational Fluid Dynamics",
+              "level": 3
+            },
+            {
+              "name": "Fatigue and Damage Tolerance Analysis",
+              "level": 3
+            },
+            {
+              "name": "Fluid System Analysis",
+              "level": 3
+            },
+            {
+              "name": "Mass Properties Control",
+              "level": 3
+            },
+            {
+              "name": "Ship Stability and Hydrostatics",
+              "level": 3
+            },
+            {
+              "name": "Thermal Analysis",
               "level": 3
             }
           ]
@@ -464,11 +754,50 @@
               "level": 2
             },
             {
+              "name": "Board Bring-Up",
+              "level": 2
+            },
+            {
               "name": "PCB Layout",
               "level": 3
             },
             {
               "name": "Electrical Controls Design",
+              "level": 3
+            },
+            {
+              "name": "Wire Harness Design",
+              "level": 3
+            },
+            {
+              "name": "Power Converter Design",
+              "level": 3
+            },
+            {
+              "name": "Signal and Power Integrity Analysis",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "rf-design",
+          "name": "RF design",
+          "what": "Designing antennas, radio-frequency circuits and the links between them.",
+          "skills": [
+            {
+              "name": "RF Link Budget Analysis",
+              "level": 2
+            },
+            {
+              "name": "Antenna Design",
+              "level": 3
+            },
+            {
+              "name": "Electromagnetic Simulation",
+              "level": 3
+            },
+            {
+              "name": "RF Circuit Design",
               "level": 3
             }
           ]
@@ -497,6 +826,41 @@
             {
               "name": "Data Analysis and Scripting",
               "level": 2
+            },
+            {
+              "name": "Factory Layout",
+              "level": 3
+            },
+            {
+              "name": "Capacity Analysis",
+              "level": 3
+            },
+            {
+              "name": "Discrete Event Simulation",
+              "level": 3
+            },
+            {
+              "name": "Equipment Specification",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "truss-design",
+          "name": "Truss design",
+          "what": "Laying out, designing and repairing roof and floor trusses in truss design software.",
+          "skills": [
+            {
+              "name": "Truss Layout",
+              "level": 2
+            },
+            {
+              "name": "Truss Design",
+              "level": 3
+            },
+            {
+              "name": "Truss Repair Design",
+              "level": 3
             }
           ]
         },
@@ -510,7 +874,19 @@
               "level": 2
             },
             {
+              "name": "Trade Studies",
+              "level": 2
+            },
+            {
               "name": "Verification Planning",
+              "level": 3
+            },
+            {
+              "name": "Interface Control",
+              "level": 3
+            },
+            {
+              "name": "Model-Based Systems Engineering",
               "level": 3
             }
           ]
@@ -665,7 +1041,7 @@
     {
       "slug": "machining",
       "name": "Machining",
-      "what": "Cutting metal to size: manual and CNC machines, grinding, EDM, setup and programming.",
+      "what": "Cutting metal and wood to size: manual and CNC machines, grinding, EDM, setup and programming, sawmilling and saw filing, and woodworking machines.",
       "groups": [
         {
           "slug": "manual-machining",
@@ -774,7 +1150,57 @@
               "level": 2
             },
             {
+              "name": "Polishing and Buffing",
+              "level": 2
+            },
+            {
               "name": "Jig Grinding",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "sawmilling",
+          "name": "Sawmilling",
+          "what": "Breaking logs down into lumber: primary breakdown, edging and trimming, and sorting and stacking.",
+          "skills": [
+            {
+              "name": "Lumber Sorting and Stacking",
+              "level": 1
+            },
+            {
+              "name": "Edging and Trimming",
+              "level": 2
+            },
+            {
+              "name": "Log Breakdown Sawing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "saw-filing",
+          "name": "Saw filing",
+          "what": "The filing room's trade: grinding, swaging, tipping and benching band and circular saws.",
+          "skills": [
+            {
+              "name": "Saw Grinding",
+              "level": 2
+            },
+            {
+              "name": "Saw Swaging and Shaping",
+              "level": 2
+            },
+            {
+              "name": "Saw Tipping",
+              "level": 2
+            },
+            {
+              "name": "Band Saw Benching",
+              "level": 3
+            },
+            {
+              "name": "Circular Saw Benching",
               "level": 3
             }
           ]
@@ -812,13 +1238,44 @@
               "level": 3
             }
           ]
+        },
+        {
+          "slug": "woodworking-machines",
+          "name": "Woodworking machines",
+          "what": "The machines of cabinet, furniture, sign and millwork plants: stationary machines, panel saws, CNC routers, edgebanders, moulders and wide-belt sanders.",
+          "skills": [
+            {
+              "name": "Stationary Woodworking Machine Operation",
+              "level": 1
+            },
+            {
+              "name": "CNC Router Operation",
+              "level": 2
+            },
+            {
+              "name": "Edgebanding",
+              "level": 2
+            },
+            {
+              "name": "Panel Saw Operation",
+              "level": 2
+            },
+            {
+              "name": "Planer and Moulder Setup",
+              "level": 2
+            },
+            {
+              "name": "Wide-Belt Sanding",
+              "level": 2
+            }
+          ]
         }
       ]
     },
     {
       "slug": "fabrication",
       "name": "Fabrication",
-      "what": "Shaping and joining metal and plastic: welding, brazing, cutting, sheet metal, shipfitting, stamping and dies, casting, molding and additive manufacturing.",
+      "what": "Shaping and joining metal, plastic, rubber and glass: welding, brazing, cutting, sheet metal, shipfitting, stamping and dies, casting, molding, the mill processes (melting, rolling, forging and drawing), paperboard and print finishing, the bench trades of dental and optical laboratories, jewelry and signs, and additive manufacturing.",
       "groups": [
         {
           "slug": "arc-welding",
@@ -883,6 +1340,10 @@
             {
               "name": "Aluminum-Lithium Welding",
               "level": 3
+            },
+            {
+              "name": "Nickel Alloy Welding",
+              "level": 3
             }
           ]
         },
@@ -939,6 +1400,10 @@
             },
             {
               "name": "Furnace Brazing",
+              "level": 3
+            },
+            {
+              "name": "Brazer Performance Qualification",
               "level": 3
             }
           ]
@@ -1047,6 +1512,18 @@
             {
               "name": "Stud Welding",
               "level": 2
+            },
+            {
+              "name": "Ship Structural Layout",
+              "level": 2
+            },
+            {
+              "name": "Hull Structure Fit-Up",
+              "level": 2
+            },
+            {
+              "name": "Flame Straightening",
+              "level": 3
             }
           ]
         },
@@ -1085,6 +1562,122 @@
             },
             {
               "name": "Die Tryout",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "forging",
+          "name": "Forging",
+          "what": "Shaping metal under hammers, presses and headers: open-die and impression-die forging, setting the dies, cold heading, thread rolling and ring rolling.",
+          "skills": [
+            {
+              "name": "Cold Heading",
+              "level": 2
+            },
+            {
+              "name": "Forging Die Setup",
+              "level": 2
+            },
+            {
+              "name": "Impression-Die Forging",
+              "level": 2
+            },
+            {
+              "name": "Open-Die Forging",
+              "level": 2
+            },
+            {
+              "name": "Thread Rolling",
+              "level": 2
+            },
+            {
+              "name": "Ring Rolling",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "mill-forming",
+          "name": "Rolling and extrusion",
+          "what": "Shaping metal in a mill: hot and cold rolling and setting the stands, roll forming and welded tube, and extruding aluminum.",
+          "skills": [
+            {
+              "name": "Aluminum Extrusion",
+              "level": 2
+            },
+            {
+              "name": "Cold Rolling",
+              "level": 2
+            },
+            {
+              "name": "Hot Rolling",
+              "level": 2
+            },
+            {
+              "name": "Roll Forming",
+              "level": 2
+            },
+            {
+              "name": "Rolling Mill Setup",
+              "level": 2
+            },
+            {
+              "name": "Welded Tube Mill Operation",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "wire-and-cable",
+          "name": "Wire and cable",
+          "what": "Making wire and cable: drawing rod down to wire, and stranding and cabling it into conductors and cables.",
+          "skills": [
+            {
+              "name": "Stranding and Cabling",
+              "level": 2
+            },
+            {
+              "name": "Wire Drawing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "melt-shop",
+          "name": "Melt shop",
+          "what": "Melting, refining and casting metal in a steel mill or foundry melt shop: arc and induction furnaces, ladle refining and iron treatment, sampling, linings, and continuous and direct-chill casting.",
+          "skills": [
+            {
+              "name": "Molten Metal Sampling",
+              "level": 1
+            },
+            {
+              "name": "Continuous Casting",
+              "level": 2
+            },
+            {
+              "name": "Direct Chill Casting",
+              "level": 2
+            },
+            {
+              "name": "Ductile Iron Treatment",
+              "level": 2
+            },
+            {
+              "name": "Electric Arc Furnace Operation",
+              "level": 2
+            },
+            {
+              "name": "Furnace and Ladle Refractory Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Induction Furnace Melting",
+              "level": 2
+            },
+            {
+              "name": "Ladle Metallurgy",
               "level": 3
             }
           ]
@@ -1136,6 +1729,26 @@
             {
               "name": "Investment Casting",
               "level": 2
+            },
+            {
+              "name": "Foundry Sand Control",
+              "level": 2
+            },
+            {
+              "name": "Automatic Molding Line Operation",
+              "level": 2
+            },
+            {
+              "name": "Casting Grinding",
+              "level": 2
+            },
+            {
+              "name": "Casting Weld Repair",
+              "level": 3
+            },
+            {
+              "name": "Gating and Riser Design",
+              "level": 3
             }
           ]
         },
@@ -1144,6 +1757,10 @@
           "name": "Plastics molding",
           "what": "Making plastic parts: injection molding from the press to the process, extrusion and blow molding.",
           "skills": [
+            {
+              "name": "Resin Drying and Handling",
+              "level": 1
+            },
             {
               "name": "Injection Molding Machine Operation",
               "level": 2
@@ -1161,8 +1778,78 @@
               "level": 2
             },
             {
+              "name": "Thermoforming",
+              "level": 2
+            },
+            {
+              "name": "Plastic Welding",
+              "level": 2
+            },
+            {
               "name": "Injection Molding Process Development",
               "level": 3
+            },
+            {
+              "name": "Extrusion Line Setup and Troubleshooting",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "rubber-processing",
+          "name": "Rubber processing",
+          "what": "Mixing, forming and vulcanizing rubber, and building tires.",
+          "skills": [
+            {
+              "name": "Rubber Extrusion and Calendering",
+              "level": 2
+            },
+            {
+              "name": "Rubber Mixing and Milling",
+              "level": 2
+            },
+            {
+              "name": "Rubber Molding and Curing",
+              "level": 2
+            },
+            {
+              "name": "Tire Building",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "glass",
+          "name": "Glass forming and fabrication",
+          "what": "Forming hot glass into containers, and cutting, edging, tempering, laminating and building insulating units from flat glass, with the inspection both need.",
+          "skills": [
+            {
+              "name": "Glass Defect Inspection",
+              "level": 1
+            },
+            {
+              "name": "Flat Glass Cutting",
+              "level": 2
+            },
+            {
+              "name": "Glass Container Forming",
+              "level": 2
+            },
+            {
+              "name": "Glass Edging and Drilling",
+              "level": 2
+            },
+            {
+              "name": "Glass Laminating",
+              "level": 2
+            },
+            {
+              "name": "Glass Tempering",
+              "level": 2
+            },
+            {
+              "name": "Insulating Glass Unit Assembly",
+              "level": 2
             }
           ]
         },
@@ -1192,13 +1879,163 @@
               "level": 2
             }
           ]
+        },
+        {
+          "slug": "corrugating-and-converting",
+          "name": "Corrugating and converting",
+          "what": "Combining corrugated board, and cutting, folding, gluing, slitting and rewinding paper and board into products.",
+          "skills": [
+            {
+              "name": "Corrugator Dry End Operation",
+              "level": 2
+            },
+            {
+              "name": "Corrugator Wet End Operation",
+              "level": 2
+            },
+            {
+              "name": "Die Cutting",
+              "level": 2
+            },
+            {
+              "name": "Flexo Folder Gluer Operation",
+              "level": 2
+            },
+            {
+              "name": "Folder Gluer Operation",
+              "level": 2
+            },
+            {
+              "name": "Slitting and Rewinding",
+              "level": 2
+            },
+            {
+              "name": "Starch Adhesive Preparation",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "print-finishing",
+          "name": "Print finishing",
+          "what": "The bindery: cutting, folding, stitching, binding and foil stamping printed sheets.",
+          "skills": [
+            {
+              "name": "Foil Stamping and Embossing",
+              "level": 2
+            },
+            {
+              "name": "Guillotine Cutting",
+              "level": 2
+            },
+            {
+              "name": "Perfect Binding",
+              "level": 2
+            },
+            {
+              "name": "Saddle Stitching",
+              "level": 2
+            },
+            {
+              "name": "Sheet Folding",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "sign-making",
+          "name": "Sign making",
+          "what": "What a sign plant does that no other plant does: channel letters, large-format prints, vinyl graphics and the wiring of an electric sign.",
+          "skills": [
+            {
+              "name": "Channel Letter Fabrication",
+              "level": 2
+            },
+            {
+              "name": "Illuminated Sign Wiring",
+              "level": 2
+            },
+            {
+              "name": "Large-Format Digital Printing",
+              "level": 2
+            },
+            {
+              "name": "Vinyl Graphics Application",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "dental-laboratory",
+          "name": "Dental laboratory",
+          "what": "Making crowns, bridges and dentures to a prescription: models and dies, dental CAD, milling and sintering, ceramics and dentures.",
+          "skills": [
+            {
+              "name": "Dental Model and Die Preparation",
+              "level": 1
+            },
+            {
+              "name": "Dental CAD Design",
+              "level": 2
+            },
+            {
+              "name": "Dental Milling and Sintering",
+              "level": 2
+            },
+            {
+              "name": "Denture Fabrication",
+              "level": 2
+            },
+            {
+              "name": "Dental Ceramics Layering",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "ophthalmic-lenses",
+          "name": "Ophthalmic lenses",
+          "what": "Making prescription spectacle lenses: surfacing, coating, edging and mounting, and verifying the power.",
+          "skills": [
+            {
+              "name": "Lens Power Verification",
+              "level": 1
+            },
+            {
+              "name": "Lens Coating",
+              "level": 2
+            },
+            {
+              "name": "Lens Edging and Mounting",
+              "level": 2
+            },
+            {
+              "name": "Lens Surfacing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "jewelry-making",
+          "name": "Jewelry making",
+          "what": "The bench work of jewelry: fabrication and repair in precious metal, and setting stones.",
+          "skills": [
+            {
+              "name": "Jewelry Fabrication",
+              "level": 2
+            },
+            {
+              "name": "Stone Setting",
+              "level": 3
+            }
+          ]
         }
       ]
     },
     {
       "slug": "assembly",
       "name": "Assembly",
-      "what": "Putting hardware together: fastening, fits and alignment, the assembly of machines, vehicles, aircraft, rocket engines and spacecraft, and building up and maintaining munitions, weapons and survival equipment.",
+      "what": "Putting products together: fastening, fits and alignment, the assembly of machines, medical devices, vehicles, RVs, aircraft, rocket engines and spacecraft, cabinets, furniture and trusses, sewn goods and footwear, and building up and maintaining munitions, weapons and survival equipment.",
       "groups": [
         {
           "slug": "assembly-practice",
@@ -1263,6 +2100,25 @@
           ]
         },
         {
+          "slug": "medical-device-assembly",
+          "name": "Medical device assembly",
+          "what": "The assembly processes of medical devices: work under the microscope, light-cure bonding and the thermal forming of catheters.",
+          "skills": [
+            {
+              "name": "Catheter Reflow and Tipping",
+              "level": 2
+            },
+            {
+              "name": "Microscope Assembly",
+              "level": 2
+            },
+            {
+              "name": "UV Adhesive Bonding",
+              "level": 2
+            }
+          ]
+        },
+        {
           "slug": "fluid-system-assembly",
           "name": "Fluid system assembly",
           "what": "Building the tubes and fittings that carry fluid and proving them: fitting make-up, tube bending, precision cleaning, and proof and leak tests.",
@@ -1281,6 +2137,10 @@
             },
             {
               "name": "Proof Pressure and Leak Testing",
+              "level": 2
+            },
+            {
+              "name": "Bolted Flange Joint Assembly",
               "level": 2
             }
           ]
@@ -1364,6 +2224,60 @@
             {
               "name": "Cold Expansion of Fastener Holes",
               "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "cabinetmaking",
+          "name": "Cabinet and furniture making",
+          "what": "Building cabinets, furniture and millwork: hand-tool work, joinery, casework, hardware, veneering and curved work.",
+          "skills": [
+            {
+              "name": "Hand Tool Woodworking",
+              "level": 1
+            },
+            {
+              "name": "Cabinet Hardware Installation",
+              "level": 2
+            },
+            {
+              "name": "Casework Assembly",
+              "level": 2
+            },
+            {
+              "name": "Veneer and Laminate Application",
+              "level": 2
+            },
+            {
+              "name": "Wood Joinery",
+              "level": 2
+            },
+            {
+              "name": "Bent Lamination and Curved Work",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "truss-assembly",
+          "name": "Truss and wall panel assembly",
+          "what": "Sawing, jigging, plating and pressing trusses and framing wall panels in a component plant.",
+          "skills": [
+            {
+              "name": "Truss Component Sawing",
+              "level": 2
+            },
+            {
+              "name": "Truss Jig Setup",
+              "level": 2
+            },
+            {
+              "name": "Truss Plating and Pressing",
+              "level": 2
+            },
+            {
+              "name": "Wall Panel Framing",
+              "level": 2
             }
           ]
         },
@@ -1464,6 +2378,33 @@
             },
             {
               "name": "Vehicle Fluid Fill",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "rv-and-modular-building",
+          "name": "RV and modular building",
+          "what": "Building the living space of an RV or a factory-built home on a line: laminated walls and roof, roofing, plumbing, propane, and the cabinets and interior.",
+          "skills": [
+            {
+              "name": "Cabinet and Interior Installation",
+              "level": 2
+            },
+            {
+              "name": "LP Gas System Installation",
+              "level": 2
+            },
+            {
+              "name": "Potable Water and Drain Plumbing",
+              "level": 2
+            },
+            {
+              "name": "Roof Membrane Installation",
+              "level": 2
+            },
+            {
+              "name": "Wall and Roof Panel Lamination",
               "level": 2
             }
           ]
@@ -1582,15 +2523,80 @@
           "what": "Sewing, inspecting and servicing the gear that keeps aircrew alive.",
           "skills": [
             {
-              "name": "Industrial Sewing",
-              "level": 2
-            },
-            {
               "name": "Survival Equipment Inspection",
               "level": 2
             },
             {
               "name": "Oxygen Equipment Servicing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "cut-and-sew",
+          "name": "Cut and sew",
+          "what": "Making sewn products from roll goods: reading the tech pack, spreading, cutting, sewing and constructing the product.",
+          "skills": [
+            {
+              "name": "Fabric Spreading",
+              "level": 1
+            },
+            {
+              "name": "Tech Pack Reading",
+              "level": 1
+            },
+            {
+              "name": "Fabric Cutting",
+              "level": 2
+            },
+            {
+              "name": "Industrial Sewing",
+              "level": 2
+            },
+            {
+              "name": "Garment Construction",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "upholstery",
+          "name": "Upholstery",
+          "what": "Springing, padding, covering and tufting upholstered furniture.",
+          "skills": [
+            {
+              "name": "Foam and Padding Application",
+              "level": 2
+            },
+            {
+              "name": "Spring Installation",
+              "level": 2
+            },
+            {
+              "name": "Upholstery Covering",
+              "level": 2
+            },
+            {
+              "name": "Tufting and Channeling",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "footwear-and-leather-goods",
+          "name": "Footwear and leather goods",
+          "what": "Cutting leather and building shoes and boots on the last.",
+          "skills": [
+            {
+              "name": "Leather Cutting",
+              "level": 2
+            },
+            {
+              "name": "Shoe Bottoming",
+              "level": 2
+            },
+            {
+              "name": "Shoe Lasting",
               "level": 2
             }
           ]
@@ -1681,6 +2687,10 @@
             {
               "name": "BGA Reballing",
               "level": 3
+            },
+            {
+              "name": "PCB Rework and Repair",
+              "level": 3
             }
           ]
         },
@@ -1720,6 +2730,29 @@
             {
               "name": "Automated Optical Inspection Programming",
               "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "pcb-fabrication",
+          "name": "Circuit board fabrication",
+          "what": "Making bare printed circuit boards: imaging the layers, pressing multilayers, drilling and routing the panels, and testing every net.",
+          "skills": [
+            {
+              "name": "Bare Board Electrical Test",
+              "level": 2
+            },
+            {
+              "name": "PCB Drilling and Routing",
+              "level": 2
+            },
+            {
+              "name": "PCB Imaging",
+              "level": 2
+            },
+            {
+              "name": "PCB Multilayer Lamination",
+              "level": 2
             }
           ]
         },
@@ -1765,6 +2798,18 @@
             },
             {
               "name": "RF and Coaxial Cable Assembly",
+              "level": 2
+            },
+            {
+              "name": "Shipboard Cable Installation",
+              "level": 2
+            },
+            {
+              "name": "Cable Penetration Sealing",
+              "level": 2
+            },
+            {
+              "name": "Low-Voltage DC Wiring",
               "level": 2
             },
             {
@@ -1822,6 +2867,33 @@
             },
             {
               "name": "Silver Sintering Die Attach",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "transformer-build",
+          "name": "Transformer build",
+          "what": "Building power and distribution transformers: winding the coils, stacking the core, assembling core and coil, drying and filling the tank, and the routine tests.",
+          "skills": [
+            {
+              "name": "Core and Coil Assembly",
+              "level": 2
+            },
+            {
+              "name": "Transformer Coil Winding",
+              "level": 2
+            },
+            {
+              "name": "Transformer Core Stacking",
+              "level": 2
+            },
+            {
+              "name": "Transformer Processing and Oil Filling",
+              "level": 3
+            },
+            {
+              "name": "Transformer Testing",
               "level": 3
             }
           ]
@@ -1895,6 +2967,33 @@
             },
             {
               "name": "Laser Communication Terminal Assembly",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "optics",
+          "name": "Optics",
+          "what": "Building and proving optics: handling and cleaning them, polishing them, aligning them, cementing and bonding them, and testing them by interferometer.",
+          "skills": [
+            {
+              "name": "Optics Cleaning and Handling",
+              "level": 1
+            },
+            {
+              "name": "Optical Alignment",
+              "level": 2
+            },
+            {
+              "name": "Optical Cementing and Bonding",
+              "level": 2
+            },
+            {
+              "name": "Optical Polishing",
+              "level": 2
+            },
+            {
+              "name": "Interferometric Optical Testing",
               "level": 3
             }
           ]
@@ -2087,6 +3186,10 @@
             },
             {
               "name": "Machine Safety Circuit Design",
+              "level": 3
+            },
+            {
+              "name": "Equipment Commissioning",
               "level": 3
             }
           ]
@@ -2389,6 +3492,10 @@
               "level": 2
             },
             {
+              "name": "Scanning Acoustic Microscopy",
+              "level": 2
+            },
+            {
               "name": "Electrical Fault Isolation",
               "level": 3
             },
@@ -2604,7 +3711,7 @@
     {
       "slug": "process",
       "name": "Process",
-      "what": "Food, beverage, pharmaceutical and chemical processing: batching, filling, sterilization, aseptic work and laboratory analysis under GMP, running a chemical plant, handling fuels, and operating a nuclear plant.",
+      "what": "Food, beverage, pharmaceutical and chemical processing: meat, baking, dairy, milling, brewing, winemaking and distilling, biologics, batching, filling, sterilization, aseptic work and laboratory analysis under GMP, running a chemical plant or a refinery, pulp and paper, wood panels and kilns, handling fuels, and operating a nuclear plant.",
       "groups": [
         {
           "slug": "gmp-and-sanitation",
@@ -2634,6 +3741,18 @@
             {
               "name": "Process Validation",
               "level": 3
+            },
+            {
+              "name": "Food Safety Plan Development",
+              "level": 3
+            },
+            {
+              "name": "Cleaning Validation",
+              "level": 3
+            },
+            {
+              "name": "Thermal Validation",
+              "level": 3
             }
           ]
         },
@@ -2653,6 +3772,149 @@
             {
               "name": "Spray Drying",
               "level": 2
+            },
+            {
+              "name": "Industrial Frying",
+              "level": 2
+            },
+            {
+              "name": "Food Extrusion Cooking",
+              "level": 2
+            },
+            {
+              "name": "Food Forming and Depositing",
+              "level": 2
+            },
+            {
+              "name": "Chocolate Tempering and Enrobing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "meat-processing",
+          "name": "Meat and poultry processing",
+          "what": "Turning animals into meat: humane handling and stunning, dressing the carcass, the antimicrobial step, breaking it into cuts, boning and trimming, keeping the knife, and cooking and smoking processed meat.",
+          "skills": [
+            {
+              "name": "Knife Sharpening and Steeling",
+              "level": 1
+            },
+            {
+              "name": "Carcass Antimicrobial Intervention",
+              "level": 2
+            },
+            {
+              "name": "Carcass Dressing",
+              "level": 2
+            },
+            {
+              "name": "Carcass Fabrication",
+              "level": 2
+            },
+            {
+              "name": "Humane Handling and Stunning",
+              "level": 2
+            },
+            {
+              "name": "Meat Deboning and Trimming",
+              "level": 2
+            },
+            {
+              "name": "Smokehouse Cooking and Chilling",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "baking",
+          "name": "Baking",
+          "what": "Making bread, buns, cakes and crackers at production scale: mixing dough, fermenting and proofing it, dividing and moulding it, and baking it to profile.",
+          "skills": [
+            {
+              "name": "Dough Fermentation and Proofing",
+              "level": 2
+            },
+            {
+              "name": "Dough Makeup",
+              "level": 2
+            },
+            {
+              "name": "Dough Mixing",
+              "level": 2
+            },
+            {
+              "name": "Industrial Oven Baking",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "dairy-processing",
+          "name": "Dairy processing",
+          "what": "Making milk into product: separating and standardizing it, making cheese in the vat, and ripening and grading it.",
+          "skills": [
+            {
+              "name": "Cheesemaking",
+              "level": 2
+            },
+            {
+              "name": "Milk Separation and Standardization",
+              "level": 2
+            },
+            {
+              "name": "Cheese Ripening and Grading",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "grain-milling",
+          "name": "Grain milling",
+          "what": "Turning grain into flour, meal and feed: cleaning and tempering, roller milling and sifting, and pelleting.",
+          "skills": [
+            {
+              "name": "Feed Pelleting",
+              "level": 2
+            },
+            {
+              "name": "Flour Milling",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "fermented-beverages",
+          "name": "Brewing, winemaking and distilling",
+          "what": "Making beer, wine and spirits: mashing grain, crushing and pressing fruit, managing the fermentation, clarifying and filtering, distilling, aging in barrels and blending.",
+          "skills": [
+            {
+              "name": "Barrel Aging",
+              "level": 2
+            },
+            {
+              "name": "Beverage Clarification and Filtration",
+              "level": 2
+            },
+            {
+              "name": "Beverage Fermentation",
+              "level": 2
+            },
+            {
+              "name": "Grain Mashing",
+              "level": 2
+            },
+            {
+              "name": "Grape Crushing and Pressing",
+              "level": 2
+            },
+            {
+              "name": "Spirits Distillation",
+              "level": 2
+            },
+            {
+              "name": "Wine and Spirits Blending",
+              "level": 3
             }
           ]
         },
@@ -2675,6 +3937,14 @@
             },
             {
               "name": "Ethylene Oxide Sterilization",
+              "level": 2
+            },
+            {
+              "name": "Steam-in-Place Operation",
+              "level": 2
+            },
+            {
+              "name": "Radiation Sterilization",
               "level": 2
             }
           ]
@@ -2699,6 +3969,18 @@
             {
               "name": "Packaging Line Operation",
               "level": 2
+            },
+            {
+              "name": "Form-Fill-Seal Bagging",
+              "level": 2
+            },
+            {
+              "name": "Vacuum and Modified Atmosphere Packaging",
+              "level": 2
+            },
+            {
+              "name": "Sterile Barrier Sealing",
+              "level": 2
             }
           ]
         },
@@ -2722,6 +4004,10 @@
             {
               "name": "Tablet Film Coating",
               "level": 2
+            },
+            {
+              "name": "Capsule Filling",
+              "level": 2
             }
           ]
         },
@@ -2743,7 +4029,42 @@
               "level": 2
             },
             {
+              "name": "Sterile Filtration and Filter Integrity Testing",
+              "level": 2
+            },
+            {
+              "name": "Visual Inspection of Injectables",
+              "level": 2
+            },
+            {
               "name": "Aseptic Filling",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "bioprocessing",
+          "name": "Bioprocessing",
+          "what": "Making biologic drugs: media and buffers, growing cells, running the bioreactor, and purifying the product by filtration and chromatography.",
+          "skills": [
+            {
+              "name": "Buffer and Media Preparation",
+              "level": 1
+            },
+            {
+              "name": "Bioreactor Operation",
+              "level": 2
+            },
+            {
+              "name": "Cell Culture Expansion",
+              "level": 2
+            },
+            {
+              "name": "Tangential Flow Filtration",
+              "level": 2
+            },
+            {
+              "name": "Process Chromatography",
               "level": 3
             }
           ]
@@ -2774,6 +4095,18 @@
               "level": 2
             },
             {
+              "name": "Food Chemistry Testing",
+              "level": 2
+            },
+            {
+              "name": "Food Pathogen Testing",
+              "level": 2
+            },
+            {
+              "name": "Microbial Identification",
+              "level": 2
+            },
+            {
               "name": "HPLC Analysis",
               "level": 3
             },
@@ -2783,6 +4116,56 @@
             },
             {
               "name": "Sterility Testing",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "food-product-development",
+          "name": "Food product development",
+          "what": "Designing a food product and proving it: formulating to a target, judging it by panel, testing how long it keeps, and making the label true and legal.",
+          "skills": [
+            {
+              "name": "Food Labeling Compliance",
+              "level": 2
+            },
+            {
+              "name": "Sensory Evaluation",
+              "level": 2
+            },
+            {
+              "name": "Food Product Formulation",
+              "level": 3
+            },
+            {
+              "name": "Shelf-Life Testing",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "chemical-laboratory",
+          "name": "Chemical laboratory",
+          "what": "The chemistry laboratory's work: wet chemistry, spectroscopy and mass spectrometry, its records system, and proving its methods.",
+          "skills": [
+            {
+              "name": "Laboratory Information Management System Use",
+              "level": 1
+            },
+            {
+              "name": "Wet Chemical Analysis",
+              "level": 1
+            },
+            {
+              "name": "UV-Visible and Infrared Spectroscopy",
+              "level": 2
+            },
+            {
+              "name": "Analytical Method Validation",
+              "level": 3
+            },
+            {
+              "name": "Mass Spectrometry",
               "level": 3
             }
           ]
@@ -2805,7 +4188,154 @@
               "level": 2
             },
             {
+              "name": "Filtration and Centrifugation",
+              "level": 2
+            },
+            {
+              "name": "Pigment Dispersion",
+              "level": 2
+            },
+            {
+              "name": "Liquid and Semisolid Compounding",
+              "level": 2
+            },
+            {
               "name": "Distributed Control System Operation",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "refining-units",
+          "name": "Refinery units",
+          "what": "Running the continuous, high-temperature units of a refinery or petrochemical plant: fired heaters, process gas compressors and catalytic reactors.",
+          "skills": [
+            {
+              "name": "Fired Heater Operation",
+              "level": 2
+            },
+            {
+              "name": "Process Compressor Operation",
+              "level": 2
+            },
+            {
+              "name": "Catalytic Unit Operation",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "pulp-and-paper",
+          "name": "Pulp and paper making",
+          "what": "Making pulp, paper, board and tissue: cooking, washing and bleaching pulp, preparing stock, running the paper machine's wet and dry ends, creping and coating, and testing pulp and paper.",
+          "skills": [
+            {
+              "name": "Kraft Pulping",
+              "level": 2
+            },
+            {
+              "name": "Paper Machine Dry End Operation",
+              "level": 2
+            },
+            {
+              "name": "Paper Machine Wet End Operation",
+              "level": 2
+            },
+            {
+              "name": "Pulp Bleaching",
+              "level": 2
+            },
+            {
+              "name": "Pulp Washing and Screening",
+              "level": 2
+            },
+            {
+              "name": "Pulp and Paper Testing",
+              "level": 2
+            },
+            {
+              "name": "Stock Preparation",
+              "level": 2
+            },
+            {
+              "name": "Paper Coating",
+              "level": 3
+            },
+            {
+              "name": "Tissue Creping",
+              "level": 3
+            },
+            {
+              "name": "Wet End Chemistry Control",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "chemical-recovery",
+          "name": "Chemical recovery",
+          "what": "A kraft mill's recovery line: evaporating black liquor, firing the recovery boiler, recausticizing and reburning lime.",
+          "skills": [
+            {
+              "name": "Black Liquor Evaporation",
+              "level": 2
+            },
+            {
+              "name": "Recausticizing and Lime Kiln Operation",
+              "level": 2
+            },
+            {
+              "name": "Recovery Boiler Operation",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "wood-panels",
+          "name": "Wood drying and panels",
+          "what": "Drying lumber in kilns, and making plywood, LVL, OSB, particleboard and MDF: peeling, drying, resin blending, forming and hot pressing.",
+          "skills": [
+            {
+              "name": "Panel Layup and Mat Forming",
+              "level": 2
+            },
+            {
+              "name": "Resin Blending",
+              "level": 2
+            },
+            {
+              "name": "Veneer Peeling",
+              "level": 2
+            },
+            {
+              "name": "Veneer and Furnish Drying",
+              "level": 2
+            },
+            {
+              "name": "Lumber Kiln Drying",
+              "level": 3
+            },
+            {
+              "name": "Panel Hot Pressing",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "kilns-and-mills",
+          "name": "Kilns and grinding mills",
+          "what": "Firing and grinding minerals: rotary kilns for cement and lime, tunnel and periodic kilns for brick and ceramics, and the mills that grind raw meal, coal and cement.",
+          "skills": [
+            {
+              "name": "Ceramic Kiln Firing",
+              "level": 2
+            },
+            {
+              "name": "Grinding Mill Operation",
+              "level": 2
+            },
+            {
+              "name": "Rotary Kiln Operation",
               "level": 3
             }
           ]
@@ -2929,6 +4459,10 @@
             {
               "name": "Hardware-in-the-Loop Testing",
               "level": 3
+            },
+            {
+              "name": "Test Equipment Design",
+              "level": 3
             }
           ]
         },
@@ -2939,6 +4473,10 @@
           "skills": [
             {
               "name": "CAN Bus Diagnostics",
+              "level": 2
+            },
+            {
+              "name": "Serial Bus Diagnostics",
               "level": 2
             },
             {
@@ -2993,6 +4531,10 @@
             },
             {
               "name": "Reliability Stress Testing",
+              "level": 2
+            },
+            {
+              "name": "Environmental Chamber Testing",
               "level": 2
             },
             {
@@ -3145,6 +4687,33 @@
           ]
         },
         {
+          "slug": "textile-machine-repair",
+          "name": "Textile machine repair",
+          "what": "The fixer's work: setting, timing and repairing spinning machines, looms, knitting and tufting machines, and sewing machines.",
+          "skills": [
+            {
+              "name": "Sewing Machine Repair",
+              "level": 2
+            },
+            {
+              "name": "Knitting Machine Setup and Repair",
+              "level": 3
+            },
+            {
+              "name": "Loom Setup and Repair",
+              "level": 3
+            },
+            {
+              "name": "Spinning Machine Setup and Repair",
+              "level": 3
+            },
+            {
+              "name": "Tufting Machine Setup and Repair",
+              "level": 3
+            }
+          ]
+        },
+        {
           "slug": "electrical-maintenance",
           "name": "Electrical maintenance",
           "what": "The plant electrician's work: reading the schematic, wiring and testing motors, running conduit, troubleshooting motor controls and working on 480 V power.",
@@ -3172,6 +4741,10 @@
             {
               "name": "480 V Power Distribution",
               "level": 2
+            },
+            {
+              "name": "Branch Circuit Wiring",
+              "level": 2
             }
           ]
         },
@@ -3198,6 +4771,10 @@
             },
             {
               "name": "Motor Rewinding",
+              "level": 3
+            },
+            {
+              "name": "Power System Studies",
               "level": 3
             }
           ]
@@ -3315,6 +4892,14 @@
             {
               "name": "Water Treatment System Operation",
               "level": 2
+            },
+            {
+              "name": "Ammonia Refrigeration System Operation",
+              "level": 2
+            },
+            {
+              "name": "Building Automation System Operation",
+              "level": 2
             }
           ]
         },
@@ -3380,6 +4965,18 @@
             },
             {
               "name": "Heavy Equipment Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Railcar Air Brake Testing",
+              "level": 2
+            },
+            {
+              "name": "Railcar Truck Assembly",
+              "level": 2
+            },
+            {
+              "name": "Coupler and Draft Gear Service",
               "level": 2
             },
             {
@@ -3575,6 +5172,33 @@
             {
               "name": "First Article Inspection",
               "level": 2
+            },
+            {
+              "name": "Fabric Inspection",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "lumber-grading",
+          "name": "Lumber grading",
+          "what": "Grading lumber by eye and by scanner to the grading rules, and measuring its moisture.",
+          "skills": [
+            {
+              "name": "Wood Moisture Content Measurement",
+              "level": 1
+            },
+            {
+              "name": "Hardwood Lumber Grading",
+              "level": 2
+            },
+            {
+              "name": "Softwood Lumber Grading",
+              "level": 2
+            },
+            {
+              "name": "Automated Lumber Grading",
+              "level": 3
             }
           ]
         },
@@ -3664,6 +5288,10 @@
             {
               "name": "Design of Experiments",
               "level": 3
+            },
+            {
+              "name": "Life Data Analysis",
+              "level": 3
             }
           ]
         },
@@ -3713,6 +5341,10 @@
             },
             {
               "name": "Quality System Auditing",
+              "level": 3
+            },
+            {
+              "name": "Advanced Product Quality Planning",
               "level": 3
             }
           ]
@@ -4013,6 +5645,10 @@
             {
               "name": "Ordnance Handling",
               "level": 2
+            },
+            {
+              "name": "Process Hazard Analysis",
+              "level": 3
             }
           ]
         }
