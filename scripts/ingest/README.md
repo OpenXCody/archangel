@@ -400,6 +400,12 @@ only, and says what was missing.
 5. none: the posting waits, and its place goes on the list an admin sees. A
    plant is never added and a state is never guessed.
 
+A place can also be decided ahead of a run, by the data rather than by a
+person: see "Places decided by the data", below. A `left` place keeps a posting
+off the list only while no plant is found for it: rule 4 still reads a place
+that was left, so a posting at an office 10 km from a plant becomes a job there,
+marked for a look.
+
 A posting at several places is a job at each place that has a plant, and one
 job at a plant: where two of its places come to the same plant (the plant's
 own city and a town beside it, or a place an admin pointed there), the place
@@ -409,6 +415,31 @@ id is one job: `<posting id>@<place key>`.
 Pay is kept as the posting states it, a band across an employer's levels
 included. A band whose top is more than four times its bottom is a misprint
 in the posting (one read "$30 - $389hour") and no pay is said.
+
+### Places decided by the data
+
+`data/employers/places.json` decides places the research has looked at, so
+nobody presses a button for each: `point` for a plant we list under another
+town's name (Anduril's postings say Quonset; the plant's address is North
+Kingstown), with the plant by its company and exact name, as a research file
+names it or (`stored: true`) as the stored row is named, and `plantCity` where
+the name alone does not tell it; `leave` for a place that is not a plant, with
+its `kind` (an office, a laboratory, a warehouse, a test range). Every entry
+says `why` and where it was read. A place whose plant is now in that town (a
+research file added it) needs no entry: the next run finds it.
+`scripts/build-posting-places-sql.mjs` checks the file (`--check`: every
+employer is in the registry, every pointed plant is named exactly once in the
+research files or is marked `stored`, no place twice) and generates the
+migration (`0067_posting_places.sql`). The migration writes `posting_places`
+rows as Admin Tools does, with `decided_at` set and no `decided_by`: a place a
+person decided is never changed, a plant that is not found (or is in another
+state) is said with `look = true` and the place keeps waiting, and an employer
+whose postings have not been run on that database has no source yet, so nothing
+is written for it. It writes the audit line a person's decision writes, with no
+person named (History reads "The data"), and `load_log` (load
+`posting-places`). Run twice, it writes nothing. The jobs follow at the next
+run. A change to the decisions is a change to the file and a new generated
+migration (the builder's `--out`).
 
 ### A listing read to its end
 
@@ -735,6 +766,30 @@ company's name in the file; every entry says `why`.
 | `dropPlants` | plants to leave out |
 | `plants: { "<plant>": { … } }` | plant fields to replace; `sameAs` names the existing plant this one is (its exact name, within 25 km); `isNew: true` says no existing plant is this one |
 
+## Rows that are not an employer's (`not-theirs.json`)
+
+A research file can move a stored row only by describing the plant under its
+true company (`sameAs`), which writes that plant from sources. A row filed
+under an employer that is not its plant at all is moved by
+`data/employers/not-theirs.json` instead: each row by its id, with the company
+it is filed under today (`from`), its stored name, and either `to`, the company
+it is (the firm the research names, or the firm the row's own name names: a car
+dealer, a namesake, a business sold long ago; found by exact name or by exactly
+one other name, created bare when there is none), or `mergeInto`, the id of the
+row that is the same plant written twice (folded into it by `plant_merge`).
+`scripts/build-not-theirs-sql.mjs` checks the file (`--check`) and generates
+the migration (`0066_rows_not_theirs.sql`), which decides in SQL: a row is moved
+or merged only while it still carries the file's name and is filed under
+`from`; a row that is not there, or is no longer as the file says, is left and
+said once with `look = true` (load `not-theirs`). Nothing is deleted: a dealer is
+not a plant, and stays, under a company of its own name, until the owner decides
+to remove it. A job filed under the employer at a moved row follows at the next
+postings run, which places the posting again. Run twice, the migration writes
+nothing.
+
+`places.json` and `not-theirs.json` are not research files: the employer
+loader does not read them (`NOT_RESEARCH` in `scripts/build-employers-sql.mjs`).
+
 ## What the loader decides (scripts/employers-loader.sql)
 
 **Company.** Found by exact name, in any letter case: its name or one of its
@@ -794,6 +849,17 @@ from any).
 5. `node scripts/build-employers-sql.mjs --out migrations/00NN_<name>.sql data/employers/<file>.json`,
    add the file to the list in `scripts/migrate.mjs`, and run
    `DB=… bash tests/api/loader.sh`.
+
+6. Rows the research found filed under the wrong company go in
+   `data/employers/not-theirs.json`, places an employer's postings name in
+   `data/employers/places.json`; each has its builder and its migration
+   (above), generated after the research file's, in that order. Rehearse the
+   three together on the copy: `DATABASE_URL=… node scripts/migrate.mjs`, then
+   again (the second run must change nothing), then `posting_decide` for each
+   employer to see where its postings land.
+7. A load that adds or moves plants is followed by the counties
+   (`scripts/geo/assign-keys.mjs`; on production, the Ingest workflow's
+   `counties` source).
 
 A fact already loaded is corrected in Admin Tools or by a cleanup migration,
 not by loading the file again: a second load keeps the fuller fact.

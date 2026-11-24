@@ -1,0 +1,887 @@
+{
+  "note": "Places employers' postings name, decided by the data rather than one by one in Admin Tools (scripts/build-posting-places-sql.mjs builds the migration). 'point': the place is a plant we list under another town's name (the plant by its company and exact name, as the research file or the stored row has it). 'leave': the place is not a plant (an office, a laboratory, a warehouse, a test range), and it is not asked about again. A place a person decided in Admin Tools is never changed. Read from the research of 2026-11-23 (the employers' own pages, their filings, the press); every entry says why and where it was read.",
+  "places": [
+    {
+      "employer": "Anduril",
+      "city": "Quonset",
+      "state": "RI",
+      "decision": "point",
+      "company": "Anduril Industries",
+      "plant": "Anduril Quonset Point",
+      "plantCity": "North Kingstown",
+      "kind": "assembly plant (autonomous underwater vehicles)",
+      "why": "A plant, Anduril's, running, and ours already: Quonset is the business park, which stands in North Kingstown, so the place needs pointing at aa837017-8744-4f20-8927-46be9ef0917e. Which of the two addresses holds the production line no source says; Anduril calls the site a campus, and both rows are that campus, so either row is the right plant for these jobs.",
+      "sources": [
+        "https://www.anduril.com/news/anduril-to-open-large-scale-production-facility-for-autonomous-underwater-vehicles",
+        "https://pbn.com/andruil-industries-cuts-ribbon-on-new-quonset-business-park-facility/",
+        "https://quonset.com/anduril-sets-down-roots-at-quonset/",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072124511",
+        "https://boards-api.greenhouse.io/v1/boards/andurilindustries/jobs/5280134007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Reston",
+      "state": "VA",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "Nothing is built there by Anduril's own account of its jobs: a design office with a small laboratory at most. It stays out.",
+      "sources": [
+        "https://boards.greenhouse.io/andurilindustries/jobs/5200578007",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5232222007",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5261025007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Huntsville",
+      "state": "AL",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "An engineering hub by a local report and by what is advertised; the motors are made at McHenry, which we list. Not a plant.",
+      "sources": [
+        "https://256today.com/anduril-selected-for-pentagons-low-cost-cruise-missile-program-expanding-role-in-arsenal-of-freedom/",
+        "https://www.anduril.com/news/anduril-hires-lieutenant-general-neil-thurgood-announces-planned-expansion-to-huntsville-al"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Broomfield",
+      "state": "CO",
+      "decision": "leave",
+      "kind": "software and engineering office",
+      "why": "A software and algorithms office by what is advertised; the line's production is in Fort Collins. Not a plant.",
+      "sources": [
+        "https://boards.greenhouse.io/andurilindustries/jobs/5281153007",
+        "https://www.anduril.com/news/anduril-acquires-radar-and-command-and-control-businesses-of-numerica-corporation"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Colorado Springs",
+      "state": "CO",
+      "decision": "leave",
+      "kind": "software office",
+      "why": "A software office by what is advertised. Not a plant.",
+      "sources": [
+        "https://boards.greenhouse.io/andurilindustries/jobs/5275020007",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5272035007",
+        "https://www.coloradoan.com/story/money/2021/05/07/fort-collins-defense-contractor-numerica-adds-second-location-city/4988434001/"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Boston",
+      "state": "MA",
+      "decision": "leave",
+      "kind": "software and engineering office",
+      "why": "An office. Not a plant.",
+      "sources": [
+        "https://www.anduril.com/news/anduril-expands-global-presence-now-hiring-in-boston-and-london",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5262340007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Boulder",
+      "state": "CO",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "A design office by what is advertised. Not a plant.",
+      "sources": [
+        "https://boards.greenhouse.io/andurilindustries/jobs/5248692007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Seattle",
+      "state": "WA",
+      "decision": "leave",
+      "kind": "software and engineering office",
+      "why": "The one site in Seattle where vessels were to be assembled is given up; what is left is offices. Not a plant.",
+      "sources": [
+        "https://www.geekwire.com/2026/anduril-exits-seattle-shipyard-following-canceled-navy-program-and-omission-from-new-warship-list/",
+        "https://www.geekwire.com/2025/military-tech-giant-anduril-lands-in-bellevue-doubling-footprint-in-seattle-region/"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Bellevue",
+      "state": "WA",
+      "decision": "leave",
+      "kind": "engineering office",
+      "why": "An engineering office. Not a plant.",
+      "sources": [
+        "https://www.geekwire.com/2025/military-tech-giant-anduril-lands-in-bellevue-doubling-footprint-in-seattle-region/"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Washington",
+      "state": "DC",
+      "decision": "leave",
+      "kind": "office",
+      "why": "An office. Not a plant.",
+      "sources": [
+        "https://www.anduril.com/news/anduril-expands-global-presence-now-hiring-in-boston-and-london",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5275020007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Chantilly",
+      "state": "VA",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "A design office by what is advertised. Not a plant.",
+      "sources": [
+        "https://boards.greenhouse.io/andurilindustries/jobs/5169867007",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5289281007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Raleigh",
+      "state": "NC",
+      "decision": "point",
+      "company": "Anduril Industries",
+      "plant": "ANDURIL INDUSTRIES, INC",
+      "plantCity": "Morrisville",
+      "stored": true,
+      "kind": "assembly plant (composite aircraft structures)",
+      "why": "Right, and on firmer ground than the researcher had: Anduril's board itself files its Raleigh office in Morrisville, so a posting that says Raleigh means the Morrisville plant. The why is corrected to say so.",
+      "sources": [
+        "https://boards-api.greenhouse.io/v1/boards/andurilindustries/jobs?content=true",
+        "https://www.anduril.com/news/anduril-acquires-blue-force-technologies",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072290126"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Foothill Ranch",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "office of an acquired software and space-tracking firm",
+      "why": "A software office of an acquired firm. Not a plant.",
+      "sources": [
+        "https://www.ocbj.com/defense-2/anduril-agrees-to-buy-exoanalytic-solutions/",
+        "https://www.anduril.com/news/anduril-reaches-agreement-to-acquire-exoanalytic-solutions-to-accelerate-space-domain-awareness-and-missile-defense-capabilities",
+        "https://arstechnica.com/space/2026/03/anduril-the-autonomous-weapons-maker-doubles-the-size-of-its-space-unit/"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "San Clemente",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "test range",
+      "why": "A test range: products are tried there, not built. Not a plant.",
+      "sources": [
+        "https://www.anduril.com/news/anduril-expanding-testing-operations-to-nevada-national-security-site",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110071248415",
+        "https://www.ocbj.com/news/weekly-news/anduril-expands-oc-base-santa-ana-lease/",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5298929007"
+      ]
+    },
+    {
+      "employer": "Anduril",
+      "city": "Victorville",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "flight-test site",
+      "why": "Not a plant stands: aircraft built elsewhere are flown and kept flying there. One correction: there is an address, 18310 Readiness St, Unit C, from the EPA.",
+      "sources": [
+        "https://avweb.com/aviation-news/anduril-yfq-44a-takes-first-flight/",
+        "https://boards.greenhouse.io/andurilindustries/jobs/5246694007"
+      ]
+    },
+    {
+      "employer": "Applied Materials",
+      "city": "Phoenix",
+      "state": "AZ",
+      "decision": "leave",
+      "kind": "field service office",
+      "why": "Nothing found that builds anything in Phoenix: a suite of field service and support people, named only as an extra place on a Tempe posting, so the place is left.",
+      "sources": [
+        "https://amat.wd1.myworkdayjobs.com/External/job/Tempe-Spares-MfgAZ/Machinist-V---Swing-Shift----T5-_R2611613",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://amat.wd1.myworkdayjobs.com/External/job/PhoenixAZ/Process-Support-Engineer-III_R2631623",
+        "https://amat.wd1.myworkdayjobs.com/External/siteMap.xml"
+      ]
+    },
+    {
+      "employer": "Applied Materials",
+      "city": "Tempe Spares Mfg",
+      "state": "AZ",
+      "decision": "point",
+      "company": "Applied Materials",
+      "plant": "Tempe spares manufacturing (Hardy Drive)",
+      "plantCity": "Tempe",
+      "kind": "parts plant (graphite and silicon carbide spare parts: machining and coating)",
+      "why": "The idea stands: the spares postings describe production (graphite purification and CVD coating on shifts) and of Applied's three Tempe addresses only Hardy Drive has an industrial CVD line; but no source says in words that 'Tempe Spares Mfg' is 8175 S Hardy Drive, so the pointing rests on that elimination, as the researcher said.",
+      "sources": [
+        "https://amat.wd1.myworkdayjobs.com/External/job/Tempe-Spares-MfgAZ/Machinist-V---Swing-Shift----T5-_R2611613",
+        "https://amat.wd1.myworkdayjobs.com/External/job/Tempe-Spares-MfgAZ/Process-and-Technology-Engineer----E3-_R2614955",
+        "https://amat.wd1.myworkdayjobs.com/External/job/Tempe-Spares-MfgAZ/Manufacturing-Quality-Manager_R2623146-1",
+        "https://services.arcgis.com/lQySeXwbBg53XWDi/arcgis/rest/services/building_permits/FeatureServer/0",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110070861847",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://news.asu.edu/20251009-science-and-technology-applied-materials-asu-celebrate-opening-materialstofab-center-fuel"
+      ]
+    },
+    {
+      "employer": "Apptronik",
+      "city": "Sunnyvale",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "software and engineering office",
+      "why": "Confirmed: an engineering, software and demonstration office with nothing made there; it should wait and be left.",
+      "sources": [
+        "https://boards-api.greenhouse.io/v1/boards/apptronik/offices",
+        "https://boards-api.greenhouse.io/v1/boards/apptronik/jobs?content=true"
+      ]
+    },
+    {
+      "employer": "Apptronik",
+      "city": "Mountain View",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "office (the board files it under its Silicon Valley office, \"SV\")",
+      "why": "Confirmed: one product posting filed under the Sunnyvale office, not one of our careers, so nothing waits.",
+      "sources": [
+        "https://boards-api.greenhouse.io/v1/boards/apptronik/offices",
+        "https://boards-api.greenhouse.io/v1/boards/apptronik/jobs?content=true",
+        "https://apptronik.com/news-collection/welcome-to-robot-park-where-apptroniks-apollo-goes-to-work"
+      ]
+    },
+    {
+      "employer": "Blue Origin",
+      "city": "Space Coast",
+      "state": "FL",
+      "decision": "point",
+      "company": "Blue Origin",
+      "plant": "Blue Origin Rocket Park (Merritt Island)",
+      "plantCity": "Merritt Island",
+      "stored": true,
+      "kind": "rocket factory; launch complex",
+      "why": "Right that Space Coast is no town and that Rocket Park (6b432a81-92e3-49d4-8504-dccd3ea7f513) is the plant for the factory postings; wrong to put Lunar Plant 1 at Rocket Park, since no source read says where it is.",
+      "sources": [
+        "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Space-Coast-FL/CNC-Machinist--New-Glenn-_R76134",
+        "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Space-Coast-FL/Launch---Test-Ops-Technician---All-Shifts-All-Levels_R74718",
+        "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Space-Coast-FL/Lunar-Manager-Manufacturing-Ops-and-Assembly---Tanks-Welding_R76238-1"
+      ]
+    },
+    {
+      "employer": "Blue Origin",
+      "city": "Hutto",
+      "state": "TX",
+      "decision": "leave",
+      "kind": "announced factory, not built",
+      "why": "Announced, not built: not a plant, and nothing loads for it.",
+      "sources": [
+        "https://rebusinessonline.com/blue-origin-to-invest-554m-for-1-3-msf-aerospace-manufacturing-facility-in-central-texas-create-2000-jobs/",
+        "https://www.fox7austin.com/news/blue-origin-constellation-park-hutto-texas",
+        "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Hutto-TX/Solar-Technician--All-Levels-_R72391"
+      ]
+    },
+    {
+      "employer": "Blue Origin",
+      "city": "Lancaster",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "a government test site (Air Force Research Laboratory, Edwards Air Force Base)",
+      "why": "A government test site where a Blue Origin team works: a customer's site, not Blue Origin's plant.",
+      "sources": [
+        "https://blueorigin.wd5.myworkdayjobs.com/BlueOrigin/job/Lancaster-CA/Technician---Test---Launch-Ops-III---A-shift_R66471-1"
+      ]
+    },
+    {
+      "employer": "John Deere",
+      "city": "Milan",
+      "state": "IL",
+      "decision": "leave",
+      "kind": "parts warehouse",
+      "why": "Nothing is built there: a parts warehouse, and a laboratory that tests designs, not products at production scale. It stays out.",
+      "sources": [
+        "https://jobs.deere.com/eightfold/job/Milan-Industrial-Engineer-Illi-61264-2608/1451391400/",
+        "https://www.deere.com/assets/pdfs/common/our-company/about/jd-world-locations.pdf",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110005826017",
+        "https://hpj.com/2026/01/28/deere-announces-two-new-u-s-plants/",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "employer": "John Deere",
+      "city": "Urbandale",
+      "state": "IA",
+      "decision": "leave",
+      "kind": "engineering and software office",
+      "why": "An engineering and software office; nothing I could read says anything is built or tested at production scale there. It stays out.",
+      "sources": [
+        "https://jobs.deere.com/eightfold/job/URBANDALE-Controls-Engineer-Iowa-50131-3155/1451158600/",
+        "https://www.deere.com/assets/pdfs/common/our-company/careers/uslocations_ead071d666220a93f99455fa8c632d59ce08204f.pdf",
+        "https://www.deere.com/assets/pdfs/common/our-company/about/jd-world-locations.pdf"
+      ]
+    },
+    {
+      "employer": "Flex",
+      "city": "Columbia",
+      "state": "SC",
+      "decision": "point",
+      "company": "Flex",
+      "plant": "Flex West Columbia",
+      "plantCity": "West Columbia",
+      "kind": "electronics and power equipment plant",
+      "why": "Added so that the builder knows before it happens: the board's word for this plant's town is not the town on the plant.",
+      "sources": [
+        "https://flextronics.wd1.myworkdayjobs.com/Careers/job/USA-SC-Columbia/Test-Technician_WD222670",
+        "https://builtin.com/job/production-supervisor/9779035",
+        "https://flex.com/columbia"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Long Beach",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "vehicle development centre: engineering offices, test labs, a design studio and prototype shops",
+      "why": "Not a plant stands. A development centre whose shops build prototypes; nothing is made there for sale, and Ford reports no establishment there to OSHA. The old Long Beach assembly plant closed in 1958.",
+      "sources": [
+        "https://lbpost.com/news/business/ford-long-beach-design-center-electric-truck",
+        "https://lbwatchdog.com/ford-to-open-ev-development-center-in-douglas-park/",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/73040",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/73050",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/74040"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Allen Park",
+      "state": "MI",
+      "decision": "leave",
+      "kind": "engineering offices and test laboratories, with the pilot plant where new models are first built",
+      "why": "Not a plant stands, and the doubt the researcher left about the Pilot Plant is answered as far as it can be from outside: Ford itself files the building as engineering services, not as a plant. What Ford Racing may build in the new low-volume shop is still a plan in its own posting.",
+      "sources": [
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/73862",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/69891",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/70921",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/73572",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/73049",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD%20MOTOR&state_abbr=MI&output=JSON",
+        "https://en.wikipedia.org/wiki/List_of_Ford_factories"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Palo Alto",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "research and engineering offices and labs",
+      "why": "Not a plant stands: a research and engineering office in Stanford Research Park. The outside evidence is thin (Ford's postings and one newspaper line), but nothing anywhere says anything is made there.",
+      "sources": [
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/70610",
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/69613",
+        "https://lbpost.com/news/business/ford-long-beach-design-center-electric-truck"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Kansas City",
+      "state": "MO",
+      "decision": "point",
+      "company": "Ford",
+      "plant": "Kansas City Assembly Plant",
+      "plantCity": "Claycomo",
+      "stored": true,
+      "kind": "assembly plant (in Claycomo)",
+      "why": "Stands as a lead: the plant is ours under the town it stands in, and a posting that says Kansas City will not find it by city.",
+      "sources": [
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+        "https://en.wikipedia.org/wiki/List_of_Ford_factories"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Cincinnati",
+      "state": "OH",
+      "decision": "point",
+      "company": "Ford",
+      "plant": "FORD MOTOR COMPANY (1431140861)",
+      "plantCity": "Sharonville",
+      "stored": true,
+      "kind": "transmission plant (in Sharonville)",
+      "why": "Stands as a lead. The board's counts were not re-read.",
+      "sources": [
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=FORD%20MOTOR&state_abbr=OH&output=JSON"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Detroit",
+      "state": "MI",
+      "decision": "leave",
+      "kind": "offices (sales, marketing)",
+      "why": "Not checked by me; the researcher judged from titles.",
+      "sources": [
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
+      ]
+    },
+    {
+      "employer": "Ford",
+      "city": "Brownstown Township",
+      "state": "MI",
+      "decision": "leave",
+      "kind": "parts warehouse",
+      "why": "Stands: a parts warehouse.",
+      "sources": [
+        "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/71857"
+      ]
+    },
+    {
+      "employer": "GlobalFoundries",
+      "city": "Richardson",
+      "state": "TX",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "A design office in a suite of an office building, with only design and office postings; no plant to add, and the place should be left.",
+      "sources": [
+        "https://gf.com/about-gf/contact-us/",
+        "https://gf.com/manufacturing/",
+        "https://gf.com/careers/where-we-work/north-america/",
+        "https://globalfoundries.wd1.myworkdayjobs.com/External/job/USA---Texas---Richardson/Sr-Engineer-Design_JR-2604155",
+        "https://globalfoundries.wd1.myworkdayjobs.com/External/job/USA---Texas---Richardson/Engineering-Program-Manager_JR-2605818",
+        "https://globalfoundries.wd1.myworkdayjobs.com/External/siteMap.xml",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=GLOBALFOUNDRIES&state_abbr=TX&output=JSON",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "employer": "Hermeus",
+      "city": "Los Angeles",
+      "state": "CA",
+      "decision": "point",
+      "company": "Hermeus",
+      "plant": "Hermeus Headquarters",
+      "plantCity": "El Segundo",
+      "kind": "headquarters with the prototype shop in the same buildings (engineering, prototyping, component and subassembly builds)",
+      "why": "Right: the board's Los Angeles is the El Segundo headquarters by the company's own page, and the place will wait until it is pointed at the new plant, exactly as said.",
+      "sources": [
+        "https://www.hermeus.com/careers",
+        "https://www.hermeus.com/article/350m-to-build-the-fastest-aircraft-in-the-world-for-the-american-warfighter",
+        "https://www.hermeus.com/article/hermeus-unveils-ramjet-x",
+        "https://www.aol.com/finance/hypersonic-aircraft-company-moves-headquarters-123000214.html",
+        "https://commercialobserver.com/2026/04/la-aerospace-defense-office-el-segundo-el-segundo/",
+        "https://www.bisnow.com/news/los-angeles/industrial/high-speed-aircraft-maker-moves-hq-from-atlanta-to-la-134015",
+        "https://data.epa.gov/efservice/frs.frs_facility_site/primary_name/contains/HERMEUS/JSON",
+        "https://api.lever.co/v0/postings/hermeus?mode=json"
+      ]
+    },
+    {
+      "employer": "Hermeus",
+      "city": "Jacksonville",
+      "state": "FL",
+      "decision": "leave",
+      "kind": "engine development test site (test cells and a hush house at Cecil Airport)",
+      "why": "Changed to not a plant: every source describes development testing of bought-in F100 engines and prototype ramjets, open to others' engine tests, with nothing built, repaired or tested at production scale there, so under the rule it stays out (kept below in foundNotAdded with its fields, should the owner read the rule otherwise); none of its three postings is a career of ours, so nothing waits.",
+      "sources": [
+        "https://www.hermeus.com/careers",
+        "https://www.hermeus.com/article/hermeus-brings-heat-facility-online-with-f100-engine-tests",
+        "https://www.hermeus.com/article/hermeus-unveils-ramjet-x",
+        "https://www.airframer.com/news/story/hermeus-breaks-ground-on-hypersonic-test-facility-in-jacksonville",
+        "https://www.actionnewsjax.com/news/local/london-new-york-90-minutes-hypersonic-aircraft-testing-facility-approved-cecil-airport/R4ZPY524OBFWLEEAUWHQKHHPNI",
+        "https://www.news4jax.com/news/local/2024/09/09/company-breaking-ground-in-jacksonville-wants-to-build-an-airplane-that-can-go-from-nyc-to-london-in-90-minutes/",
+        "https://jaxusa.org/news/hermeus-selects-jacksonville-for-its-new-hypersonic-aircraft-testing-facility/",
+        "https://www.ainonline.com/aviation-news/aerospace/2025-01-10/hermeus-stands-hypersonics-test-facility",
+        "https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/ARMS/MapServer/0/query?where=NAME+LIKE+%27%25HERMEUS%25%27+OR+OWNER+LIKE+%27%25HERMEUS%25%27+OR+AIRS_ID%3D%270310655%27&outFields=AIRS_ID,NAME,OWNER,STREET,CITY,ZIP_5,OFFICE,STATUS,SIC,FACILITY_TYPE,DOCUMENTS&returnGeometry=true&outSR=4326&f=json",
+        "https://data.epa.gov/efservice/frs.frs_facility_site/primary_name/contains/HERMEUS/JSON",
+        "https://api.lever.co/v0/postings/hermeus?mode=json"
+      ]
+    },
+    {
+      "employer": "Hermeus",
+      "city": "Washington",
+      "state": "DC",
+      "decision": "leave",
+      "kind": "government affairs office",
+      "why": "Right: a government affairs office, not a plant.",
+      "sources": [
+        "https://www.hermeus.com/careers",
+        "https://api.lever.co/v0/postings/hermeus?mode=json"
+      ]
+    },
+    {
+      "employer": "Intel",
+      "city": "Albuquerque",
+      "state": "NM",
+      "decision": "point",
+      "company": "Intel",
+      "plant": "Intel Rio Rancho",
+      "plantCity": "Rio Rancho",
+      "stored": true,
+      "kind": "fab and advanced packaging campus",
+      "why": "Right: the postings name Rio Rancho in the board's own field, and Intel's only New Mexico plant is our row 864d5b36-2f8d-4e11-be93-2a8e478c394b; it needs a pointed place (postings-intel, albuquerque|NM) or the adapter reading the requisition location, as the researcher says.",
+      "sources": [
+        "https://intel.wd1.myworkdayjobs.com/External/job/US-New-Mexico-Albuquerque/NM-Silicon-Photonics-Senior-Dry-Etch-Process-Development-Engineer_JR0289134",
+        "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/job/US-New-Mexico-Albuquerque/NM-Silicon-Photonics-Senior-Dry-Etch-Process-Development-Engineer_JR0289134",
+        "https://intel.wd1.myworkdayjobs.com/External/job/US-New-Mexico-Albuquerque/NM-Silicon-Photonics-Dry-Etch-Process-Development-Engineer_JR0289137-1",
+        "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/job/US-New-Mexico-Albuquerque/NM-Silicon-Photonics-Dry-Etch-Process-Development-Engineer_JR0289137-1",
+        "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/jobs",
+        "https://www.nist.gov/chips/intel-corporation-new-mexico-rio-rancho",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://data.epa.gov/efservice/tri_facility/tri_facility_id/87124NTLCR4100S/JSON"
+      ]
+    },
+    {
+      "employer": "Lucid Motors",
+      "city": "Newark",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "headquarters, with engineering offices, the design studio, test laboratories and prototype shops (which also built Lucid's racing drive units for Formula E's 2023 to 2026 cars)",
+      "why": "Still not a plant, but the reason is corrected: the claim that nothing is made in Newark for sale is not true of 2023 to 2026, when Lucid by its own account built its Formula E front drive units at the headquarters. The supply of one racing series from engineering shops does not make the headquarters a factory, Lucid files the building as engineering services, and nothing I could read says the work goes on today.",
+      "sources": [
+        "https://www.just-auto.com/news/lucid-opens-new-global-headquarters-in-california",
+        "https://electrek.co/2017/11/27/lucid-motors-new-headquarters-electric-car-factory/",
+        "https://www.detroitregionalpartnership.com/lucid-motors-expands-to-detroit-region/",
+        "https://en.wikipedia.org/wiki/Lucid_Motors",
+        "https://www.aztechcouncil.org/lucid-opens-phoenix-hub-and-coolidge-plant/",
+        "https://lucidmotors.com/careers/search/5214146007?gh_jid=5214146007",
+        "https://lucidmotors.com/careers/search/5271890007?gh_jid=5271890007",
+        "https://lucidmotors.com/careers/search/5226076007?gh_jid=5226076007",
+        "https://www.prnewswire.com/ae/news-releases/lucid-unveils-state-of-the-art-motorsports-electric-drive-unit-taking-lucid-airs-advanced-electric-motor-and-drivetrain-technology-to-the-racetrack-301730046.html",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "employer": "Lucid Motors",
+      "city": "Phoenix",
+      "state": "AZ",
+      "decision": "leave",
+      "kind": "research and development centre with offices (the \"Phoenix Hub\", the former Nikola headquarters)",
+      "why": "Confirmed from a source the researcher did not use and from Lucid's own filing: the Phoenix Hub is a research and development building with test cells and a machine shop, which Lucid files as engineering services; nothing is built there for sale.",
+      "sources": [
+        "https://www.gpec.org/news/press-releases/lucid-opens-new-phoenix-hub/",
+        "https://www.aztechcouncil.org/lucid-opens-phoenix-hub-and-coolidge-plant/",
+        "https://electrek.co/2025/04/10/lucid-acquires-nikolas-factory-some-assets-and-offer-jobs-to-workers/",
+        "https://www.areadevelopment.com/newsItems/4-19-2025/lucid-group-phoenix-coolidge-arizona.shtml",
+        "https://lucidmotors.com/careers/search/5293585007?gh_jid=5293585007",
+        "https://lucidmotors.com/careers/search/5267095007?gh_jid=5267095007",
+        "https://lucidmotors.com/careers/search/5226617007?gh_jid=5226617007",
+        "https://lucidmotors.com/careers/search/5228600007?gh_jid=5228600007",
+        "https://www.fox10phoenix.com/news/ev-maker-lucid-expands-its-operations-phoenix",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "employer": "Lucid Motors",
+      "city": "Southfield",
+      "state": "MI",
+      "decision": "leave",
+      "kind": "engineering office",
+      "why": "Confirmed from two sources the researcher did not use: an engineering and research office in an office tower, with laboratory space at most; Lucid makes nothing in Michigan.",
+      "sources": [
+        "https://www.detroitregionalpartnership.com/lucid-motors-expands-to-detroit-region/",
+        "https://www.fox2detroit.com/news/lucid-motors-makes-10-million-investment-in-michigan-with-southfield-hub",
+        "https://www.areadevelopment.com/newsitems/2-29-2024/lucid-motors-southfield-michigan.shtml",
+        "https://electrek.co/2024/09/20/lucid-opens-detroit-hub-us-legacy-auto-talent-pool/",
+        "https://lucidmotors.com/careers/search/5256443007?gh_jid=5256443007",
+        "https://lucidmotors.com/careers/search/5182855007?gh_jid=5182855007",
+        "https://www.signatureassociates.com/?p=10362",
+        "https://justthenews.com/nation/states/center-square/michigan-gives-lucid-6m-southfield-ev-hub"
+      ]
+    },
+    {
+      "employer": "Panasonic North America",
+      "city": "Irvine",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "headquarters",
+      "why": "An office campus where the firm designs and manages; nothing I found says it builds, tests at production scale or repairs there. Production postings are at Lake Forest, another place.",
+      "sources": [
+        "https://www.ocbj.com/manufacturing/panasonic-avionics-move-oc-base-irvine/",
+        "https://www.ocbj.com/news/2021/may/03/former-panasonic-hq-eyed-industrial-hub/",
+        "https://careers.na.panasonic.com/jobs/49011?lang=en-us",
+        "https://careers.na.panasonic.com/jobs/51761?lang=en-us"
+      ]
+    },
+    {
+      "employer": "Panasonic North America",
+      "city": "Greensboro",
+      "state": "NC",
+      "decision": "leave",
+      "kind": "design office (engineering of factory buildings and their utilities)",
+      "why": "Nothing says anything is made there, and no filing or page shows a Panasonic plant in Greensboro; the verdict rests on the employer's own words. Either way no plant is written.",
+      "sources": [
+        "https://careers.na.panasonic.com/jobs/50736?lang=en-us",
+        "https://careers.na.panasonic.com/jobs/50740?lang=en-us"
+      ]
+    },
+    {
+      "employer": "Panasonic North America",
+      "city": "Reno",
+      "state": "NV",
+      "decision": "leave",
+      "kind": "design office (engineering and procurement of Panasonic Energy; the cells are made in Sparks)",
+      "why": "Engineering, purchasing and field service; the cells are made in Sparks. A lab that tests materials is not production.",
+      "sources": [
+        "https://na.panasonic.com/news/panasonic-to-add-campus-in-reno-as-electric-vehicle-market-revs-up",
+        "https://na.panasonic.com/news/panasonic-energy-and-truckee-meadows-community-college-unveil-new-advanced-manufacturing-training-center-in-reno",
+        "https://careers.na.panasonic.com/jobs/51846?lang=en-us",
+        "https://careers.na.panasonic.com/jobs/45658?lang=en-us"
+      ]
+    },
+    {
+      "employer": "Panasonic North America",
+      "city": "San Diego",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "warehouse",
+      "why": "A warehouse and customs business; the manufacturing its page speaks of is its customers', in Mexico.",
+      "sources": [
+        "https://logistics.na.panasonic.com/",
+        "https://careers.na.panasonic.com/jobs/53069?lang=en-us"
+      ]
+    },
+    {
+      "employer": "Relativity Space",
+      "city": "Washington",
+      "state": "DC",
+      "decision": "leave",
+      "kind": "government affairs and policy office",
+      "why": "An office, not a plant; its one posting is not one of our careers and also names Long Beach, so nothing waits.",
+      "sources": [
+        "https://www.relativityspace.com/locations",
+        "https://boards-api.greenhouse.io/v1/boards/relativity/jobs?content=true"
+      ]
+    },
+    {
+      "employer": "Rivian",
+      "city": "Irvine",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "headquarters and engineering offices, with prototype shops",
+      "why": "A headquarters with engineering offices and prototype shops: nothing is built there for sale, by Rivian's own list of sites, its annual report and its postings.",
+      "sources": [
+        "https://rivian.com/our-company",
+        "https://www.ocbj.com/manufacturing/rivian-charges-irvine-presence/",
+        "https://www.ocbj.com/news/weekly-news/ipo-underscores-rivians-real-estate-footprint/",
+        "https://careers.rivian.com/jobs/33282?lang=en-us",
+        "https://careers.rivian.com/jobs/34291?lang=en-us",
+        "https://materials.proxyvote.com/Approved/76954A/20260423/FO10K_632602/INDEX.HTML?page=1"
+      ]
+    },
+    {
+      "employer": "Rivian",
+      "city": "Palo Alto",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "software and electronics development offices",
+      "why": "Software and electronics development offices; nothing is made there.",
+      "sources": [
+        "https://rivian.com/our-company",
+        "https://en.wikipedia.org/wiki/Rivian"
+      ]
+    },
+    {
+      "employer": "Rivian",
+      "city": "Tustin",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "test laboratories",
+      "why": "Test and failure analysis laboratories for development: testing, but not at production scale and not of products for sale.",
+      "sources": [
+        "https://www.ocbj.com/news/weekly-news/rivian-boosts-oc-presence-another-big-lease/",
+        "https://careers.rivian.com/jobs/32649?lang=en-us",
+        "https://careers.rivian.com/jobs/34950?lang=en-us",
+        "https://careers.rivian.com/jobs/34953?lang=en-us"
+      ]
+    },
+    {
+      "employer": "Rivian",
+      "city": "Plymouth",
+      "state": "MI",
+      "decision": "leave",
+      "kind": "engineering, prototyping and testing centre, with the service support centre",
+      "why": "An engineering, prototype and test centre with the service support centre; the former headquarters. Nothing is built there for sale.",
+      "sources": [
+        "https://rivian.com/our-company",
+        "https://www.michigan.gov/whitmer/news/press-releases/2021/09/23/gov--gretchen-whitmer-announces-electric-vehicle-manufacturer-rivian-to-establish-rivian-service-su",
+        "https://www.ocbj.com/news/weekly-news/rivian-boosts-oc-presence-another-big-lease/",
+        "https://en.wikipedia.org/wiki/Rivian"
+      ]
+    },
+    {
+      "employer": "Rivian",
+      "city": "Carson",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "propulsion engineering office and electronics laboratory",
+      "why": "A design office and electronics laboratory for motors and power electronics; the drive units are made at Normal.",
+      "sources": [
+        "https://rivian.com/our-company",
+        "https://en.wikipedia.org/wiki/Rivian",
+        "https://www.ocbj.com/manufacturing/rivian-charges-irvine-presence/",
+        "https://careers.rivian.com/jobs/34164?lang=en-us",
+        "https://careers.rivian.com/jobs/29679?lang=en-us",
+        "https://careers.rivian.com/jobs/36320?lang=en-us"
+      ]
+    },
+    {
+      "employer": "Rivian",
+      "city": "Hayward",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "service engineering offices and service lab",
+      "why": "Service engineering offices and a service lab; nothing is made there. Like the researcher I found no outside account of 24570 Clawiter Road: the verdict rests on the postings and on Rivian's own list of sites.",
+      "sources": [
+        "https://careers.rivian.com/jobs/34938?lang=en-us",
+        "https://careers.rivian.com/jobs/31836?lang=en-us",
+        "https://www.sfgate.com/tech/article/rivian-unloading-bay-area-real-estate-18142498.php",
+        "https://rivian.com/our-company"
+      ]
+    },
+    {
+      "employer": "Rocket Lab",
+      "city": "Littleton",
+      "state": "CO",
+      "decision": "leave",
+      "kind": "software and engineering office with mission operations centres",
+      "why": "Not a plant: OSHA files it as custom computer programming (541511, 116 people) and none of the 40 live postings is a production, technician or inspection role.",
+      "sources": [
+        "https://www.builtincolorado.com/articles/rocket-lab-opens-new-complex-littleton",
+        "https://www.satellitetoday.com/uncategorized/2022/02/04/rocket-lab-to-open-new-space-systems-complex-in-colorado",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://boards-api.greenhouse.io/v1/boards/rocketlab/jobs?content=true"
+      ]
+    },
+    {
+      "employer": "Rocket Lab",
+      "city": "Chantilly",
+      "state": "VA",
+      "decision": "leave",
+      "kind": "engineering and business development office",
+      "why": "Not a plant: OSHA \"GEOST VA\", Suite 315N of an office building, engineering services, 15 people; no production title among 18 live postings.",
+      "sources": [
+        "https://thisistucson.com/news/local/business/article_882e0c00-bfbf-11ee-97aa-1b8c39ccb624.html",
+        "https://satnews.com/2025/08/12/rocket-lab-closes-acquisition-of-geost/",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://boards-api.greenhouse.io/v1/boards/rocketlab/jobs?content=true"
+      ]
+    },
+    {
+      "employer": "Rocket Lab",
+      "city": "Washington",
+      "state": "DC",
+      "decision": "leave",
+      "kind": "government affairs office",
+      "why": "Not a plant: two intern postings, nothing made there.",
+      "sources": [
+        "https://boards-api.greenhouse.io/v1/boards/rocketlab/jobs?content=true"
+      ]
+    },
+    {
+      "employer": "Saronic",
+      "city": "New Orleans",
+      "state": "LA",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "An office in a downtown tower, by Saronic's release and the local business paper: nothing is built or tested there. I tried the two postings filed under production (a controls technician, a sea trials planner) against it; they are yard and waterfront work that the board files under New Orleans, and they do not put a shop or a dock in the city.",
+      "sources": [
+        "https://seapowermagazine.org/saronic-announces-new-downtown-new-orleans-office-to-accelerate-autonomous-shipbuilding/",
+        "https://bizneworleans.com/saronic-opens-downtown-engineering-hub-plans-350-hires/",
+        "https://jobs.ashbyhq.com/saronic/e7350b6c-55eb-4755-9a6e-20d30499b982"
+      ]
+    },
+    {
+      "employer": "Saronic",
+      "city": "San Diego",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "operations, training and maintenance depot",
+      "why": "Not a plant stands, and it is the one judgement in this file: boats built in Austin are kept, taught on, fitted with a customer's payload and repaired there, which is a service depot with a school and a parts store, read here as Tesla's service centres and Anduril's Victorville were, not as a remanufacturing plant. The rule does count a site that repairs the product, so the owner may read it the other way; the address, coordinates and headcount are in notChecked for that case.",
+      "sources": [
+        "https://seapowermagazine.org/san-diego-declares-saronic-day-as-mayor-joins-saronic-to-celebrate-official-opening-of-west-coast-facility/",
+        "https://www.workboat.com/saronic-opens-san-diego-facility",
+        "https://www.defenseone.com/business/2026/02/defense-business-brief-saronic-san-diego-zumwalts-battleships-secnavs-take-ship-maintenance/411489",
+        "https://www.sdbj.com/defense/unicorn-military-vessel-manufacturer-opens-80000-square-foot-facility/",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072090208",
+        "https://jobs.ashbyhq.com/saronic/7cef0134-d492-45c1-92d5-f0716ed7aa24"
+      ]
+    },
+    {
+      "employer": "SpaceX",
+      "city": "Palo Alto",
+      "state": "CA",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "Nothing is built there by any source; an office and a lab. It stays out.",
+      "sources": [
+        "https://content.spacex.com/cms-assets/FINAL_Documents%20and%20Updates/SpaceX%20-%20EU%20Prospectus%20%28Approved%20by%20Bafin%29%20-%20June%205%2C%202026.pdf",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110072353993",
+        "https://boards-api.greenhouse.io/v1/boards/spacex/jobs/8627689002"
+      ]
+    },
+    {
+      "employer": "Texas Instruments",
+      "city": "Tucson",
+      "state": "AZ",
+      "decision": "leave",
+      "kind": "design centre with test and applications laboratories",
+      "why": "The fullest independent report (the Star) calls the new building an office and lists office and lab trades, and TI files the site as a testing laboratory; Construction Reporter's word 'manufacturing plant' is not backed by anything in its own text, so the place stays out.",
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110044961896",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110039387071",
+        "https://data.epa.gov/efservice/tri_reporting_form/tri_facility_id/85706BRRBR6730S/JSON",
+        "https://www.fundinguniverse.com/company-histories/texas-instruments-inc-history/",
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25011787",
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25019821",
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip",
+        "https://tucson.com/business/article_720848ab-59e2-5e65-b14d-6d0f8c90e082.html",
+        "https://constructionreporter.com/tucson-to-see-construction-of-new-texas-instruments-facility/"
+      ]
+    },
+    {
+      "employer": "Texas Instruments",
+      "city": "Knoxville",
+      "state": "TN",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "A downtown office tower lease and design-only postings: an office, not a plant.",
+      "sources": [
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25012508",
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/jobs",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=TEXAS%20INSTRUMENTS&state_abbr=TN&output=JSON",
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip"
+      ]
+    },
+    {
+      "employer": "Texas Instruments",
+      "city": "Longmont",
+      "state": "CO",
+      "decision": "leave",
+      "kind": "design office",
+      "why": "Nothing found that says TI makes anything in Longmont; it stays out, resting on the postings alone, as the researcher says.",
+      "sources": [
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25019725",
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/jobs",
+        "https://frs-public.epa.gov/ords/frs_public2/frs_rest_services.get_facilities?facility_name=TEXAS%20INSTRUMENTS&state_abbr=CO&output=JSON",
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip"
+      ]
+    },
+    {
+      "employer": "Texas Instruments",
+      "city": "Phoenix",
+      "state": "AZ",
+      "decision": "leave",
+      "kind": "design office with an engineering laboratory",
+      "why": "A design office with a prototype lab is not a plant by the rule; nothing found that says TI produces there.",
+      "sources": [
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25020276",
+        "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/jobs",
+        "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110055924512",
+        "https://echo.epa.gov/files/echodownloads/echo_exporter.zip"
+      ]
+    }
+  ]
+}

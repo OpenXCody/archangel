@@ -48,7 +48,16 @@ const ACTION: Record<string, string> = {
   'company request answered, access given': 'Company added, access given',
   'kept apart': 'Kept as a separate factory:',
   'no longer kept apart': 'No longer kept as a separate factory:',
+  // A place employers' postings name, decided in Review or by the data (data/employers/places.json).
+  'postings pointed here': 'Postings pointed here:',
+  'postings place left': 'Postings place left:',
+  'postings place waits again': 'Postings place waits again:',
 };
+
+/** Who made a change. A line with no person is a decision the data made (a migration), never a person's. */
+function actorWords(actorName: string): string {
+  return actorName.trim() ? actorName : 'The data';
+}
 
 const FIELD: Record<string, string> = {
   name: 'name',
@@ -196,6 +205,9 @@ function detailWords(entry: AuditEntry): string | null {
   if (detail.replacedEarlier === true) parts.push('replaced an earlier invite');
   if (typeof detail.ended === 'number') parts.push(`${detail.ended} ${detail.ended === 1 ? 'session' : 'sessions'}`);
   if (typeof detail.name === 'string' && entry.kind === 'person') parts.push(detail.name);
+  // A place employers' postings name: where, and whose postings; what kind of site a place left is, where the data says.
+  if (typeof detail.place === 'string') parts.push([detail.place, typeof detail.employer === 'string' ? detail.employer : null, typeof detail.kind === 'string' ? detail.kind : null].filter(Boolean).join(', '));
+  if (typeof detail.jobs === 'number' && detail.jobs > 0) parts.push(`${detail.jobs} ${detail.jobs === 1 ? 'job' : 'jobs'}`);
   return parts.length > 0 ? parts.join('; ') : null;
 }
 
@@ -267,7 +279,7 @@ export default function HistoryList({ filter = {}, ownRecord = false, empty = 'N
               {words && <p className="mt-0.5 break-words text-xs text-text-3">{words}</p>}
               <p className="mt-0.5 break-words text-xs text-text-3">
                 {!ownRecord && `${KIND_WORD[entry.kind] ?? entry.kind} · `}
-                {entry.actorName} · {when(entry.at)}
+                {actorWords(entry.actorName)} · {when(entry.at)}
               </p>
             </li>
           );
