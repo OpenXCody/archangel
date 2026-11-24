@@ -31,8 +31,7 @@
 // The migration decides in SQL, on the database it meets, and writes what it
 // decided to load_log (load 'career-paths'; look = true on the lines to read):
 //   - a career is found by its exact title; one that is not stored is said and
-//     skipped. A career the file does not name is left alone, and said (a
-//     military career is data/careers/military's, and is not said);
+//     skipped. A career the file does not name is left alone, and said;
 //   - a skill is found by its name, else by another name it goes by
 //     (skill_aliases), in any letter case. A name that is neither is said and
 //     that line skipped: the migration does not stop;
@@ -249,14 +248,12 @@ const q = (value) => `'${String(value).replace(/'/g, "''")}'`;
  * lines carry, `header` the comment the file opens with, and `military` keeps
  * "a career the file does not name" to the careers that have a service, so the
  * civilian careers, which that file is not about, are not listed one by one.
- * Left out, the text is the civilian migration's, to the letter, and "a career
- * the file does not name" is kept to the careers with no service, for the same
- * reason the other way round.
+ * Left out, the text is the civilian migration's, to the letter.
  */
 export function pathSql(paths, source, options = {}) {
   const load = options.load ?? 'career-paths';
-  // The careers "not in the file" is said of: the civilian ones, or only the ones with a service.
-  const others = options.military ? ' AND o.service_company_id IS NOT NULL' : ' AND o.service_company_id IS NULL';
+  // The careers "not in the file" is said of: every stored career, or only the ones with a service.
+  const others = options.military ? ' AND o.service_company_id IS NOT NULL' : '';
   const careers = paths.careers;
   const values = (rows) => rows.map((row, i) => `  (${row.join(', ')})${i === rows.length - 1 ? ';' : ','}`);
   const careerRows = careers.map((career, i) => [i + 1, q(career.title)]);

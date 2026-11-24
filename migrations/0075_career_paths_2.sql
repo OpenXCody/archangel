@@ -4208,14 +4208,14 @@ BEGIN
   PERFORM pg_temp.path_log('not in the file', true, format('"%s" is not in the file. Its path (%s skills) is left as it is', o.title,
       (SELECT COUNT(*) FROM occupation_skills os WHERE os.occupation_id = o.id)))
     FROM occupations o
-    WHERE NOT EXISTS (SELECT 1 FROM path_careers k WHERE k.title = o.title) AND o.service_company_id IS NULL
+    WHERE NOT EXISTS (SELECT 1 FROM path_careers k WHERE k.title = o.title)
     ORDER BY o.title COLLATE "C";
 
   PERFORM pg_temp.path_log('summary', false, format(
     '%s careers of the file: %s written, %s already as the file has them, %s approved and left, %s not stored; skill names not found: %s; path lines now stored for the file''s careers: %s; careers not in the file: %s',
     (SELECT COUNT(*) FROM path_careers), n_written, n_same, n_approved, n_absent, n_unfound,
     (SELECT COUNT(*) FROM occupation_skills os INNER JOIN occupations o ON o.id = os.occupation_id INNER JOIN path_careers k ON k.title = o.title),
-    (SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS (SELECT 1 FROM path_careers k WHERE k.title = o.title) AND o.service_company_id IS NULL)));
+    (SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS (SELECT 1 FROM path_careers k WHERE k.title = o.title))));
 END $load$;
 
 DROP FUNCTION pg_temp.path_log(text, boolean, text);

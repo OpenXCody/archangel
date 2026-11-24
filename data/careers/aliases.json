@@ -151,7 +151,6 @@
     { "title": "Battery Cell Engineer", "aliases": ["electrode process engineer", "formation process engineer"] },
     { "title": "Materials Testing Technician", "aliases": ["metallurgical technician", "quality metallurgical technician", "materials characterization technician"] },
     { "title": "Propulsion Technician", "aliases": ["propulsion integration technician"] },
-    { "title": "Semiconductor Packaging Technician", "aliases": ["micro-electronics technician", "microelectronics technician"] },
     { "title": "Avionics Technician", "aliases": ["avionics production technician", "avionics manufacturing technician"] },
     { "title": "Test Engineer", "aliases": ["electrical test engineer", "RF manufacturing test engineer", "electrical test development engineer", "test and validation engineer", "battery test and validation engineer", "design validation engineer", "vehicle test engineer", "electrical system test engineer", "EMC design engineer", "electromagnetic effects engineer", "HITL engineer", "HIL engineer", "testing engineer"] },
     { "title": "Launch Vehicle Integration Technician", "aliases": ["launch integration technician"] },

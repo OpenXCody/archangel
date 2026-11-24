@@ -2005,8 +2005,6 @@ INSERT INTO list_names (alias, title) VALUES
   ('quality metallurgical technician', 'Materials Testing Technician'),
   ('materials characterization technician', 'Materials Testing Technician'),
   ('propulsion integration technician', 'Propulsion Technician'),
-  ('micro-electronics technician', 'Semiconductor Packaging Technician'),
-  ('microelectronics technician', 'Semiconductor Packaging Technician'),
   ('avionics production technician', 'Avionics Technician'),
   ('avionics manufacturing technician', 'Avionics Technician'),
   ('electrical test engineer', 'Test Engineer'),

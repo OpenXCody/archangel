@@ -35,8 +35,7 @@
 //   - creates a career none of whose titles is stored;
 //   - deletes the removed titles, except one that has a job with applications
 //     or is somebody's goal;
-//   - leaves a career the file does not name as it is (a military career is
-//     data/careers/military's, and is not said);
+//   - leaves a career the file does not name as it is;
 //   - makes the links between the file's careers exactly the file's.
 // Every step is a no-op once it has been done.
 //
@@ -362,11 +361,10 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- A career the file does not name is left alone, and said. A military career is
-  -- another file's (data/careers/military/), and is not said here.
+  -- A career the file does not name is left alone, and said.
   PERFORM pg_temp.cat_log('not in the file', true, format('"%s" is not in the catalogue. Left as it is', o.title))
     FROM occupations o
-    WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title) AND o.service_company_id IS NULL
+    WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title)
       AND NOT EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(o.title))
     ORDER BY o.title COLLATE "C";
 
@@ -401,7 +399,7 @@ BEGIN
   PERFORM pg_temp.cat_log('summary', false, format(
     '%s careers of the file (%s under their title, %s renamed, %s created); %s titles folded in; %s removed; %s not in the file; %s of the file''s careers with a path, %s without; %s links',
     (SELECT COUNT(*) FROM cat_careers), n_found, n_renamed, n_created, n_folded, n_removed,
-    (SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title) AND o.service_company_id IS NULL),
+    (SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = o.title)),
     (SELECT COUNT(*) FROM occupations o INNER JOIN cat_careers k ON k.title = o.title WHERE EXISTS (SELECT 1 FROM occupation_skills s WHERE s.occupation_id = o.id)),
     (SELECT COUNT(*) FROM occupations o INNER JOIN cat_careers k ON k.title = o.title WHERE NOT EXISTS (SELECT 1 FROM occupation_skills s WHERE s.occupation_id = o.id)),
     (SELECT COUNT(*) FROM occupation_links)));
