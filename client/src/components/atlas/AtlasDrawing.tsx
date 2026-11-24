@@ -15,6 +15,7 @@ import {
   point,
   sectorPath,
   spokePath,
+  spreadRound,
   turn,
   unproject,
   type AtlasCamera,
@@ -51,7 +52,7 @@ const S = 500;
  * little less of itself.
  */
 function frameFor(width: number, ring: number): number {
-  return Math.max(1.02, ring / (1 - 54 / Math.max(width, 200)));
+  return Math.max(1.02, ring / (1 - 58 / Math.max(width, 200)));
 }
 
 /** What a press or the pointer lands on. */
@@ -120,18 +121,16 @@ const Plate = memo(function Plate({ layout }: { layout: AtlasLayout }) {
     let trunks = '';
     let fans = '';
     let groupRing = '';
-    let ring = '';
     for (const domain of layout.domains) {
       // Every other sector carries a faint wash, so the sixteen read as sixteen.
       if (domain.index % 2 === 1) wash += sectorPath(g.root, g.ring - 0.012, domain.from, domain.to, S);
       trunks += domainPath(layout, domain, S);
-      ring += arcPath(g.ring, domain.from, domain.to, S);
     }
     for (const group of layout.groups) {
       fans += groupPath(layout, group, S);
       groupRing += arcPath(g.groupRing, group.a0 - 0.35 * layout.step, group.a1 + 0.35 * layout.step, S);
     }
-    return { wash, trunks, fans, groupRing, ring };
+    return { wash, trunks, fans, groupRing };
   }, [layout, g]);
 
   return (
@@ -141,21 +140,26 @@ const Plate = memo(function Plate({ layout }: { layout: AtlasLayout }) {
       <path className="atlas-trunk" d={shapes.trunks} />
       <circle className="atlas-root" r={g.root * S} />
       <path className="atlas-group-ring" d={shapes.groupRing} />
-      <path className="atlas-ring" d={shapes.ring} />
-      {layout.leaves.map((leaf) => {
-        const [x, y] = point(leaf.angle, leaf.radius);
-        const weight = leafWeight(leaf.careers, layout.maxCareers);
-        return (
-          <circle
-            key={leaf.id}
-            className="atlas-leaf"
-            cx={fixed(x * S)}
-            cy={fixed(y * S)}
-            r={fixed(dotRadius(layout, leaf) * S)}
-            opacity={fixed(0.5 + 0.5 * weight)}
-          />
-        );
-      })}
+      {/* A domain's rim arc and its leaves take the domain's hue (`[data-domain]` in globals.css). */}
+      {layout.domains.map((domain) => (
+        <g key={domain.slug} data-domain={domain.slug}>
+          <path className="atlas-ring" d={arcPath(g.ring, domain.from, domain.to, S)} />
+          {layout.leaves.slice(domain.first, domain.last + 1).map((leaf) => {
+            const [x, y] = point(leaf.angle, leaf.radius);
+            const weight = leafWeight(leaf.careers, layout.maxCareers);
+            return (
+              <circle
+                key={leaf.id}
+                className="atlas-leaf"
+                cx={fixed(x * S)}
+                cy={fixed(y * S)}
+                r={fixed(dotRadius(layout, leaf) * S)}
+                opacity={fixed(0.5 + 0.5 * weight)}
+              />
+            );
+          })}
+        </g>
+      ))}
     </>
   );
 });
@@ -171,7 +175,12 @@ const Overlay = memo(function Overlay({ layout, overlay, ahead }: { layout: Atla
     const secondOnly: number[] = [];
     for (const index of overlay.first) (overlay.second?.has(index) ? shared : firstOnly).push(index);
     if (overlay.second) for (const index of overlay.second) if (!overlay.first.has(index)) secondOnly.push(index);
+    // The domains the careers reach keep their hue on the rim; the rest of the plate has stepped back to ink.
+    const reached = new Set<number>();
+    for (const index of overlay.first) reached.add(layout.leaves[index].domain);
+    if (overlay.second) for (const index of overlay.second) reached.add(layout.leaves[index].domain);
     return {
+      reached: layout.domains.filter((domain) => reached.has(domain.index)),
       shared,
       firstOnly,
       secondOnly,
@@ -196,6 +205,9 @@ const Overlay = memo(function Overlay({ layout, overlay, ahead }: { layout: Atla
 
   return (
     <g data-atlas-ahead={ahead || undefined}>
+      {parts.reached.map((domain) => (
+        <path key={domain.slug} className="atlas-ring" data-domain={domain.slug} data-atlas-reached={domain.slug} d={arcPath(layout.geometry.ring, domain.from, domain.to, S)} />
+      ))}
       {parts.second && <path className="atlas-lit" data-second d={parts.second} />}
       <path className="atlas-lit" d={parts.first} />
       {parts.both && <path className="atlas-lit" data-shared d={parts.both} />}
@@ -385,62 +397,58 @@ interface NamesProps {
 }
 
 /**
- * A name is set on the arc of its own domain. Where it is longer than the arc
- * (a short domain with a long name, on a phone) it moves to a second row
- * outside the first, so sixteen names fit a circle 358 pixels wide.
+ * A name is set along the rim over its own domain, in the domain's hue, and
+ * no name runs into another: neighbours make room for each other along the
+ * row (`spreadRound`), and where one row is too short for them all (a phone)
+ * the names that do not fit their own arcs are shared between two rows, the
+ * second outside the first. Of every way to share them the one kept moves
+ * the names least from the middle of their domains.
  */
 const Names = memo(function Names({ layout, radiusPx, away, on, reached }: NamesProps) {
   const id = useId().replace(/:/g, '');
   const fonts = useFontsLoaded();
-  const fontPx = radiusPx < 240 ? 9 : radiusPx < 330 ? 10.5 : 11.5;
+  const fontPx = radiusPx < 240 ? 10 : radiusPx < 320 ? 11.5 : 12.5;
   const names = useMemo(() => {
     const cap = 0.72 * fontPx;
-    const first = layout.geometry.ring * radiusPx + 5;
-    const rowGap = fontPx * 1.3;
-    const lowerHalf = (domain: AtlasDomain) => turn(domain.angle) > Math.PI / 2 && turn(domain.angle) < (3 * Math.PI) / 2;
+    const rowRadius = (row: number) => layout.geometry.ring * radiusPx + 6 + row * fontPx * 1.35;
     const widths = layout.domains.map((domain) => textWidth(domain.name, fontPx, 500, NAME_TRACKING));
-    // The angle a name takes on a row, from its middle to either end, with a little air.
-    const half = (index: number, row: number) => (widths[index] / 2 + fontPx * 0.3) / (first + row * rowGap);
-    // A name that fits its own arc is set on it, on the first row. The few that
-    // do not are tried on either row, every way round, and the arrangement kept
-    // is the one where names run into each other least, then the one that moves
-    // the fewest out to the second row.
-    const fits = (domain: AtlasDomain) => 2 * half(domain.index, 0) <= domain.to - domain.from + layout.geometry.domainGap * layout.step * 0.2;
+    // The angle a name takes on a row, with air between it and the next.
+    const size = (index: number, row: number) => (widths[index] + fontPx * 1.1) / rowRadius(row);
     const rows = layout.domains.map(() => 0);
-    const loose = layout.domains.filter((domain) => !fits(domain)).slice(0, 12);
-    const overlap = () => {
-      let total = 0;
-      for (const a of layout.domains) {
-        for (const b of layout.domains) {
-          if (b.index <= a.index || rows[a.index] !== rows[b.index]) continue;
-          total += Math.max(0, half(a.index, rows[a.index]) + half(b.index, rows[b.index]) - Math.abs(between(a.angle, b.angle)));
-        }
+    const angles = layout.domains.map((domain) => domain.angle);
+    // Where the names of each row come to rest, and what the arrangement costs, in pixels moved.
+    const settle = (keep: boolean) => {
+      let cost = 0;
+      for (const row of [0, 1]) {
+        const members = layout.domains.filter((domain) => rows[domain.index] === row);
+        if (members.length === 0) continue;
+        const result = spreadRound(members.map((domain) => domain.angle), members.map((domain) => size(domain.index, row)));
+        cost += (result.moved + result.overlap * 40) * rowRadius(row) + row * members.length * fontPx * 6;
+        if (keep) members.forEach((domain, i) => (angles[domain.index] = result.placed[i]));
       }
-      return total;
+      return cost;
     };
+    // Only a name longer than its own arc is ever moved out to the second row.
+    const loose = layout.domains.filter((domain) => size(domain.index, 0) > domain.to - domain.from + layout.geometry.domainGap * layout.step).slice(0, 10);
+    // One row is the plainest: where every name fits on it without touching another, that is the arrangement.
     let best = { cost: Infinity, choice: 0 };
-    for (let choice = 0; choice < 1 << loose.length; choice++) {
-      let moved = 0;
-      loose.forEach((domain, bit) => {
-        rows[domain.index] = (choice >> bit) & 1;
-        moved += rows[domain.index];
-      });
-      const cost = overlap() * 1000 + moved;
-      if (cost < best.cost) best = { cost, choice };
+    const oneRow = spreadRound(angles, layout.domains.map((domain) => size(domain.index, 0))).overlap < 1e-6;
+    for (let choice = 0; choice < (oneRow ? 1 : 1 << loose.length); choice++) {
+      loose.forEach((domain, bit) => (rows[domain.index] = (choice >> bit) & 1));
+      const cost = settle(false);
+      if (cost < best.cost - 1e-6) best = { cost, choice };
     }
-    loose.forEach((domain, bit) => {
-      rows[domain.index] = (best.choice >> bit) & 1;
-    });
+    loose.forEach((domain, bit) => (rows[domain.index] = (best.choice >> bit) & 1));
+    settle(true);
     return layout.domains.map((domain) => {
       const row = rows[domain.index];
+      const angle = angles[domain.index];
       // On the lower half the text runs the other way round the circle, so it is never upside down.
-      const lower = lowerHalf(domain);
-      const baseline = (first + row * rowGap + (lower ? cap : 0)) / radiusPx;
+      const lower = turn(angle) > Math.PI / 2 && turn(angle) < (3 * Math.PI) / 2;
+      const baseline = (rowRadius(row) + (lower ? cap : 0)) / radiusPx;
       const reach = Math.min(Math.PI * 0.9, (widths[domain.index] / 2 + fontPx) / (baseline * radiusPx));
-      const d = lower
-        ? arcPathReversed(baseline, domain.angle - reach, domain.angle + reach, S)
-        : arcPath(baseline, domain.angle - reach, domain.angle + reach, S);
-      return { domain, d };
+      const d = lower ? arcPathReversed(baseline, angle - reach, angle + reach, S) : arcPath(baseline, angle - reach, angle + reach, S);
+      return { domain, d, row };
     });
     // `fonts`: measured again once the font is in.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -453,13 +461,16 @@ const Names = memo(function Names({ layout, radiusPx, away, on, reached }: Names
           <path key={domain.slug} id={`${id}-${domain.index}`} d={d} />
         ))}
       </defs>
-      {names.map(({ domain }) => (
+      {names.map(({ domain, row }) => (
         <text
           key={domain.slug}
           className="atlas-name"
           data-atlas-domain={domain.slug}
+          data-domain={domain.slug}
+          data-row={row}
           data-on={on?.index === domain.index || undefined}
-          opacity={reached && !reached.has(domain.index) ? 0.45 : undefined}
+          // A career is laid over the atlas: the domains it does not reach are named in plain ink.
+          data-off={(reached && !reached.has(domain.index)) || undefined}
         >
           <textPath href={`#${id}-${domain.index}`} startOffset="50%" textAnchor="middle">
             {domain.name}
@@ -491,7 +502,7 @@ function zoomFor(layout: AtlasLayout, radiusPx: number, frame: number): Zoom {
   const phone = radiusPx < 240;
   // A phone shows the open domain from its groups' arcs outward; a wider frame from the domain's own arc.
   const innermost = phone ? layout.geometry.group - 0.02 : layout.geometry.domain - 0.05;
-  const labelRoomPx = phone ? 172 : Math.min(250, radiusPx * 0.72);
+  const labelRoomPx = phone ? 188 : Math.min(250, radiusPx * 0.72);
   const anchorX = frame - labelRoomPx / radiusPx;
   const scale = (anchorX + frame) / (layout.geometry.ring - innermost);
   return {

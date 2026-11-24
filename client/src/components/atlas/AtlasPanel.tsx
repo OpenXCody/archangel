@@ -91,9 +91,11 @@ interface RowProps {
   quiet: boolean;
   onPreview: (on: boolean) => void;
   data: Record<string, string>;
+  /** A domain's row carries the domain's hue before its name, as on the plate's rim. */
+  swatch?: string;
 }
 
-function Row({ to, name, figure, quiet, onPreview, data }: RowProps) {
+function Row({ to, name, figure, quiet, onPreview, data, swatch }: RowProps) {
   return (
     <li className="min-w-0 border-b border-line">
       <Link
@@ -105,7 +107,10 @@ function Row({ to, name, figure, quiet, onPreview, data }: RowProps) {
         onBlur={() => onPreview(false)}
         {...data}
       >
-        <span className={cn('min-w-0 group-hover:underline', quiet ? 'text-text-3' : 'text-text-1')}>{name}</span>
+        <span className="flex min-w-0 items-baseline gap-2.5">
+          {swatch && <span aria-hidden="true" className="domain-swatch translate-y-0.5 self-center" data-domain={quiet ? undefined : swatch} />}
+          <span className={cn('min-w-0 group-hover:underline', quiet ? 'text-text-3' : 'text-text-1')}>{name}</span>
+        </span>
         {!quiet && <span className="shrink-0 text-sm tabular-nums text-text-3">{figure}</span>}
       </Link>
     </li>
@@ -248,6 +253,7 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
                 quiet={Boolean(overlay) && lit === 0}
                 onPreview={point({ domain: d })}
                 data={{ 'data-atlas-row': d.slug }}
+                swatch={d.slug}
               />
             );
           })}
@@ -257,9 +263,12 @@ export default function AtlasPanel({ layout, domain, group, leaf, state, overlay
   } else if (!group) {
     body = (
       <>
-        <h2 className="text-xl font-semibold leading-tight text-text-1" data-atlas-heading>
-          {domain.name}
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <span aria-hidden="true" className="domain-swatch" data-tall data-domain={domain.slug} />
+          <h2 className="text-xl font-semibold leading-tight text-text-1" data-atlas-heading>
+            {domain.name}
+          </h2>
+        </div>
         {domain.description && <p className="mt-1.5 text-sm leading-relaxed text-text-2">{domain.description}</p>}
         <div className="mt-5">
           <RowsHeading left="Skill groups" overlay={overlay} />
