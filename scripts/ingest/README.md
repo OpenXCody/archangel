@@ -353,11 +353,12 @@ source all the same (every line of the registry is registered when a run
 starts), so Admin Tools lists it as not run yet. The workflow reads Workday's
 boards alone three more times a day (`postings --system workday`), each run
 with the same budget: 1,200 requests a day at most, never more than 300 in an
-hour. Listing all twelve
-Workday boards is about 930 requests, so in the steady state each is listed
-in full every three to four days; while they are first read in, the texts
-(about one posting in five could be ours) take most of the budget, and the
-first pass over all of them takes about two weeks.
+hour. Listing all twelve Workday boards is about 930 requests, so in the
+steady state each is listed in full daily; while they are first read in, the
+texts (about one posting in five could be ours) take most of the budget, and
+the first pass over all of them takes three or four days. (With one run a
+day it was about two weeks, as long as a job lasts: five days after the first
+run on production eight of the twelve boards had not had a run.)
 
 **The stop rule.** A 401, 403 or 429, a challenge page, or a connection reset
 ends that employer for the run. It is written to the run (`refused`, with what
@@ -423,10 +424,11 @@ present everything the listing showed over all of its runs. Any other system
 starts its listing again.
 
 A job from a source expires 14 days after the last complete listing that
-included it. Fourteen because a board on a budgeted platform is listed in
-full every three to four days once it is read in, and about every two weeks
-while all of them are first read in: an expiry shorter than the slowest cycle
-would take a job off the lists between two listings that both had it. The
+included it. Fourteen because a board on a budgeted platform can wait
+days for its turn while other boards are first read in (one a week past its
+last complete listing goes ahead of the new ones): an expiry shorter than the
+slowest cycle would take a job off the lists between two listings that both
+had it. The
 other boards are listed in full daily, so for them 14 days is how long jobs
 stay if runs stop altogether.
 
