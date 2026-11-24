@@ -403,12 +403,12 @@ input {
 }
 
 /*
- * Skill paths (components/path/).
+ * Skill paths (components/path/, components/route/).
  *
- * A tag is one skill; a group box holds a group's tags; the flow lays the
- * boxes out by level along one trunk. Lines are hairlines in the strong
- * border colour; what a person holds is lit and the rest is quiet. Nothing
- * here names a colour of its own.
+ * A tag is one skill; a group box holds a group's tags; a career's path is a
+ * route, stops down one trunk. Lines are hairlines in the strong border
+ * colour; what a person holds is lit and the rest is quiet. Nothing here
+ * names a colour of its own.
  */
 @layer components {
   /*
@@ -477,250 +477,184 @@ input {
   }
 
   /*
-   * The flow. --path-x is where the trunk runs, --path-in where content
-   * starts. Each piece draws the stretch of trunk beside itself, so the line
-   * is whole however tall the boxes turn out, with nothing to measure.
+   * The route (components/route/): a career's path as stops down one line,
+   * at every width. The trunk is one hairline through the centre of every
+   * mark: each line of the route draws the stretch beside itself, so it is
+   * whole however tall a row turns out, with nothing to measure. A mark is 44
+   * px square and stands on the trunk; --route-pad is the room above and
+   * under a line.
    */
-  .path-flow {
-    --path-line: var(--line-strong);
-    --path-x: 8.5px;
-    --path-in: 28px;
-    --path-gap: 20px;
-    container-type: inline-size;
-    min-width: 0;
-  }
-  .path-levels {
+  .route {
+    --route-mark: 44px;
+    --route-pad: 2px;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-  }
-  .path-level {
-    position: relative;
     min-width: 0;
   }
-  .path-level + .path-level,
-  .path-ladder + .path-level {
-    padding-top: var(--path-gap);
+  .route-main {
+    min-width: 0;
+    max-width: 35rem;
   }
-  /* Into the node from above. */
-  .path-level[data-entered]::before {
-    content: '';
-    position: absolute;
-    left: var(--path-x);
-    top: 0;
-    height: calc(var(--path-gap) + 3px);
-    width: 1px;
-    background: var(--path-line);
-  }
-  /* A level's line: its node, its name, what it is, how much of it is held. */
-  .path-level-head {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: 8px;
-    min-height: 28px;
-    padding-left: var(--path-in);
-    padding-bottom: 2px;
-  }
-  .path-level-head > h3 {
-    line-height: 28px;
-  }
-  .path-level-head > [data-level-count] {
-    margin-left: auto;
-    font-size: 13px;
-  }
-  .path-level-line {
+  /* The side column is the wide screen's; the block above the route is the narrow one's. */
+  .route-side {
     display: none;
   }
-  .path-level-gloss {
-    font-size: 13px;
-    color: var(--text-3);
+  @media (min-width: 1024px) {
+    .route[data-route-two] {
+      grid-template-columns: minmax(0, 1fr) 288px;
+      column-gap: 4rem;
+      align-items: start;
+    }
+    .route[data-route-two] > .route-next {
+      display: none;
+    }
+    .route[data-route-two] > .route-side {
+      display: block;
+      position: sticky;
+      top: 5.5rem;
+      min-width: 0;
+      padding-top: 14px;
+    }
   }
-  .path-node {
-    position: absolute;
-    left: 0;
-    top: 0;
+  /* A mark's glyph stands 12px inside its button: the stops are drawn that far left, so marks line up with the heading above them. */
+  .route-stops {
+    margin: 0 0 0 -12px;
+    padding: 0;
+    list-style: none;
+  }
+  .route-stops ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .route-item {
+    position: relative;
     display: flex;
-    height: 28px;
-    width: 18px;
-    align-items: center;
+    align-items: flex-start;
+    min-width: 0;
+    padding: var(--route-pad) 0;
   }
-  /* Out of the node, down to whatever follows. */
-  .path-level-head[data-below]::after {
+  .route-item::before {
     content: '';
     position: absolute;
-    left: var(--path-x);
-    top: 25px;
+    top: 0;
     bottom: 0;
+    left: calc(var(--route-mark) / 2 - 0.5px);
     width: 1px;
-    background: var(--path-line);
+    background-color: var(--line-strong);
   }
-  .path-branch,
-  .path-empty {
+  .route-item[data-first]::before {
+    top: calc(var(--route-pad) + var(--route-mark) / 2);
+  }
+  .route-item[data-last]::before {
+    bottom: auto;
+    height: calc(var(--route-pad) + var(--route-mark) / 2);
+  }
+  .route-item[data-first][data-last]::before {
+    display: none;
+  }
+  /* What stands on the trunk: a mark, a section's ring, or a dot. Each covers the line behind it. */
+  .route-node {
     position: relative;
-    min-width: 0;
-    padding-left: var(--path-in);
-    padding-top: 8px;
-  }
-  .path-branch[data-domain] {
-    padding-top: 10px;
-  }
-  /* A domain's name on its branch; the ladder's two labels are set the same. */
-  .path-domain {
+    z-index: 1;
     display: flex;
-    min-height: 20px;
+    flex: none;
+    width: var(--route-mark);
+    height: var(--route-mark);
     align-items: center;
-    padding-bottom: 4px;
-    font-size: 11px;
+    justify-content: center;
+  }
+  .route-node > svg {
+    border-radius: 9999px;
+    background-color: var(--bg);
+  }
+  .route-dot {
+    width: 9px;
+    height: 9px;
+    border: 1.5px solid var(--text-3);
+    border-radius: 9999px;
+    background-color: var(--bg);
+  }
+  /* A section's line: the group's name in small capitals, a figure, the chevron. */
+  .route-head {
+    --route-pad: 6px;
+  }
+  .route-head-button {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--route-mark);
+    align-items: center;
+    gap: 10px;
+    padding-right: 4px;
+    border-radius: var(--radius);
+    text-align: left;
+  }
+  .route-head-button > .route-node {
+    margin-right: -2px;
+  }
+  .route-head-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.08em;
     line-height: 16px;
     text-transform: uppercase;
+    overflow-wrap: anywhere;
+    color: var(--text-1);
+  }
+  .route[data-route-marked] [data-route-section]:not([data-open]) .route-head-name,
+  .route[data-route-marked] [data-route-section][data-complete] .route-head-name {
     color: var(--text-2);
   }
-  /* The trunk beside a branch: past it when more follows, turning into the last one where it ends. */
-  .path-branch[data-pos='before']::before,
-  .path-level[data-continues] .path-branch::before,
-  .path-level[data-continues] .path-empty::before {
-    content: '';
-    position: absolute;
-    left: var(--path-x);
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: var(--path-line);
+  /* A skill's row: the name opens the skill's page, and wraps when it is long. */
+  .route-row-name {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--route-mark);
+    flex-direction: column;
+    justify-content: center;
+    padding: 6px 8px 6px 8px;
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    color: var(--text-1);
   }
-  .path-level:not([data-continues]) .path-branch[data-pos='last']::before {
-    content: '';
-    position: absolute;
-    left: var(--path-x);
-    top: 0;
-    height: 19px;
-    width: 12px;
-    border-left: 1px solid var(--path-line);
-    border-bottom: 1px solid var(--path-line);
-    border-bottom-left-radius: 8px;
+  .route-row[data-route-state='held'] .route-row-name,
+  .route-row[data-route-state='later'] .route-row-name {
+    color: var(--text-2);
   }
-  /* The tick to a domain's name. */
-  .path-branch[data-domain]::after {
-    content: '';
-    position: absolute;
-    left: var(--path-x);
-    top: 18px;
-    width: 12px;
-    height: 1px;
-    background: var(--path-line);
+  .route-row[data-route-state='next'] .route-row-name {
+    font-weight: 600;
   }
-  .path-level:not([data-continues]) .path-branch[data-pos='last']::after {
+  .route-row-word {
+    display: flex;
+    flex: none;
+    height: var(--route-mark);
+    align-items: center;
+    padding: 0 4px 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-1);
+  }
+  /* The ladder: one label and the careers beside it, wrapping under it on a narrow screen. */
+  .route-ladder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 16px;
+  }
+  /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
+  .route[data-route-plain] .route-item::before {
     display: none;
   }
-  .path-empty {
-    padding-top: 4px;
-    padding-bottom: 2px;
-    font-size: 15px;
-    color: var(--text-2);
-  }
-
-  /* The ladder: the careers before and after this one, on the same trunk. */
-  .path-ladder {
-    position: relative;
-    padding-left: var(--path-in);
-  }
-  .path-ladder[data-path-ladder='after'] {
-    padding-top: 10px;
-  }
-  .path-ladder::before {
-    content: '';
-    position: absolute;
-    left: var(--path-x);
-    width: 12px;
-    border-left: 1px solid var(--path-line);
-  }
-  .path-ladder[data-path-ladder='before']::before {
-    top: 8px;
-    bottom: 0;
-    border-top: 1px solid var(--path-line);
-    border-top-left-radius: 8px;
-  }
-  .path-ladder[data-path-ladder='after']::before {
-    top: 0;
-    height: 19px;
-    border-bottom: 1px solid var(--path-line);
-    border-bottom-left-radius: 8px;
-  }
-
-  /*
-   * With room, the levels stand side by side and the trunk runs across their
-   * heads. Where the career comes from stands over the first level, and where
-   * it leads hangs directly under the last one's boxes: the last row takes
-   * whatever the taller columns need.
-   */
-  @container (min-width: 700px) {
-    .path-levels {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      grid-template-rows: auto auto 1fr;
-      column-gap: 20px;
-    }
-    .path-level {
-      grid-row: 2 / span 2;
-    }
-    .path-levels[data-leads-on] > .path-level[data-last] {
-      grid-row: 2;
-    }
-    .path-ladder[data-path-ladder='before'] {
-      grid-row: 1;
-      grid-column: 1;
-    }
-    .path-ladder[data-path-ladder='after'] {
-      grid-row: 3;
-      grid-column: 3;
-    }
-    .path-level + .path-level,
-    .path-ladder + .path-level {
-      padding-top: 0;
-    }
-    .path-level[data-entered]::before {
-      display: none;
-    }
-    .path-ladder[data-path-ladder='before'] {
-      padding-bottom: 5px;
-    }
-    .path-level-head > [data-level-count] {
-      order: 1;
-      margin-left: 0;
-    }
-    /* The trunk between two levels: from this head's words to the next level's node. */
-    .path-level:not([data-last]) .path-level-line {
-      display: block;
-      order: 2;
-      flex: 1 1 12px;
-      align-self: flex-start;
-      height: 1px;
-      margin-top: 14px;
-      margin-right: -18px;
-      background: var(--path-line);
-    }
-    .path-level-gloss {
-      order: 3;
-      flex-basis: 100%;
-      margin-top: -4px;
-    }
-    /* Each column's trunk ends at its own last branch; only the last column can lead on. */
-    .path-level:not([data-last]) .path-branch[data-pos='last']::before {
-      bottom: auto;
-      height: 19px;
-      width: 12px;
-      background: none;
-      border-left: 1px solid var(--path-line);
-      border-bottom: 1px solid var(--path-line);
-      border-bottom-left-radius: 8px;
-    }
-    .path-level:not([data-last]) .path-branch[data-pos='last']::after,
-    .path-level:not([data-last]) .path-branch[data-pos='after']::before,
-    .path-level:not([data-last]) .path-empty::before,
-    .path-level:not([data-last]) .path-level-head:not([data-groups])::after {
-      display: none;
-    }
+  .route[data-route-plain] .route-head-button {
+    padding-left: 12px;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -27,8 +27,10 @@ import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '
  *      - one paragraph saying what it is, when the record has one;
  *      - one or two quiet lines of facts (where it is, how big, its industry);
  *      - the page's one action, last in the block and always in this place:
- *        Open on the map (company, factory, industry), Set as goal (career),
- *        Not held / Learning / Held (skill). A job's action is a form, so it
+ *        Open on the map (company, factory, industry). A career's and a
+ *        skill's page have none: a goal is set and a skill is marked on
+ *        Profile, and a career's page only says how much of it a seeker
+ *        holds. A job's action is a form, so it
  *        is the Apply section that follows the job's terms (for a person
  *        marking skills, the skills first: the company ranks on them).
  *   2. Sections (`DetailSection`: small grey capitals, no counts), always in

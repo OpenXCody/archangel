@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { rowsOf } from './rows.js';
+import { routeJoins, routeOrder } from './route.js';
 import { civilianCareer, militaryCareer } from './military.js';
 import { careerKind } from '../../shared/military.js';
 import { reached } from '../../shared/reach.js';
@@ -29,7 +30,7 @@ export interface CareerWithinReach {
   /** Skills of the civilian career's path that are on the military career's, and how many the path has. */
   held: number;
   total: number;
-  /** The rest of the civilian path, lowest level first. */
+  /** The rest of the civilian path, in that path's own order (`routeOrder`). */
   missing: MissingSkill[];
 }
 
@@ -51,13 +52,14 @@ export async function civilianCareersWithinReach(militaryId: string): Promise<Ca
     await db.execute(sql`
       SELECT c.id, c.title, COUNT(*)::int AS total, COUNT(mine.skill_id)::int AS held,
              COALESCE(
-               json_agg(json_build_object('id', s.id, 'name', s.name, 'level', cs.stage) ORDER BY cs.stage ASC NULLS LAST, s.name)
+               json_agg(json_build_object('id', s.id, 'name', s.name, 'level', cs.stage) ORDER BY ${routeOrder()})
                  FILTER (WHERE mine.skill_id IS NULL),
                '[]'::json
              ) AS missing
       FROM occupations c
       INNER JOIN occupation_skills cs ON cs.occupation_id = c.id
       INNER JOIN skills s ON s.id = cs.skill_id
+      ${routeJoins()}
       LEFT JOIN occupation_skills mine ON mine.occupation_id = ${militaryId} AND mine.skill_id = cs.skill_id
       WHERE ${civilianCareer('c')} AND c.path_status IS NOT NULL
       GROUP BY c.id, c.title

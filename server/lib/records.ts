@@ -1,10 +1,11 @@
 import type { Response } from 'express';
 import { and, eq, ne, sql, type SQL } from 'drizzle-orm';
-import { db, companies, factories, occupations, occupationSkills, skills, skillDomains, skillGroups, occupationAliases, skillAliases } from '../db/index.js';
+import { db, companies, factories, occupations, skills, skillDomains, skillGroups, occupationAliases, skillAliases } from '../db/index.js';
 import { changedFields, recordAudit, type Actor, type Executor } from './audit.js';
 import { answerWriteError, coordinate, count, FACTORY_STATUSES, HOSTNAME, isUuid, optionalName, optionalText, sourceUrl, stateCode, year } from './writes.js';
 import { rowsOf } from './rows.js';
-import { findGroup, placeColumns, placeOf, readLevel, type SkillPlace } from './taxonomy.js';
+import { findGroup, placeColumns, readLevel, type SkillPlace } from './taxonomy.js';
+import { routeOf } from './route.js';
 import { skillLevelName } from '../../shared/skillLevels.js';
 import { adminSetFacts, factsOfFields } from './provenance.js';
 import { LADDER_LOCK, MAX_LEADS_TO, findDomain, ladderFrom, leadsTo, setLeadsTo, type CareerRef } from './careers.js';
@@ -308,16 +309,8 @@ export async function readRecord(kind: RecordKind, id: string): Promise<RecordVi
       aliases: await aliasesOf(db, 'career', id),
       attached,
       leadsTo: await leadsTo(db, id),
-      path: (
-        await db
-          .select({ id: skills.id, name: skills.name, ...placeColumns })
-          .from(occupationSkills)
-          .innerJoin(skills, eq(skills.id, occupationSkills.skillId))
-          .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))
-          .leftJoin(skillDomains, eq(skillDomains.slug, skillGroups.domainSlug))
-          .where(eq(occupationSkills.occupationId, id))
-          .orderBy(sql`${skills.level} ASC NULLS LAST`, skills.name)
-      ).map((skill) => ({ id: skill.id, name: skill.name, ...placeOf(skill) })),
+      // In route order, as the career's page draws it.
+      path: (await routeOf(db, id)).map((skill) => ({ id: skill.id, name: skill.name, level: skill.level, group: skill.group, domain: skill.domain })),
     };
   }
   const [row] = await db

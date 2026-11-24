@@ -114,7 +114,7 @@ export default function GoalsSection() {
                     {goal.title}
                   </Link>
                   {goal.totalSkills > 0 ? (
-                    // The same ring the career's own page carries beside "Set as goal".
+                    // The same ring the career's own page carries above its path.
                     <p className="mt-1 flex items-center gap-2 text-sm text-text-2" data-goal-held>
                       <ShareRing share={{ held: goal.heldSkills, learning: 0, total: goal.totalSkills }} className="h-4 w-4" />
                       <span>

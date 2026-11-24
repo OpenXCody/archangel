@@ -131,11 +131,13 @@ export interface Taxonomy {
   domains: TaxonomyDomain[];
 }
 
-/** A skill on a career's path (GET /api/occupations/:id → `skills`), in path order: by level, then domain and group. */
+/** A skill on a career's path (GET /api/occupations/:id → `skills`), in route order: the order to learn them in. */
 export interface PathSkill extends SkillPlace {
   id: string;
   name: string;
   importance?: 'required' | 'preferred' | 'nice_to_have';
+  /** How the skill is learned, in the catalogue's sentence. */
+  howLearned?: string | null;
 }
 
 /** A skill that shares careers with another (GET /api/skills/:id → `relatedSkills`). */
@@ -392,7 +394,7 @@ export interface CareerWithinReach {
   title: string;
   held: number;
   total: number;
-  /** The skills of its path the military career does not have, lowest level first. */
+  /** The skills of its path the military career does not have, in that path's order. */
   missing: { id: string; name: string; level: SkillLevel | null }[];
 }
 
