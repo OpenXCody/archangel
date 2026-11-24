@@ -7,7 +7,6 @@ import { SkillMark } from '../account/SkillStatusButton';
 import { DetailSection, RecordList, RecordRow, detailActionClass } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { shareOf, type MarkStatus, type PathSkillItem, type PlacedSkill, type SkillMarks } from '../path/model';
-import { LEVELS } from '../../lib/stages';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import { SkillTags } from '../path/SkillTag';
 import { useSkillMarks } from '../path/useSkillMarks';
@@ -16,8 +15,8 @@ import { useSkillMarks } from '../path/useSkillMarks';
  * A job's skills, as its page draws them (`path` on GET /api/jobs/:id).
  *
  * A job is an opening for a career, so what is drawn is the career's path
- * (the company's version of it where there is one), level by level and group
- * by group as the career's own page lays it out. A skill the posting itself
+ * (the company's version of it where there is one), group by group in the
+ * route's order, with no level named. A skill the posting itself
  * names says so on its second line; what the posting names that is not on the
  * path follows under its own heading. A job a company posted here by hand
  * shows the skills it chose, the same way.
@@ -31,28 +30,27 @@ import { useSkillMarks } from '../path/useSkillMarks';
 export const jobSectionClass = 'mt-10 border-t border-line pt-8';
 
 /**
- * A job's skills by level, and within a level by skill group, in the order
- * they arrive (the server's path order). A career's own page draws its path
- * as a route to walk (components/route/); a job's page is a list to read, so
- * it keeps the groups side by side under their level.
+ * A job's skills by skill group, in the order they arrive (the server's path
+ * order, so the groups stand in the order the route reaches them). A career's
+ * own page draws its path as a route to walk (components/route/); a job's page
+ * is a list to read, so it keeps the groups side by side and names no level.
  */
-function byLevelAndGroup(skills: readonly PlacedSkill[]) {
-  const levels = LEVELS.map(({ id, name }) => ({ level: id, name, groups: [] as { slug: string; name: string; skills: PathSkillItem[] }[] }));
+function byGroup(skills: readonly PlacedSkill[]) {
+  const groups: { slug: string; name: string; skills: PathSkillItem[] }[] = [];
   const unplaced: PathSkillItem[] = [];
   for (const skill of skills) {
-    const level = levels.find((each) => each.level === skill.level);
-    if (!level || !skill.group) {
+    if (!skill.group) {
       unplaced.push(skill);
       continue;
     }
-    let group = level.groups.find((each) => each.slug === skill.group?.slug);
+    let group = groups.find((each) => each.slug === skill.group?.slug);
     if (!group) {
       group = { slug: skill.group.slug, name: skill.group.name, skills: [] };
-      level.groups.push(group);
+      groups.push(group);
     }
     group.skills.push(skill);
   }
-  return { levels, unplaced };
+  return { groups, unplaced };
 }
 
 /** What a tag says under a skill's name on this page. */
@@ -113,8 +111,7 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
       : null;
 
   const placed = path.skills.map((skill) => ({ id: skill.id, name: skill.name, level: skill.level, group: skill.group, domain: skill.domain, note: secondLine(skill) }));
-  const laid = byLevelAndGroup(placed);
-  const levels = laid.levels.filter((level) => level.groups.length > 0);
+  const laid = byGroup(placed);
   const share = marks && path.skills.length > 0 ? shareOf(path.skills, marks) : null;
   const named = new Set(path.skills.concat(path.alsoNamed).filter((skill) => skill.named).map((skill) => skill.id));
   const onPathNamed = path.skills.filter((skill) => skill.named).length;
@@ -173,18 +170,15 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
 
         {/* A group's skills stand one under another here: two groups share a row, and a column reads down. */}
         <div className="space-y-7 [&_.skill-group_.skill-tags]:flex-col" data-job-path={path.of}>
-          {levels.map((level) => (
-            <div key={level.level} data-job-level={level.level}>
-              <h3 className={cn(labelClass, 'mb-2 text-[11px]')}>{level.name}</h3>
-              <ul className="grid grid-cols-1 items-start gap-x-8 gap-y-4 sm:grid-cols-2">
-                {level.groups.map((group) => (
-                  <li key={group.slug} className="min-w-0">
-                    <SkillGroupBox name={group.name} skills={group.skills} marks={marks} renderSkill={tag} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {laid.groups.length > 0 && (
+            <ul className="grid grid-cols-1 items-start gap-x-8 gap-y-4 sm:grid-cols-2" data-job-groups>
+              {laid.groups.map((group) => (
+                <li key={group.slug} className="min-w-0">
+                  <SkillGroupBox name={group.name} skills={group.skills} marks={marks} renderSkill={tag} />
+                </li>
+              ))}
+            </ul>
+          )}
           {laid.unplaced.length > 0 && <SkillTags>{laid.unplaced.map(tag)}</SkillTags>}
 
           {/* What the posting names that the career's path does not have. */}

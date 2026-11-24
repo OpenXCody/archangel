@@ -247,7 +247,7 @@ export default function Layout() {
       </header>
 
       {/* Main content */}
-      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+      <main id="main" tabIndex={-1} className="isolate flex-1 focus:outline-none">
         <Outlet />
       </main>
 

@@ -2024,9 +2024,10 @@ test("a job from a company's careers site, as a visitor: tags, facts, one way to
   await expect(terms.locator('[data-job-requirement="certificates"]')).toHaveText('NIMS Machining Level I, AWS D17.1');
   await expect(terms.locator('[data-job-requirement="clearance"]')).toHaveText('Secret clearance');
   await expect(terms.locator('[data-job-requirement="citizenship"]')).toHaveText('US person (ITAR)');
-  // The skills are the career's path, by level and group: eight, of which the posting names three, and one more after them.
+  // The skills are the career's path, by skill group with no level named: eight, of which the posting names three, and one more after them.
   const path = page.locator('[data-job-path="career"]');
-  await expect(path.locator('[data-job-level]')).toHaveCount(3);
+  await expect(path.locator('[data-job-groups]')).toHaveCount(1);
+  await expect(path).not.toContainText(/Fundamentals|Intermediate|Advanced/i);
   await expect(path.locator('[data-group-box] [data-skill-tag]')).toHaveCount(8);
   await expect(path.locator('[data-group-box] [data-skill-tag][data-named]')).toHaveCount(3);
   await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).toContainText('Named in the posting');
@@ -2414,6 +2415,20 @@ test('what the owner asked for: one order of companies with no sort, Safety last
     await page.keyboard.press('Escape');
     await expect(menu).toHaveCount(0);
     await expect(explore).toBeFocused();
+    // On the map the menu stands over the search field: every one of its links is what the pointer meets.
+    await page.goto('/map', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+    await explore.hover();
+    const covered = await menu.getByRole('link').evaluateAll((links) =>
+      links
+        .filter((link) => {
+          const box = link.getBoundingClientRect();
+          const at = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+          return !at || !link.contains(at);
+        })
+        .map((link) => link.textContent),
+    );
+    expect(covered, 'menu links under something on the map').toEqual([]);
   }
 });
 
