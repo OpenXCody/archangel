@@ -31,6 +31,8 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0061_career_service.sql', '0062_military_employers.sql',
   // The military careers, then their paths, every one a draft.
   '0063_military_careers.sql', '0064_military_paths.sql',
+  // The plants behind employers' postings: the plants we lacked and four employers we did not list (a research file).
+  '0065_posting_employers.sql',
   // The domains in a new order, Safety last. No group or skill moves.
   '0068_skill_taxonomy_4.sql',
 
