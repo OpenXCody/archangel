@@ -54,19 +54,6 @@ export function Footprint({ children, ...map }: React.ComponentProps<typeof Foot
   );
 }
 
-/** Careers typical of a factory's industry: what kind of work a factory like this has, never a claim about it. */
-export function TypicalCareers({ careers }: { careers: { id: string; title: string }[] }) {
-  return (
-    <DetailSection id="occupations" title="Careers in this industry">
-      <RecordList>
-        {careers.map((career) => (
-          <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
-        ))}
-      </RecordList>
-    </DetailSection>
-  );
-}
-
 /** Open jobs at a company, a factory, for a career or asking for a skill. Drawn only when there is one. */
 export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs: CareerJob[]; showCareer?: boolean; total?: number; all?: string }) {
   // The page lists the newest few. When more are open, one link leads to all of them on Jobs.

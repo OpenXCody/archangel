@@ -88,7 +88,7 @@ OUT=$(req anon GET '/occupations?domain=machining&search=programmer')
 expect "a domain and a search together"            "CNC Programmer" "$(printf '%s' "$OUT" | j 'data.map((c) => c.title).join("|")')"
 expect "a search outside the domain finds nothing in it" 0 "$(req anon GET '/occupations?domain=machining&search=welder' | j total)"
 OUT=$(req anon GET /explore/facets)
-expect "the domains that are a career's home, in the taxonomy's order" "$(cat_ '[...new Set(careers.map((x)=>x.home))].join("|")')" "$(printf '%s' "$OUT" | j 'careerDomains.map((d) => d.slug).join("|")')"
+expect "the domains that are a career's home, in the taxonomy's order" "$(TAXONOMY="$ROOT/data/skills/taxonomy.json" cat_ '(homes => JSON.parse(require("fs").readFileSync(process.env.TAXONOMY, "utf8")).domains.map((d) => d.slug).filter((slug) => homes.has(slug)).join("|"))(new Set(careers.map((x)=>x.home)))')" "$(printf '%s' "$OUT" | j 'careerDomains.map((d) => d.slug).join("|")')"
 expect "each with its name"                        "Battery and electric drive" "$(printf '%s' "$OUT" | j 'careerDomains.find((d) => d.slug === "battery").name')"
 expect "the counts follow the data: civilian careers" "$(sql "SELECT COUNT(*) FROM occupations WHERE service_company_id IS NULL")" "$(req anon GET /stats/counts | j occupations)"
 

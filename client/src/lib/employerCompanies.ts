@@ -18,6 +18,8 @@ export interface FoundCompany {
   slug: string | null;
   industry: string | null;
   factoryCount: number;
+  people?: number | null;
+  openJobs?: number;
   /** Where its factories are: "Austin, TX" for one, the states with the most for several. */
   where: string | null;
 }

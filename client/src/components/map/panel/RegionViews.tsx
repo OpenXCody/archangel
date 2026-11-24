@@ -12,6 +12,7 @@ import { stateName, titleCase } from '../../../lib/places';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import CompanyLogo from '../../CompanyLogo';
 import { industryPath, shownIndustry } from '@shared/industry';
+import { companyFigure } from '../../../lib/utils';
 import { Section, JobRows, MORE_LINK, CareerRows, Heading, PageLink, RowList, NodeRow, More, Figures, ROW, META_IN_ROW } from './parts';
 
 /** How many open jobs a region's panel lists before sending the person to the jobs list. */
@@ -67,7 +68,7 @@ function RegionBody({
 
       {/* Who is here */}
       {data.topCompanies.length > 0 && (
-        <Section title="Companies" column="Factories">
+        <Section title="Companies">
           <RowList>
             {data.topCompanies.slice(0, 8).map((c) => {
               const name = formatCompanyName(c.name);
@@ -80,7 +81,8 @@ function RegionBody({
                 >
                   <CompanyLogo name={name} domain={c.domain} size={32} />
                   <span className="min-w-0 flex-1 truncate text-[15px] text-text-1">{name}</span>
-                  <span className={`shrink-0 text-[13px] tabular-nums ${META_IN_ROW}`}>{c.count.toLocaleString()}</span>
+                  {/* Its people here where known, else its open jobs here, else its factories here: what the list is ranked on. */}
+                  <span className={`shrink-0 text-[13px] tabular-nums ${META_IN_ROW}`}>{companyFigure({ people: c.people, openJobs: c.openJobs, factories: c.factories ?? c.count })}</span>
                 </button>
               );
             })}

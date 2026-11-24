@@ -4,6 +4,7 @@ import { factoryInArea, factoryInScope } from './scope.js';
 import type { FocusArea } from '../../shared/scope.js';
 import { INDUSTRIES, MANUFACTURING_CODE, industryLabel } from '../../shared/industry.js';
 import { int, rowsOf, text, type Row } from './rows.js';
+import { jobIsOpen } from './openJobs.js';
 
 /**
  * The industry as a level of the product: what the industry routes, the
@@ -59,6 +60,56 @@ export function companyIndustries(): SQL {
     WHERE ci_f.company_id IS NOT NULL AND ${countedIndustry('ci_f')} AND ${factoryInScope('ci_f')}
     GROUP BY ci_f.company_id`;
 }
+
+/**
+ * The one order a list of companies is shown in, wherever one is listed (the
+ * map's panels, Explore's Companies list and overview, an industry's page,
+ * and what settles equal matches in search): the company with the most
+ * people first, then the most open jobs, then the most factories, then by
+ * name. All three are counted over the same set of factories: the place or
+ * industry the list is of, or every factory the company has.
+ *
+ * `companyStandings` is the figures, as rows of (company_id, factories,
+ * counted, people, open_jobs): `people` is the sum of the headcounts recorded
+ * at the company's factories in the set and null when none is recorded, never
+ * zero; `counted` is how many of the factories it is summed over. `inSet`
+ * narrows the factories and is given the name the factories table goes by;
+ * `of` reads one company's row, for a LATERAL join over a few companies in
+ * place of one pass over every factory. `byCompanyStanding` is the order,
+ * given the name the figures go by in the query and the company's name.
+ */
+export function companyStandings({ inSet, of }: { inSet?: (factoryTable: string) => SQL; of?: SQL } = {}): SQL {
+  // Open jobs by factory: looked up factory by factory for one company, counted once for all of them.
+  const openJobs = of
+    ? sql`(SELECT COUNT(*) FROM jobs cs_j WHERE cs_j.factory_id = cs_f.id AND ${jobIsOpen('cs_j')})`
+    : sql`cs_open.n`;
+  const openJobsJoin = of
+    ? sql``
+    : sql`LEFT JOIN (SELECT cs_j.factory_id, COUNT(*) AS n FROM jobs cs_j WHERE ${jobIsOpen('cs_j')} GROUP BY cs_j.factory_id) cs_open ON cs_open.factory_id = cs_f.id`;
+  return sql`
+    SELECT cs_f.company_id,
+           COUNT(*)::int AS factories,
+           COUNT(*) FILTER (WHERE cs_f.workforce_size > 0)::int AS counted,
+           SUM(cs_f.workforce_size) FILTER (WHERE cs_f.workforce_size > 0)::int AS people,
+           COALESCE(SUM(${openJobs}), 0)::int AS open_jobs
+    FROM factories cs_f
+    ${openJobsJoin}
+    WHERE ${of ? sql`cs_f.company_id = ${of}` : sql`cs_f.company_id IS NOT NULL`}
+      AND ${inSet ? inSet('cs_f') : sql`TRUE`} AND ${factoryInScope('cs_f')}
+    GROUP BY cs_f.company_id`;
+}
+
+export function byCompanyStanding(standing: string, companyName: SQL): SQL {
+  const s = sql.identifier(standing);
+  return sql`${s}.people DESC NULLS LAST, COALESCE(${s}.open_jobs, 0) DESC, COALESCE(${s}.factories, 0) DESC, ${companyName} ASC`;
+}
+
+/** A company's standing as the API says it, from a row that carries the figures: an unknown headcount is null. */
+export const standingOf = (row: Row) => ({
+  people: known(row.people),
+  openJobs: int(row.open_jobs),
+  factories: int(row.factories),
+});
 
 /** The plants of a place, by the name the factories table goes by in the query. */
 export function inPlace(place: Place, table: string): SQL {

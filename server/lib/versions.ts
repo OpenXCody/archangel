@@ -7,6 +7,7 @@ import { listOpenJobs } from './openJobs.js';
 import { RecordRefusal } from './records.js';
 import { rowsOf } from './rows.js';
 import { companyInScope } from './scope.js';
+import { byCompanyStanding, companyStandings } from './industries.js';
 import { placeOf, placeSql, type SkillPlace } from './taxonomy.js';
 import { routeOrder } from './route.js';
 import { isUuid } from './writes.js';
@@ -146,6 +147,7 @@ async function listVersions(where: SQL, order: SQL, limit: number): Promise<Vers
       FROM company_careers cc
       INNER JOIN companies c ON c.id = cc.company_id
       INNER JOIN occupations o ON o.id = cc.occupation_id
+      LEFT JOIN LATERAL (${companyStandings({ of: sql`c.id` })}) cs ON TRUE
       WHERE ${where} AND ${companyInScope('c')}
       ORDER BY ${order}
       LIMIT ${limit}
@@ -166,9 +168,9 @@ export function versionsOfCompany(companyId: string, limit = 200): Promise<Versi
   return listVersions(sql`cc.company_id = ${companyId}`, sql`lower(o.title), o.id`, limit);
 }
 
-/** The companies with a version of a career: featured employers first, then by name. */
+/** The companies with a version of a career, in the order every list of companies has. */
 export function versionsOfCareer(occupationId: string, limit = 200): Promise<VersionSummary[]> {
-  return listVersions(sql`cc.occupation_id = ${occupationId}`, sql`c.featured DESC, lower(c.name), c.id`, limit);
+  return listVersions(sql`cc.occupation_id = ${occupationId}`, sql`${byCompanyStanding('cs', sql`c.name`)}, c.id`, limit);
 }
 
 interface HeadRow {

@@ -13,7 +13,7 @@ import {
 import { formatCompanyName } from '@shared/displayName';
 import { FOCUS_AREAS } from '@shared/scope';
 import { industryLabel, shownIndustry } from '@shared/industry';
-import { cn, focusRing, plural } from '@/lib/utils';
+import { cn, companyFigure, focusRing, plural } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState, PageSection } from '../layout/Page';
 import { LoadError } from '../account/parts';
@@ -68,7 +68,7 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
       {industry && <p className="mt-1 line-clamp-2 text-xs leading-snug text-text-3">{industry}</p>}
       {/* Pinned to the foot, so the figures of a row of tiles sit on one line. */}
       <p className="mt-auto pt-3 text-sm text-text-2">
-        <span className="whitespace-nowrap">{plural(company.siteCount, 'factory', 'factories')}</span>
+        <span className="whitespace-nowrap">{companyFigure({ people: company.people, openJobs: company.openJobs, factories: company.siteCount })}</span>
         {/* The two figures may part at the space between them, on the narrowest phones. */}
         {company.stateCount > 0 && ' '}
         {company.stateCount > 0 && (
@@ -79,7 +79,7 @@ function CompanyTile({ company, className }: { company: ExploreEmployer; classNa
   );
 }
 
-/** The featured companies, most factories first. */
+/** The featured companies, in the order every list of companies has. */
 function Companies({ companies }: { companies: ExploreEmployer[] }) {
   if (companies.length === 0) return null;
   return (

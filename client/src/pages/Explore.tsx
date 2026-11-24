@@ -148,7 +148,8 @@ export default function Explore() {
         : 'overview';
 
   return (
-    <PageContainer>
+    // The Factories list stands in four columns on a very wide screen, and the page is wider for it there.
+    <PageContainer className={view === 'factories' ? 'min-[1600px]:max-w-[96rem]' : undefined}>
       <PageHeader title="Explore" className="mb-2 sm:mb-4" />
       <ExploreNav active={view} />
       <View key={view} view={view} />

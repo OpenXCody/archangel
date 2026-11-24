@@ -18,100 +18,500 @@
   ],
   "domains": [
     {
-      "slug": "safety",
-      "name": "Safety",
-      "what": "Working without getting hurt: the habits, protective equipment and hazard controls every job on a floor starts from.",
+      "slug": "materials",
+      "name": "Materials",
+      "what": "Changing what a material is or how its surface behaves: heat treatment, surface treatment, peening and thermal spray, paint, composites and materials testing.",
       "groups": [
         {
-          "slug": "workplace-safety",
-          "name": "Workplace safety",
-          "what": "The habits and protective equipment every person on a floor needs, and the training for work at height and in confined spaces.",
+          "slug": "heat-treatment",
+          "name": "Heat treatment",
+          "what": "Changing a metal's hardness and structure in a furnace: relieving stress, annealing, hardening, case hardening, vacuum and pressure cycles.",
           "skills": [
             {
-              "name": "Shop Safety Practices",
-              "level": 1
-            },
-            {
-              "name": "PPE Selection",
-              "level": 1
-            },
-            {
-              "name": "Respiratory Protection",
-              "level": 1
-            },
-            {
-              "name": "Fall Protection",
+              "name": "Stress Relieving",
               "level": 2
             },
             {
-              "name": "Confined Space Entry",
+              "name": "Annealing and Normalizing",
+              "level": 2
+            },
+            {
+              "name": "Quench and Temper Hardening",
+              "level": 2
+            },
+            {
+              "name": "Carburizing",
+              "level": 2
+            },
+            {
+              "name": "Hot Isostatic Pressing",
+              "level": 2
+            },
+            {
+              "name": "Nitriding",
+              "level": 3
+            },
+            {
+              "name": "Vacuum Heat Treatment",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "age-hardening",
+          "name": "Age hardening",
+          "what": "Bringing aluminum, titanium and nickel alloys to temper by solution treatment, quench and aging.",
+          "skills": [
+            {
+              "name": "Solution Heat Treatment",
+              "level": 2
+            },
+            {
+              "name": "Precipitation Hardening",
+              "level": 2
+            },
+            {
+              "name": "Aluminum Casting Heat Treatment",
               "level": 2
             }
           ]
         },
         {
-          "slug": "hazardous-energy",
-          "name": "Hazardous energy",
-          "what": "Staying clear of the energy that injures: electricity, stored pressure, moving machines and robots, laser light and radiation.",
+          "slug": "furnace-pyrometry",
+          "name": "Furnace pyrometry",
+          "what": "Proving that a furnace or autoclave measures and holds the temperature it claims.",
           "skills": [
             {
-              "name": "Lockout Tagout",
-              "level": 1
+              "name": "Pyrometry",
+              "level": 3
             },
             {
-              "name": "Electrical Safety",
-              "level": 1
-            },
-            {
-              "name": "High Voltage Safety",
-              "level": 1
-            },
-            {
-              "name": "Hydraulic Safety",
-              "level": 1
-            },
-            {
-              "name": "Robot Cell Safety",
-              "level": 1
-            },
-            {
-              "name": "Laser Safety",
-              "level": 1
-            },
-            {
-              "name": "Radiation Safety",
-              "level": 1
+              "name": "Temperature Uniformity Survey",
+              "level": 3
             }
           ]
         },
         {
-          "slug": "hazardous-materials",
-          "name": "Hazardous materials",
-          "what": "Handling chemicals, dusts, process gases and explosives so nobody is exposed and nothing spills, burns or goes off.",
+          "slug": "materials-testing",
+          "name": "Materials testing",
+          "what": "Testing what a material is and has become: its alloy, hardness, strength and structure under the microscope.",
           "skills": [
             {
-              "name": "Safety Data Sheet Reading",
+              "name": "Rockwell Hardness Testing",
               "level": 1
             },
             {
-              "name": "Chemical Safety",
+              "name": "Brinell Hardness Testing",
               "level": 1
             },
             {
-              "name": "Composite Material Safety",
+              "name": "Tensile Testing",
+              "level": 2
+            },
+            {
+              "name": "Positive Material Identification",
+              "level": 2
+            },
+            {
+              "name": "Metallographic Examination",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "surface-treatment",
+          "name": "Surface treatment",
+          "what": "Treating metal in chemical and electrolytic baths: conversion coating, passivation, anodizing, electropolishing and plating.",
+          "skills": [
+            {
+              "name": "Chemical Conversion Coating",
+              "level": 2
+            },
+            {
+              "name": "Passivation of Stainless Steel",
+              "level": 2
+            },
+            {
+              "name": "Anodizing",
+              "level": 2
+            },
+            {
+              "name": "Electropolishing",
+              "level": 2
+            },
+            {
+              "name": "Electroplating",
+              "level": 2
+            },
+            {
+              "name": "Electroless Nickel Plating",
+              "level": 2
+            },
+            {
+              "name": "Hard Anodizing",
+              "level": 3
+            },
+            {
+              "name": "Hard Chrome Plating",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "peening-and-thermal-spray",
+          "name": "Peening and thermal spray",
+          "what": "Changing a surface by impact or by sprayed coating: shot peening for fatigue life, thermal spray for wear and heat.",
+          "skills": [
+            {
+              "name": "Shot Peening",
+              "level": 2
+            },
+            {
+              "name": "Thermal Spray Coating",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "paint-pretreatment",
+          "name": "Paint pretreatment",
+          "what": "Getting a surface ready to hold paint: stripping and blasting, phosphate conversion and electrocoat primer.",
+          "skills": [
+            {
+              "name": "Coating Removal and Surface Preparation",
+              "level": 2
+            },
+            {
+              "name": "Phosphate Pretreatment",
+              "level": 2
+            },
+            {
+              "name": "E-Coat Operation",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "paint-application",
+          "name": "Paint application",
+          "what": "Putting paint, powder and sealer on: masking, sealing seams, spraying by gun and by robot, powder coating, matching color and repairing defects.",
+          "skills": [
+            {
+              "name": "Paint Masking",
               "level": 1
             },
             {
-              "name": "Hazardous Materials Handling",
+              "name": "Seam Sealer Application",
               "level": 2
             },
             {
-              "name": "Specialty Gas Handling",
+              "name": "Spray Gun Painting",
               "level": 2
             },
             {
-              "name": "Ordnance Handling",
+              "name": "Robotic Paint Application",
               "level": 2
+            },
+            {
+              "name": "Paint Defect Repair",
+              "level": 2
+            },
+            {
+              "name": "Powder Coating",
+              "level": 2
+            },
+            {
+              "name": "Color Matching",
+              "level": 3
+            },
+            {
+              "name": "Low-Observable Coating Application",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "coating-inspection",
+          "name": "Coating inspection",
+          "what": "Checking a coating once it is on: thickness, defects, appearance and adhesion.",
+          "skills": [
+            {
+              "name": "Coating Thickness Measurement",
+              "level": 1
+            },
+            {
+              "name": "Paint Defect Identification",
+              "level": 2
+            },
+            {
+              "name": "Paint Appearance Measurement",
+              "level": 2
+            },
+            {
+              "name": "Coating Adhesion Testing",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "composite-fabrication",
+          "name": "Composite fabrication",
+          "what": "Building a laminate: cutting and kitting plies, preparing the tool, laying up by hand and by machine, winding, infusing, and trimming the cured part.",
+          "skills": [
+            {
+              "name": "Ply Cutting and Kitting",
+              "level": 1
+            },
+            {
+              "name": "Layup Tool Preparation",
+              "level": 1
+            },
+            {
+              "name": "Composite Layup",
+              "level": 2
+            },
+            {
+              "name": "Debulking",
+              "level": 2
+            },
+            {
+              "name": "Honeycomb Core Installation",
+              "level": 2
+            },
+            {
+              "name": "Resin Infusion",
+              "level": 2
+            },
+            {
+              "name": "Automated Fiber Placement",
+              "level": 2
+            },
+            {
+              "name": "Filament Winding",
+              "level": 2
+            },
+            {
+              "name": "Composite Trimming and Drilling",
+              "level": 2
+            },
+            {
+              "name": "Unidirectional Tape Layup",
+              "level": 3
+            },
+            {
+              "name": "Laminate Layup Inspection",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "composite-curing",
+          "name": "Composite curing",
+          "what": "Bagging a layup and curing it in an autoclave or oven, from thermocouple placement to writing and controlling the cycle.",
+          "skills": [
+            {
+              "name": "Vacuum Bagging",
+              "level": 2
+            },
+            {
+              "name": "Thermocouple Placement",
+              "level": 2
+            },
+            {
+              "name": "Autoclave Operation",
+              "level": 2
+            },
+            {
+              "name": "Cure Cycle Monitoring",
+              "level": 2
+            },
+            {
+              "name": "Out-of-Autoclave Curing",
+              "level": 2
+            },
+            {
+              "name": "Cure Cycle Programming",
+              "level": 3
+            },
+            {
+              "name": "Cure Exotherm Control",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "composite-bonding",
+          "name": "Composite bonding",
+          "what": "Joining composite and metal details with adhesive: surface preparation, film and paste adhesives, secondary bonds and co-cure.",
+          "skills": [
+            {
+              "name": "Adhesive Surface Preparation",
+              "level": 2
+            },
+            {
+              "name": "Film Adhesive Application",
+              "level": 2
+            },
+            {
+              "name": "Paste Adhesive Application",
+              "level": 2
+            },
+            {
+              "name": "Secondary Bonding",
+              "level": 2
+            },
+            {
+              "name": "Co-Cure and Co-Bond Processing",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "composite-repair",
+          "name": "Composite repair",
+          "what": "Assessing damage in composite structure and restoring it by bonded or bolted repair.",
+          "skills": [
+            {
+              "name": "Composite Drying Before Repair",
+              "level": 2
+            },
+            {
+              "name": "Bolted Composite Repair",
+              "level": 2
+            },
+            {
+              "name": "Composite Damage Assessment",
+              "level": 3
+            },
+            {
+              "name": "Scarf and Step Repair",
+              "level": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "engineering",
+      "name": "Engineering",
+      "what": "Designing parts, circuits and systems and the processes that make them: drawings and design data, CAD, design methods, electrical design, manufacturing engineering and systems engineering.",
+      "groups": [
+        {
+          "slug": "design-documentation",
+          "name": "CAD and drawings",
+          "what": "The model, the drawing and the controlled data a shop builds from: drafting in two dimensions, modeling in three, assemblies and released revisions.",
+          "skills": [
+            {
+              "name": "Engineering Drawing Creation",
+              "level": 1
+            },
+            {
+              "name": "PDM and PLM Use",
+              "level": 1
+            },
+            {
+              "name": "2D CAD Drafting",
+              "level": 2
+            },
+            {
+              "name": "3D CAD Modeling",
+              "level": 2
+            },
+            {
+              "name": "CAD Assembly Modeling",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "design-methods",
+          "name": "Design methods",
+          "what": "The analysis behind a design: manufacturability, tolerance stacks, failure modes, additive design, finite element analysis and the fixtures and tools a part is made on.",
+          "skills": [
+            {
+              "name": "Design for Manufacturability",
+              "level": 2
+            },
+            {
+              "name": "Tolerance Stack-Up Analysis",
+              "level": 2
+            },
+            {
+              "name": "Design for Additive Manufacturing",
+              "level": 2
+            },
+            {
+              "name": "Design FMEA",
+              "level": 3
+            },
+            {
+              "name": "Finite Element Analysis",
+              "level": 3
+            },
+            {
+              "name": "Fixture and Tooling Design",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "electrical-design",
+          "name": "Electrical design",
+          "what": "Designing circuits and the electrical side of machines: schematics, board layout and controls drawings.",
+          "skills": [
+            {
+              "name": "Circuit Design and Schematic Capture",
+              "level": 2
+            },
+            {
+              "name": "PCB Layout",
+              "level": 3
+            },
+            {
+              "name": "Electrical Controls Design",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "manufacturing-engineering",
+          "name": "Manufacturing engineering",
+          "what": "Designing how the work is done: instructions, time standards, balanced lines, error-proof stations and the data that shows what is happening.",
+          "skills": [
+            {
+              "name": "Work Instruction Writing",
+              "level": 2
+            },
+            {
+              "name": "Time Study",
+              "level": 2
+            },
+            {
+              "name": "Line Balancing",
+              "level": 2
+            },
+            {
+              "name": "Error Proofing",
+              "level": 2
+            },
+            {
+              "name": "Data Analysis and Scripting",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "systems-engineering",
+          "name": "Systems engineering",
+          "what": "Stating what a system must do and planning how it will be proven.",
+          "skills": [
+            {
+              "name": "Requirements Management",
+              "level": 2
+            },
+            {
+              "name": "Verification Planning",
+              "level": 3
             }
           ]
         }
@@ -790,380 +1190,6 @@
             {
               "name": "Additive Part Post-Processing",
               "level": 2
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "materials",
-      "name": "Materials",
-      "what": "Changing what a material is or how its surface behaves: heat treatment, surface treatment, peening and thermal spray, paint, composites and materials testing.",
-      "groups": [
-        {
-          "slug": "heat-treatment",
-          "name": "Heat treatment",
-          "what": "Changing a metal's hardness and structure in a furnace: relieving stress, annealing, hardening, case hardening, vacuum and pressure cycles.",
-          "skills": [
-            {
-              "name": "Stress Relieving",
-              "level": 2
-            },
-            {
-              "name": "Annealing and Normalizing",
-              "level": 2
-            },
-            {
-              "name": "Quench and Temper Hardening",
-              "level": 2
-            },
-            {
-              "name": "Carburizing",
-              "level": 2
-            },
-            {
-              "name": "Hot Isostatic Pressing",
-              "level": 2
-            },
-            {
-              "name": "Nitriding",
-              "level": 3
-            },
-            {
-              "name": "Vacuum Heat Treatment",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "age-hardening",
-          "name": "Age hardening",
-          "what": "Bringing aluminum, titanium and nickel alloys to temper by solution treatment, quench and aging.",
-          "skills": [
-            {
-              "name": "Solution Heat Treatment",
-              "level": 2
-            },
-            {
-              "name": "Precipitation Hardening",
-              "level": 2
-            },
-            {
-              "name": "Aluminum Casting Heat Treatment",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "furnace-pyrometry",
-          "name": "Furnace pyrometry",
-          "what": "Proving that a furnace or autoclave measures and holds the temperature it claims.",
-          "skills": [
-            {
-              "name": "Pyrometry",
-              "level": 3
-            },
-            {
-              "name": "Temperature Uniformity Survey",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "materials-testing",
-          "name": "Materials testing",
-          "what": "Testing what a material is and has become: its alloy, hardness, strength and structure under the microscope.",
-          "skills": [
-            {
-              "name": "Rockwell Hardness Testing",
-              "level": 1
-            },
-            {
-              "name": "Brinell Hardness Testing",
-              "level": 1
-            },
-            {
-              "name": "Tensile Testing",
-              "level": 2
-            },
-            {
-              "name": "Positive Material Identification",
-              "level": 2
-            },
-            {
-              "name": "Metallographic Examination",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "surface-treatment",
-          "name": "Surface treatment",
-          "what": "Treating metal in chemical and electrolytic baths: conversion coating, passivation, anodizing, electropolishing and plating.",
-          "skills": [
-            {
-              "name": "Chemical Conversion Coating",
-              "level": 2
-            },
-            {
-              "name": "Passivation of Stainless Steel",
-              "level": 2
-            },
-            {
-              "name": "Anodizing",
-              "level": 2
-            },
-            {
-              "name": "Electropolishing",
-              "level": 2
-            },
-            {
-              "name": "Electroplating",
-              "level": 2
-            },
-            {
-              "name": "Electroless Nickel Plating",
-              "level": 2
-            },
-            {
-              "name": "Hard Anodizing",
-              "level": 3
-            },
-            {
-              "name": "Hard Chrome Plating",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "peening-and-thermal-spray",
-          "name": "Peening and thermal spray",
-          "what": "Changing a surface by impact or by sprayed coating: shot peening for fatigue life, thermal spray for wear and heat.",
-          "skills": [
-            {
-              "name": "Shot Peening",
-              "level": 2
-            },
-            {
-              "name": "Thermal Spray Coating",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "paint-pretreatment",
-          "name": "Paint pretreatment",
-          "what": "Getting a surface ready to hold paint: stripping and blasting, phosphate conversion and electrocoat primer.",
-          "skills": [
-            {
-              "name": "Coating Removal and Surface Preparation",
-              "level": 2
-            },
-            {
-              "name": "Phosphate Pretreatment",
-              "level": 2
-            },
-            {
-              "name": "E-Coat Operation",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "paint-application",
-          "name": "Paint application",
-          "what": "Putting paint, powder and sealer on: masking, sealing seams, spraying by gun and by robot, powder coating, matching color and repairing defects.",
-          "skills": [
-            {
-              "name": "Paint Masking",
-              "level": 1
-            },
-            {
-              "name": "Seam Sealer Application",
-              "level": 2
-            },
-            {
-              "name": "Spray Gun Painting",
-              "level": 2
-            },
-            {
-              "name": "Robotic Paint Application",
-              "level": 2
-            },
-            {
-              "name": "Paint Defect Repair",
-              "level": 2
-            },
-            {
-              "name": "Powder Coating",
-              "level": 2
-            },
-            {
-              "name": "Color Matching",
-              "level": 3
-            },
-            {
-              "name": "Low-Observable Coating Application",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "coating-inspection",
-          "name": "Coating inspection",
-          "what": "Checking a coating once it is on: thickness, defects, appearance and adhesion.",
-          "skills": [
-            {
-              "name": "Coating Thickness Measurement",
-              "level": 1
-            },
-            {
-              "name": "Paint Defect Identification",
-              "level": 2
-            },
-            {
-              "name": "Paint Appearance Measurement",
-              "level": 2
-            },
-            {
-              "name": "Coating Adhesion Testing",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "composite-fabrication",
-          "name": "Composite fabrication",
-          "what": "Building a laminate: cutting and kitting plies, preparing the tool, laying up by hand and by machine, winding, infusing, and trimming the cured part.",
-          "skills": [
-            {
-              "name": "Ply Cutting and Kitting",
-              "level": 1
-            },
-            {
-              "name": "Layup Tool Preparation",
-              "level": 1
-            },
-            {
-              "name": "Composite Layup",
-              "level": 2
-            },
-            {
-              "name": "Debulking",
-              "level": 2
-            },
-            {
-              "name": "Honeycomb Core Installation",
-              "level": 2
-            },
-            {
-              "name": "Resin Infusion",
-              "level": 2
-            },
-            {
-              "name": "Automated Fiber Placement",
-              "level": 2
-            },
-            {
-              "name": "Filament Winding",
-              "level": 2
-            },
-            {
-              "name": "Composite Trimming and Drilling",
-              "level": 2
-            },
-            {
-              "name": "Unidirectional Tape Layup",
-              "level": 3
-            },
-            {
-              "name": "Laminate Layup Inspection",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "composite-curing",
-          "name": "Composite curing",
-          "what": "Bagging a layup and curing it in an autoclave or oven, from thermocouple placement to writing and controlling the cycle.",
-          "skills": [
-            {
-              "name": "Vacuum Bagging",
-              "level": 2
-            },
-            {
-              "name": "Thermocouple Placement",
-              "level": 2
-            },
-            {
-              "name": "Autoclave Operation",
-              "level": 2
-            },
-            {
-              "name": "Cure Cycle Monitoring",
-              "level": 2
-            },
-            {
-              "name": "Out-of-Autoclave Curing",
-              "level": 2
-            },
-            {
-              "name": "Cure Cycle Programming",
-              "level": 3
-            },
-            {
-              "name": "Cure Exotherm Control",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "composite-bonding",
-          "name": "Composite bonding",
-          "what": "Joining composite and metal details with adhesive: surface preparation, film and paste adhesives, secondary bonds and co-cure.",
-          "skills": [
-            {
-              "name": "Adhesive Surface Preparation",
-              "level": 2
-            },
-            {
-              "name": "Film Adhesive Application",
-              "level": 2
-            },
-            {
-              "name": "Paste Adhesive Application",
-              "level": 2
-            },
-            {
-              "name": "Secondary Bonding",
-              "level": 2
-            },
-            {
-              "name": "Co-Cure and Co-Bond Processing",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "composite-repair",
-          "name": "Composite repair",
-          "what": "Assessing damage in composite structure and restoring it by bonded or bolted repair.",
-          "skills": [
-            {
-              "name": "Composite Drying Before Repair",
-              "level": 2
-            },
-            {
-              "name": "Bolted Composite Repair",
-              "level": 2
-            },
-            {
-              "name": "Composite Damage Assessment",
-              "level": 3
-            },
-            {
-              "name": "Scarf and Step Repair",
-              "level": 3
             }
           ]
         }
@@ -1927,6 +1953,162 @@
       ]
     },
     {
+      "slug": "automation",
+      "name": "Automation",
+      "what": "Making machines run themselves: instrumentation, PLCs, motion and drives, industrial networks, robots and machine vision.",
+      "groups": [
+        {
+          "slug": "instrumentation",
+          "name": "Instrumentation",
+          "what": "The sensors, transmitters and loops a control system reads and holds: finding them on the diagram, wiring, calibrating and tuning them.",
+          "skills": [
+            {
+              "name": "P&ID Reading",
+              "level": 1
+            },
+            {
+              "name": "Sensor and I/O Wiring",
+              "level": 2
+            },
+            {
+              "name": "Instrumentation Calibration",
+              "level": 2
+            },
+            {
+              "name": "PID Loop Tuning",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "plc-programming",
+          "name": "PLC programming",
+          "what": "Programming and troubleshooting the controllers that run a machine, and the operator screens that go with them.",
+          "skills": [
+            {
+              "name": "PLC Programming",
+              "level": 2
+            },
+            {
+              "name": "PLC Troubleshooting",
+              "level": 2
+            },
+            {
+              "name": "HMI Development",
+              "level": 2
+            },
+            {
+              "name": "Structured Text Programming",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "motion-and-drives",
+          "name": "Motion and drives",
+          "what": "Setting up the drives that turn motors and axes, and tuning servo loops.",
+          "skills": [
+            {
+              "name": "Variable Frequency Drive Setup",
+              "level": 2
+            },
+            {
+              "name": "Servo Drive Configuration",
+              "level": 2
+            },
+            {
+              "name": "Servo Tuning",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "industrial-networks",
+          "name": "Networks and SCADA",
+          "what": "The networks that tie controllers, drives and plant software together, and the system that gathers and shows their data.",
+          "skills": [
+            {
+              "name": "Industrial Network Troubleshooting",
+              "level": 3
+            },
+            {
+              "name": "OPC UA Integration",
+              "level": 3
+            },
+            {
+              "name": "SCADA Development",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "robot-programming",
+          "name": "Industrial robots",
+          "what": "Running, programming and maintaining industrial robots: the teach pendant, end-of-arm tooling, programs, mastering and offline simulation.",
+          "skills": [
+            {
+              "name": "Robot Teach Pendant Operation",
+              "level": 2
+            },
+            {
+              "name": "End-of-Arm Tooling Setup",
+              "level": 2
+            },
+            {
+              "name": "Robot Programming",
+              "level": 2
+            },
+            {
+              "name": "Robot Mastering and Maintenance",
+              "level": 2
+            },
+            {
+              "name": "Offline Robot Programming and Simulation",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "robot-cell-engineering",
+          "name": "Cell design and machine safety",
+          "what": "Designing a robot cell and the controls that protect people: tooling, layout, safeguarding and safety circuits.",
+          "skills": [
+            {
+              "name": "End-of-Arm Tooling Design",
+              "level": 3
+            },
+            {
+              "name": "Robot Cell Design",
+              "level": 3
+            },
+            {
+              "name": "Collaborative Robot Safeguarding",
+              "level": 3
+            },
+            {
+              "name": "Machine Safety Circuit Design",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "machine-vision",
+          "name": "Machine vision",
+          "what": "Making a camera system see a part reliably and programming it to find, measure and inspect.",
+          "skills": [
+            {
+              "name": "Machine Vision Setup",
+              "level": 3
+            },
+            {
+              "name": "Machine Vision Programming",
+              "level": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "slug": "semiconductor",
       "name": "Semiconductor",
       "what": "Making chips: lithography, deposition, etch, diffusion and implant, wafer metrology and defects, packaging, test and failure analysis.",
@@ -2669,429 +2851,6 @@
       ]
     },
     {
-      "slug": "quality",
-      "name": "Quality",
-      "what": "Measuring and assuring: measurement tools, inspection, coordinate metrology, calibration, statistics, corrective action and quality systems.",
-      "groups": [
-        {
-          "slug": "measurement-tools",
-          "name": "Measurement tools",
-          "what": "The instruments an inspector or machinist measures a part with, from calipers, micrometers, indicators and pin gauges to gauge blocks, surface plate setups, profilometers and comparators.",
-          "skills": [
-            {
-              "name": "Caliper Measurement",
-              "level": 1
-            },
-            {
-              "name": "Micrometer Measurement",
-              "level": 1
-            },
-            {
-              "name": "Dial Indicator Measurement",
-              "level": 1
-            },
-            {
-              "name": "Pin and Plug Gauge Use",
-              "level": 1
-            },
-            {
-              "name": "Height Gauge Measurement",
-              "level": 2
-            },
-            {
-              "name": "Bore Gauge Measurement",
-              "level": 2
-            },
-            {
-              "name": "Thread Measurement",
-              "level": 2
-            },
-            {
-              "name": "Gauge Block Use",
-              "level": 2
-            },
-            {
-              "name": "Surface Plate Inspection",
-              "level": 2
-            },
-            {
-              "name": "Surface Roughness Measurement",
-              "level": 2
-            },
-            {
-              "name": "Optical Comparator Inspection",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "part-inspection",
-          "name": "Part inspection",
-          "what": "Inspecting parts against the drawing: reading its geometric tolerances, checking in process, sampling a lot, the first article and the record.",
-          "skills": [
-            {
-              "name": "Inspection Record Keeping",
-              "level": 1
-            },
-            {
-              "name": "GD&T Interpretation",
-              "level": 2
-            },
-            {
-              "name": "In-Process Inspection",
-              "level": 2
-            },
-            {
-              "name": "Acceptance Sampling",
-              "level": 2
-            },
-            {
-              "name": "First Article Inspection",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "coordinate-metrology",
-          "name": "Coordinate metrology",
-          "what": "Measuring in three dimensions against the model: coordinate measuring machines, scanners and laser trackers.",
-          "skills": [
-            {
-              "name": "CMM Operation",
-              "level": 2
-            },
-            {
-              "name": "Body Dimensional Measurement",
-              "level": 2
-            },
-            {
-              "name": "3D Scanning",
-              "level": 2
-            },
-            {
-              "name": "CMM Programming",
-              "level": 3
-            },
-            {
-              "name": "CMM Part Alignment",
-              "level": 3
-            },
-            {
-              "name": "Scan Data Processing",
-              "level": 3
-            },
-            {
-              "name": "Laser Tracker Metrology",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "calibration",
-          "name": "Calibration",
-          "what": "Checking measuring instruments against traceable standards, from hand gauges and meters to torque, pressure and temperature, and stating how far a measurement can be trusted.",
-          "skills": [
-            {
-              "name": "Torque Wrench Calibration",
-              "level": 2
-            },
-            {
-              "name": "Pressure Gauge Calibration",
-              "level": 2
-            },
-            {
-              "name": "Temperature Calibration",
-              "level": 2
-            },
-            {
-              "name": "Dimensional Gauge Calibration",
-              "level": 2
-            },
-            {
-              "name": "Electrical Instrument Calibration",
-              "level": 2
-            },
-            {
-              "name": "Measurement Uncertainty Analysis",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "statistical-methods",
-          "name": "Statistical methods",
-          "what": "Using data to control and understand a process: control charts, capability, measurement system studies and designed experiments.",
-          "skills": [
-            {
-              "name": "Statistical Process Control",
-              "level": 2
-            },
-            {
-              "name": "Process Capability Analysis",
-              "level": 3
-            },
-            {
-              "name": "Gauge R&R Studies",
-              "level": 3
-            },
-            {
-              "name": "Design of Experiments",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "corrective-action",
-          "name": "Corrective action",
-          "what": "From the nonconforming part to the cause removed: reporting, disposition, root cause, 8D and corrective action.",
-          "skills": [
-            {
-              "name": "Nonconformance Reporting",
-              "level": 2
-            },
-            {
-              "name": "Root Cause Analysis",
-              "level": 3
-            },
-            {
-              "name": "Material Review Board Disposition",
-              "level": 3
-            },
-            {
-              "name": "8D Problem Solving",
-              "level": 3
-            },
-            {
-              "name": "Corrective and Preventive Action",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "quality-planning",
-          "name": "Quality planning and audit",
-          "what": "Planning quality into a process before it runs, and auditing the system that holds it: failure mode analysis, the control plan, the approval package and the quality system audit.",
-          "skills": [
-            {
-              "name": "PPAP Submission",
-              "level": 2
-            },
-            {
-              "name": "Control Plan Development",
-              "level": 2
-            },
-            {
-              "name": "Process FMEA",
-              "level": 3
-            },
-            {
-              "name": "Quality System Auditing",
-              "level": 3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "ndt",
-      "name": "Nondestructive testing",
-      "what": "Finding flaws without harming the part: visual, penetrant, magnetic particle, ultrasonic, radiographic and eddy current methods, and the inspection of composites.",
-      "groups": [
-        {
-          "slug": "visual-methods",
-          "name": "Visual methods",
-          "what": "Examining a surface by eye, directly or through a borescope.",
-          "skills": [
-            {
-              "name": "Visual Testing",
-              "level": 1
-            },
-            {
-              "name": "Borescope Inspection",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "penetrant-methods",
-          "name": "Penetrant methods",
-          "what": "Finding surface-breaking flaws with liquid penetrant: visible and fluorescent inspection and the checks that keep a line valid.",
-          "skills": [
-            {
-              "name": "Liquid Penetrant Testing",
-              "level": 2
-            },
-            {
-              "name": "Fluorescent Penetrant Inspection",
-              "level": 2
-            },
-            {
-              "name": "Penetrant System Performance Checks",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "magnetic-particle-methods",
-          "name": "Magnetic particle methods",
-          "what": "Finding surface and near-surface flaws in steel by magnetizing it: yoke and bench inspection, dry and wet fluorescent particles, and proving the field.",
-          "skills": [
-            {
-              "name": "Magnetic Particle Testing",
-              "level": 2
-            },
-            {
-              "name": "Wet Fluorescent Magnetic Particle Inspection",
-              "level": 2
-            },
-            {
-              "name": "MT Field Strength Measurement",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "ultrasonic-methods",
-          "name": "Ultrasonic methods",
-          "what": "Inspecting with sound: thickness, calibration on reference blocks, straight and angle beam, immersion scanning, sizing flaws, phased array and time-of-flight diffraction.",
-          "skills": [
-            {
-              "name": "UT Thickness Measurement",
-              "level": 1
-            },
-            {
-              "name": "UT Calibration with Reference Blocks",
-              "level": 1
-            },
-            {
-              "name": "Ultrasonic Testing",
-              "level": 2
-            },
-            {
-              "name": "Angle-Beam UT",
-              "level": 2
-            },
-            {
-              "name": "Immersion UT",
-              "level": 2
-            },
-            {
-              "name": "UT Flaw Sizing",
-              "level": 3
-            },
-            {
-              "name": "Phased Array UT",
-              "level": 3
-            },
-            {
-              "name": "Time-of-Flight Diffraction",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "radiographic-methods",
-          "name": "Radiographic methods",
-          "what": "Making a radiograph on film or a detector and reading it: exposure and image quality, film processing, digital and real-time systems, interpretation and computed tomography.",
-          "skills": [
-            {
-              "name": "Radiographic Film Processing",
-              "level": 1
-            },
-            {
-              "name": "Radiographic Testing",
-              "level": 2
-            },
-            {
-              "name": "Digital Radiography",
-              "level": 2
-            },
-            {
-              "name": "Real-Time X-Ray Inspection of Castings",
-              "level": 2
-            },
-            {
-              "name": "Radiograph Interpretation",
-              "level": 3
-            },
-            {
-              "name": "Industrial CT Scanning",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "eddy-current-methods",
-          "name": "Eddy current methods",
-          "what": "Finding cracks and measuring conductivity with induced currents: surface inspection, bolt holes, aircraft structure and arrays.",
-          "skills": [
-            {
-              "name": "Eddy Current Conductivity Measurement",
-              "level": 1
-            },
-            {
-              "name": "Eddy Current Testing",
-              "level": 2
-            },
-            {
-              "name": "Bolt Hole Eddy Current Inspection",
-              "level": 2
-            },
-            {
-              "name": "Eddy Current Inspection of Aircraft Structure",
-              "level": 3
-            },
-            {
-              "name": "Eddy Current Array Inspection",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "composite-inspection",
-          "name": "Composite inspection",
-          "what": "Finding disbonds, delaminations, porosity and impact damage in composite and bonded structure.",
-          "skills": [
-            {
-              "name": "Tap Testing",
-              "level": 1
-            },
-            {
-              "name": "Bond Testing",
-              "level": 2
-            },
-            {
-              "name": "UT of Composites",
-              "level": 2
-            },
-            {
-              "name": "Delamination Sizing",
-              "level": 3
-            },
-            {
-              "name": "Laser Shearography",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "ndt-procedure-development",
-          "name": "NDT procedure development",
-          "what": "The Level III work behind an inspection: writing the procedure and designing the reference standard it is calibrated on.",
-          "skills": [
-            {
-              "name": "NDT Procedure Writing",
-              "level": 3
-            },
-            {
-              "name": "NDT Reference Standard Design",
-              "level": 3
-            }
-          ]
-        }
-      ]
-    },
-    {
       "slug": "test",
       "name": "Test",
       "what": "Proving that a product works: electrical, functional, environmental, radio-frequency, vehicle and propulsion testing, and launch site operations.",
@@ -3737,155 +3496,223 @@
       ]
     },
     {
-      "slug": "automation",
-      "name": "Automation",
-      "what": "Making machines run themselves: instrumentation, PLCs, motion and drives, industrial networks, robots and machine vision.",
+      "slug": "quality",
+      "name": "Quality",
+      "what": "Measuring and assuring: measurement tools, inspection, coordinate metrology, calibration, statistics, corrective action and quality systems.",
       "groups": [
         {
-          "slug": "instrumentation",
-          "name": "Instrumentation",
-          "what": "The sensors, transmitters and loops a control system reads and holds: finding them on the diagram, wiring, calibrating and tuning them.",
+          "slug": "measurement-tools",
+          "name": "Measurement tools",
+          "what": "The instruments an inspector or machinist measures a part with, from calipers, micrometers, indicators and pin gauges to gauge blocks, surface plate setups, profilometers and comparators.",
           "skills": [
             {
-              "name": "P&ID Reading",
+              "name": "Caliper Measurement",
               "level": 1
             },
             {
-              "name": "Sensor and I/O Wiring",
+              "name": "Micrometer Measurement",
+              "level": 1
+            },
+            {
+              "name": "Dial Indicator Measurement",
+              "level": 1
+            },
+            {
+              "name": "Pin and Plug Gauge Use",
+              "level": 1
+            },
+            {
+              "name": "Height Gauge Measurement",
               "level": 2
             },
             {
-              "name": "Instrumentation Calibration",
+              "name": "Bore Gauge Measurement",
               "level": 2
             },
             {
-              "name": "PID Loop Tuning",
+              "name": "Thread Measurement",
+              "level": 2
+            },
+            {
+              "name": "Gauge Block Use",
+              "level": 2
+            },
+            {
+              "name": "Surface Plate Inspection",
+              "level": 2
+            },
+            {
+              "name": "Surface Roughness Measurement",
+              "level": 2
+            },
+            {
+              "name": "Optical Comparator Inspection",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "part-inspection",
+          "name": "Part inspection",
+          "what": "Inspecting parts against the drawing: reading its geometric tolerances, checking in process, sampling a lot, the first article and the record.",
+          "skills": [
+            {
+              "name": "Inspection Record Keeping",
+              "level": 1
+            },
+            {
+              "name": "GD&T Interpretation",
+              "level": 2
+            },
+            {
+              "name": "In-Process Inspection",
+              "level": 2
+            },
+            {
+              "name": "Acceptance Sampling",
+              "level": 2
+            },
+            {
+              "name": "First Article Inspection",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "coordinate-metrology",
+          "name": "Coordinate metrology",
+          "what": "Measuring in three dimensions against the model: coordinate measuring machines, scanners and laser trackers.",
+          "skills": [
+            {
+              "name": "CMM Operation",
+              "level": 2
+            },
+            {
+              "name": "Body Dimensional Measurement",
+              "level": 2
+            },
+            {
+              "name": "3D Scanning",
+              "level": 2
+            },
+            {
+              "name": "CMM Programming",
+              "level": 3
+            },
+            {
+              "name": "CMM Part Alignment",
+              "level": 3
+            },
+            {
+              "name": "Scan Data Processing",
+              "level": 3
+            },
+            {
+              "name": "Laser Tracker Metrology",
               "level": 3
             }
           ]
         },
         {
-          "slug": "plc-programming",
-          "name": "PLC programming",
-          "what": "Programming and troubleshooting the controllers that run a machine, and the operator screens that go with them.",
+          "slug": "calibration",
+          "name": "Calibration",
+          "what": "Checking measuring instruments against traceable standards, from hand gauges and meters to torque, pressure and temperature, and stating how far a measurement can be trusted.",
           "skills": [
             {
-              "name": "PLC Programming",
+              "name": "Torque Wrench Calibration",
               "level": 2
             },
             {
-              "name": "PLC Troubleshooting",
+              "name": "Pressure Gauge Calibration",
               "level": 2
             },
             {
-              "name": "HMI Development",
+              "name": "Temperature Calibration",
               "level": 2
             },
             {
-              "name": "Structured Text Programming",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "motion-and-drives",
-          "name": "Motion and drives",
-          "what": "Setting up the drives that turn motors and axes, and tuning servo loops.",
-          "skills": [
-            {
-              "name": "Variable Frequency Drive Setup",
+              "name": "Dimensional Gauge Calibration",
               "level": 2
             },
             {
-              "name": "Servo Drive Configuration",
+              "name": "Electrical Instrument Calibration",
               "level": 2
             },
             {
-              "name": "Servo Tuning",
+              "name": "Measurement Uncertainty Analysis",
               "level": 3
             }
           ]
         },
         {
-          "slug": "industrial-networks",
-          "name": "Networks and SCADA",
-          "what": "The networks that tie controllers, drives and plant software together, and the system that gathers and shows their data.",
+          "slug": "statistical-methods",
+          "name": "Statistical methods",
+          "what": "Using data to control and understand a process: control charts, capability, measurement system studies and designed experiments.",
           "skills": [
             {
-              "name": "Industrial Network Troubleshooting",
+              "name": "Statistical Process Control",
+              "level": 2
+            },
+            {
+              "name": "Process Capability Analysis",
               "level": 3
             },
             {
-              "name": "OPC UA Integration",
+              "name": "Gauge R&R Studies",
               "level": 3
             },
             {
-              "name": "SCADA Development",
+              "name": "Design of Experiments",
               "level": 3
             }
           ]
         },
         {
-          "slug": "robot-programming",
-          "name": "Industrial robots",
-          "what": "Running, programming and maintaining industrial robots: the teach pendant, end-of-arm tooling, programs, mastering and offline simulation.",
+          "slug": "corrective-action",
+          "name": "Corrective action",
+          "what": "From the nonconforming part to the cause removed: reporting, disposition, root cause, 8D and corrective action.",
           "skills": [
             {
-              "name": "Robot Teach Pendant Operation",
+              "name": "Nonconformance Reporting",
               "level": 2
             },
             {
-              "name": "End-of-Arm Tooling Setup",
-              "level": 2
+              "name": "Root Cause Analysis",
+              "level": 3
             },
             {
-              "name": "Robot Programming",
-              "level": 2
+              "name": "Material Review Board Disposition",
+              "level": 3
             },
             {
-              "name": "Robot Mastering and Maintenance",
-              "level": 2
+              "name": "8D Problem Solving",
+              "level": 3
             },
             {
-              "name": "Offline Robot Programming and Simulation",
+              "name": "Corrective and Preventive Action",
               "level": 3
             }
           ]
         },
         {
-          "slug": "robot-cell-engineering",
-          "name": "Cell design and machine safety",
-          "what": "Designing a robot cell and the controls that protect people: tooling, layout, safeguarding and safety circuits.",
+          "slug": "quality-planning",
+          "name": "Quality planning and audit",
+          "what": "Planning quality into a process before it runs, and auditing the system that holds it: failure mode analysis, the control plan, the approval package and the quality system audit.",
           "skills": [
             {
-              "name": "End-of-Arm Tooling Design",
+              "name": "PPAP Submission",
+              "level": 2
+            },
+            {
+              "name": "Control Plan Development",
+              "level": 2
+            },
+            {
+              "name": "Process FMEA",
               "level": 3
             },
             {
-              "name": "Robot Cell Design",
-              "level": 3
-            },
-            {
-              "name": "Collaborative Robot Safeguarding",
-              "level": 3
-            },
-            {
-              "name": "Machine Safety Circuit Design",
-              "level": 3
-            }
-          ]
-        },
-        {
-          "slug": "machine-vision",
-          "name": "Machine vision",
-          "what": "Making a camera system see a part reliably and programming it to find, measure and inspect.",
-          "skills": [
-            {
-              "name": "Machine Vision Setup",
-              "level": 3
-            },
-            {
-              "name": "Machine Vision Programming",
+              "name": "Quality System Auditing",
               "level": 3
             }
           ]
@@ -3893,126 +3720,299 @@
       ]
     },
     {
-      "slug": "engineering",
-      "name": "Engineering",
-      "what": "Designing parts, circuits and systems and the processes that make them: drawings and design data, CAD, design methods, electrical design, manufacturing engineering and systems engineering.",
+      "slug": "ndt",
+      "name": "Nondestructive testing",
+      "what": "Finding flaws without harming the part: visual, penetrant, magnetic particle, ultrasonic, radiographic and eddy current methods, and the inspection of composites.",
       "groups": [
         {
-          "slug": "design-documentation",
-          "name": "CAD and drawings",
-          "what": "The model, the drawing and the controlled data a shop builds from: drafting in two dimensions, modeling in three, assemblies and released revisions.",
+          "slug": "visual-methods",
+          "name": "Visual methods",
+          "what": "Examining a surface by eye, directly or through a borescope.",
           "skills": [
             {
-              "name": "Engineering Drawing Creation",
+              "name": "Visual Testing",
               "level": 1
             },
             {
-              "name": "PDM and PLM Use",
+              "name": "Borescope Inspection",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "penetrant-methods",
+          "name": "Penetrant methods",
+          "what": "Finding surface-breaking flaws with liquid penetrant: visible and fluorescent inspection and the checks that keep a line valid.",
+          "skills": [
+            {
+              "name": "Liquid Penetrant Testing",
+              "level": 2
+            },
+            {
+              "name": "Fluorescent Penetrant Inspection",
+              "level": 2
+            },
+            {
+              "name": "Penetrant System Performance Checks",
+              "level": 2
+            }
+          ]
+        },
+        {
+          "slug": "magnetic-particle-methods",
+          "name": "Magnetic particle methods",
+          "what": "Finding surface and near-surface flaws in steel by magnetizing it: yoke and bench inspection, dry and wet fluorescent particles, and proving the field.",
+          "skills": [
+            {
+              "name": "Magnetic Particle Testing",
+              "level": 2
+            },
+            {
+              "name": "Wet Fluorescent Magnetic Particle Inspection",
+              "level": 2
+            },
+            {
+              "name": "MT Field Strength Measurement",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "ultrasonic-methods",
+          "name": "Ultrasonic methods",
+          "what": "Inspecting with sound: thickness, calibration on reference blocks, straight and angle beam, immersion scanning, sizing flaws, phased array and time-of-flight diffraction.",
+          "skills": [
+            {
+              "name": "UT Thickness Measurement",
               "level": 1
             },
             {
-              "name": "2D CAD Drafting",
+              "name": "UT Calibration with Reference Blocks",
+              "level": 1
+            },
+            {
+              "name": "Ultrasonic Testing",
               "level": 2
             },
             {
-              "name": "3D CAD Modeling",
+              "name": "Angle-Beam UT",
               "level": 2
             },
             {
-              "name": "CAD Assembly Modeling",
-              "level": 2
-            }
-          ]
-        },
-        {
-          "slug": "design-methods",
-          "name": "Design methods",
-          "what": "The analysis behind a design: manufacturability, tolerance stacks, failure modes, additive design, finite element analysis and the fixtures and tools a part is made on.",
-          "skills": [
-            {
-              "name": "Design for Manufacturability",
+              "name": "Immersion UT",
               "level": 2
             },
             {
-              "name": "Tolerance Stack-Up Analysis",
-              "level": 2
-            },
-            {
-              "name": "Design for Additive Manufacturing",
-              "level": 2
-            },
-            {
-              "name": "Design FMEA",
+              "name": "UT Flaw Sizing",
               "level": 3
             },
             {
-              "name": "Finite Element Analysis",
+              "name": "Phased Array UT",
               "level": 3
             },
             {
-              "name": "Fixture and Tooling Design",
+              "name": "Time-of-Flight Diffraction",
               "level": 3
             }
           ]
         },
         {
-          "slug": "electrical-design",
-          "name": "Electrical design",
-          "what": "Designing circuits and the electrical side of machines: schematics, board layout and controls drawings.",
+          "slug": "radiographic-methods",
+          "name": "Radiographic methods",
+          "what": "Making a radiograph on film or a detector and reading it: exposure and image quality, film processing, digital and real-time systems, interpretation and computed tomography.",
           "skills": [
             {
-              "name": "Circuit Design and Schematic Capture",
+              "name": "Radiographic Film Processing",
+              "level": 1
+            },
+            {
+              "name": "Radiographic Testing",
               "level": 2
             },
             {
-              "name": "PCB Layout",
+              "name": "Digital Radiography",
+              "level": 2
+            },
+            {
+              "name": "Real-Time X-Ray Inspection of Castings",
+              "level": 2
+            },
+            {
+              "name": "Radiograph Interpretation",
               "level": 3
             },
             {
-              "name": "Electrical Controls Design",
+              "name": "Industrial CT Scanning",
               "level": 3
             }
           ]
         },
         {
-          "slug": "manufacturing-engineering",
-          "name": "Manufacturing engineering",
-          "what": "Designing how the work is done: instructions, time standards, balanced lines, error-proof stations and the data that shows what is happening.",
+          "slug": "eddy-current-methods",
+          "name": "Eddy current methods",
+          "what": "Finding cracks and measuring conductivity with induced currents: surface inspection, bolt holes, aircraft structure and arrays.",
           "skills": [
             {
-              "name": "Work Instruction Writing",
+              "name": "Eddy Current Conductivity Measurement",
+              "level": 1
+            },
+            {
+              "name": "Eddy Current Testing",
               "level": 2
             },
             {
-              "name": "Time Study",
+              "name": "Bolt Hole Eddy Current Inspection",
               "level": 2
             },
             {
-              "name": "Line Balancing",
+              "name": "Eddy Current Inspection of Aircraft Structure",
+              "level": 3
+            },
+            {
+              "name": "Eddy Current Array Inspection",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "composite-inspection",
+          "name": "Composite inspection",
+          "what": "Finding disbonds, delaminations, porosity and impact damage in composite and bonded structure.",
+          "skills": [
+            {
+              "name": "Tap Testing",
+              "level": 1
+            },
+            {
+              "name": "Bond Testing",
               "level": 2
             },
             {
-              "name": "Error Proofing",
+              "name": "UT of Composites",
               "level": 2
             },
             {
-              "name": "Data Analysis and Scripting",
+              "name": "Delamination Sizing",
+              "level": 3
+            },
+            {
+              "name": "Laser Shearography",
+              "level": 3
+            }
+          ]
+        },
+        {
+          "slug": "ndt-procedure-development",
+          "name": "NDT procedure development",
+          "what": "The Level III work behind an inspection: writing the procedure and designing the reference standard it is calibrated on.",
+          "skills": [
+            {
+              "name": "NDT Procedure Writing",
+              "level": 3
+            },
+            {
+              "name": "NDT Reference Standard Design",
+              "level": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "safety",
+      "name": "Safety",
+      "what": "Working without getting hurt: the habits, protective equipment and hazard controls every job on a floor starts from.",
+      "groups": [
+        {
+          "slug": "workplace-safety",
+          "name": "Workplace safety",
+          "what": "The habits and protective equipment every person on a floor needs, and the training for work at height and in confined spaces.",
+          "skills": [
+            {
+              "name": "Shop Safety Practices",
+              "level": 1
+            },
+            {
+              "name": "PPE Selection",
+              "level": 1
+            },
+            {
+              "name": "Respiratory Protection",
+              "level": 1
+            },
+            {
+              "name": "Fall Protection",
+              "level": 2
+            },
+            {
+              "name": "Confined Space Entry",
               "level": 2
             }
           ]
         },
         {
-          "slug": "systems-engineering",
-          "name": "Systems engineering",
-          "what": "Stating what a system must do and planning how it will be proven.",
+          "slug": "hazardous-energy",
+          "name": "Hazardous energy",
+          "what": "Staying clear of the energy that injures: electricity, stored pressure, moving machines and robots, laser light and radiation.",
           "skills": [
             {
-              "name": "Requirements Management",
+              "name": "Lockout Tagout",
+              "level": 1
+            },
+            {
+              "name": "Electrical Safety",
+              "level": 1
+            },
+            {
+              "name": "High Voltage Safety",
+              "level": 1
+            },
+            {
+              "name": "Hydraulic Safety",
+              "level": 1
+            },
+            {
+              "name": "Robot Cell Safety",
+              "level": 1
+            },
+            {
+              "name": "Laser Safety",
+              "level": 1
+            },
+            {
+              "name": "Radiation Safety",
+              "level": 1
+            }
+          ]
+        },
+        {
+          "slug": "hazardous-materials",
+          "name": "Hazardous materials",
+          "what": "Handling chemicals, dusts, process gases and explosives so nobody is exposed and nothing spills, burns or goes off.",
+          "skills": [
+            {
+              "name": "Safety Data Sheet Reading",
+              "level": 1
+            },
+            {
+              "name": "Chemical Safety",
+              "level": 1
+            },
+            {
+              "name": "Composite Material Safety",
+              "level": 1
+            },
+            {
+              "name": "Hazardous Materials Handling",
               "level": 2
             },
             {
-              "name": "Verification Planning",
-              "level": 3
+              "name": "Specialty Gas Handling",
+              "level": 2
+            },
+            {
+              "name": "Ordnance Handling",
+              "level": 2
             }
           ]
         }

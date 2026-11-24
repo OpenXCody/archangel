@@ -200,54 +200,6 @@ export function goalNextSkills(goal: MyGoal): NextSkill[] {
   return Array.isArray(next) ? (next as NextSkill[]) : [];
 }
 
-
-// ---------------------------------------------------------------------------
-// Starting with what a person has done
-// ---------------------------------------------------------------------------
-
-/**
- * What marking a military career as done changed: the skills it put on the
- * person's list (`added`) and the ones it raised from learning (`raised`), by
- * id. A skill already held is in neither, and Undo takes back only these.
- */
-export interface DoneCareer {
-  occupationId: string;
-  title: string;
-  added: string[];
-  raised: string[];
-  /** The moment the write stamped on the rows it changed: Undo touches only those. Null when it changed none. */
-  at: string | null;
-  /** How many skills the career's path has. */
-  total: number;
-}
-
-/** What a person's skills changing refreshes, with the suggestions: a path marked at once is a new starting point. */
-function pathMarked(queryClient: QueryClient): Promise<void> {
-  return Promise.all([skillsChanged(queryClient), invalidate(queryClient, accountKeys.suggestedSkills)]).then(() => undefined);
-}
-
-/**
- * "I have done this": every skill of a military career's path marked held in
- * one write, and the way back. Nothing is kept about which career it was. The
- * caller holds the answer (`done`) for as long as it offers Undo.
- */
-export function useCareerDone() {
-  const queryClient = useQueryClient();
-  const mark = useMutation({
-    mutationFn: (occupationId: string) => request<DoneCareer>(`/me/careers/${occupationId}/held`, { method: 'POST' }),
-    onSuccess: () => pathMarked(queryClient),
-  });
-  const undo = useMutation({
-    mutationFn: (done: DoneCareer) =>
-      request<{ removed: number; lowered: number }>(`/me/careers/${done.occupationId}/held/undo`, {
-        method: 'POST',
-        body: { at: done.at, added: done.added, raised: done.raised },
-      }),
-    onSuccess: () => pathMarked(queryClient),
-  });
-  return { mark, undo };
-}
-
 // ---------------------------------------------------------------------------
 // Suggested skills
 // ---------------------------------------------------------------------------

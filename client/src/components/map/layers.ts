@@ -51,7 +51,6 @@ export const LAYER = {
   areaGlow: 'area-glow',
   areaOutline: 'area-outline',
   density: 'factory-density',
-  hiring: 'factory-points-hiring',
   pins: 'factory-points',
   activePins: 'factory-active',
 } as const;
@@ -77,7 +76,7 @@ interface MapColors {
   /** --text-1 and --text-2: factories, place names, the wash on a state. */
   ink: string;
   inkQuiet: string;
-  /** --accent: the geofence, what is selected, a factory that is hiring. */
+  /** --accent: the geofence and what is selected. */
   accent: string;
 }
 
@@ -372,19 +371,24 @@ const RECEDED_OPACITY_STOPS: Array<[zoom: number, opacity: number]> = [
 /**
  * Pin radius: a point when far, a pickable dot when close, and a little
  * larger for the employers a visitor is likelier to know. The light map's
- * dots are a fifth smaller. `extra` grows every stop by the same amount, for
- * rings that sit around a pin.
+ * dots are a fifth smaller. A factory with open jobs is the same dot, a
+ * little larger (`HIRING_SCALE`).
  *
  * With `focus` (a test on the feature), pins that pass are drawn exactly as
  * they always are and the rest at the smallest size: the map's subject at
  * full strength, everything else stepped back.
  */
-function pinRadius(extra = 0, focus?: ExpressionSpecification): ExpressionSpecification {
+function pinRadius(focus?: ExpressionSpecification): ExpressionSpecification {
   const stops: Array<number | ExpressionSpecification> = [];
   const floor = LOOKS.pinFloor / (window.devicePixelRatio || 1);
-  const size = (radius: number) => Math.max(radius * LOOKS.pinScale, floor) + extra;
+  const size = (radius: number) => Math.max(radius * LOOKS.pinScale, floor);
   for (const [zoom, featured, established, other] of RADIUS_STOPS) {
-    const byTheirTier = byTier(size(featured), size(established), size(other));
+    const byTheirTier: ExpressionSpecification = [
+      'case',
+      IS_HIRING,
+      byTier(size(featured) * HIRING_SCALE, size(established) * HIRING_SCALE, size(other) * HIRING_SCALE),
+      byTier(size(featured), size(established), size(other)),
+    ];
     stops.push(zoom, focus ? ['case', focus, byTheirTier, size(other)] : byTheirTier);
   }
   return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
@@ -400,17 +404,21 @@ function subjectRadius(): ExpressionSpecification {
  * Pin opacity. On the dark map pins fade in with zoom, the better-known
  * employers first; on the light map every dot is the same ink at one opacity.
  * A pin that has stepped back behind the map's subject is fainter on both.
+ * A factory with open jobs is stronger: on the dark map as bright as a
+ * featured employer's, on the light map the ink at full strength.
  */
 function pinOpacity(focus?: ExpressionSpecification): ExpressionSpecification | number {
   const flat = LOOKS.pinOpacity;
-  if (flat !== null && !focus) return flat;
-  const stops: Array<number | ExpressionSpecification> = [];
-  if (flat !== null && focus) {
-    for (const [zoom, receded] of RECEDED_OPACITY_STOPS) stops.push(zoom, ['case', focus, flat, receded]);
+  if (flat !== null) {
+    const inFull: ExpressionSpecification = ['case', IS_HIRING, 1, flat];
+    if (!focus) return inFull;
+    const stops: Array<number | ExpressionSpecification> = [];
+    for (const [zoom, receded] of RECEDED_OPACITY_STOPS) stops.push(zoom, ['case', focus, inFull, receded]);
     return ['interpolate', ['linear'], ['zoom'], ...stops] as ExpressionSpecification;
   }
+  const stops: Array<number | ExpressionSpecification> = [];
   OPACITY_STOPS.forEach(([zoom, featured, established, other]) => {
-    const byTheirTier = byTier(featured, established, other);
+    const byTheirTier: ExpressionSpecification = ['case', IS_HIRING, featured, byTier(featured, established, other)];
     stops.push(zoom, focus ? ['case', focus, byTheirTier, recededOpacityAt(zoom)] : byTheirTier);
   });
   if (focus) {
@@ -441,12 +449,12 @@ function pinEdgeWidth(subject: boolean): ExpressionSpecification | number {
 }
 
 /**
- * The ring that says a factory is hiring. On the dark map it is a disc under
- * the pin, whose dark edge parts the two; on the light map, where a dot has
- * no edge, it is a line around it with the land showing between.
+ * A factory with open jobs is told apart quietly: the same dot as the others,
+ * this much larger, and stronger in its own ink (brighter on the dark map,
+ * darker on the light one: see `pinOpacity` and the pins' colour). No outline
+ * and no second colour; that it is hiring is said by the panel it opens.
  */
-const HIRING_GAP_PX = 2.5;
-const HIRING_LINE_PX = 1.5;
+const HIRING_SCALE = 1.3;
 const DENSITY_WEIGHT: ExpressionSpecification = byTier(1.4, 1.1, 1);
 
 /**
@@ -496,7 +504,6 @@ export function setPinView(map: MapLibreMap, view: PinView): void {
   }
   const only: FilterSpecification | null = tests.length > 0 ? ['all', ...tests] : null;
   map.setFilter(LAYER.pins, only);
-  map.setFilter(LAYER.hiring, only ? ['all', IS_HIRING, ...tests] : IS_HIRING);
   if (map.getLayer(LAYER.density)) map.setFilter(LAYER.density, only);
 
   // How they are drawn.
@@ -514,14 +521,11 @@ export function setPinView(map: MapLibreMap, view: PinView): void {
   // they always are and keep the glow, now weighted to them alone, while
   // every other pin steps back.
   const stepsBack: ExpressionSpecification | number = focus ? ['case', focus, 1, 0.25] : 1;
-  map.setPaintProperty(LAYER.pins, 'circle-radius', company ? subjectRadius() : pinRadius(0, focus));
+  map.setPaintProperty(LAYER.pins, 'circle-radius', company ? subjectRadius() : pinRadius(focus));
   map.setPaintProperty(LAYER.pins, 'circle-opacity', company ? (LOOKS.pinOpacity ?? 1) : pinOpacity(focus));
   map.setPaintProperty(LAYER.pins, 'circle-stroke-width', pinEdgeWidth(company));
   // A receded pin's edge recedes with it, or it would read as a ring.
   map.setPaintProperty(LAYER.pins, 'circle-stroke-opacity', stepsBack);
-  map.setPaintProperty(LAYER.hiring, 'circle-radius', pinRadius(HIRING_GAP_PX, focus));
-  map.setPaintProperty(LAYER.hiring, 'circle-opacity', LOOKS.pinEdge ? stepsBack : 0);
-  map.setPaintProperty(LAYER.hiring, 'circle-stroke-opacity', stepsBack);
   if (map.getLayer(LAYER.density)) {
     map.setLayoutProperty(LAYER.density, 'visibility', company ? 'none' : 'visible');
     map.setPaintProperty(LAYER.density, 'heatmap-weight', focus ? ['case', focus, DENSITY_WEIGHT, 0] : DENSITY_WEIGHT);
@@ -677,35 +681,13 @@ export function addAppLayers(map: MapLibreMap, slots: BasemapSlots = {}): void {
     }, beforeId);
   }
 
-  // Hiring: a ring in the accent colour, under the pins (see HIRING_GAP_PX).
-  map.addLayer({
-    id: LAYER.hiring,
-    type: 'circle',
-    source: SOURCE.factories,
-    filter: IS_HIRING,
-    minzoom: PIN_INTERACTIVE_MIN_ZOOM,
-    paint: LOOKS.pinEdge
-      ? {
-          'circle-color': color.accent,
-          'circle-radius': pinRadius(HIRING_GAP_PX),
-          'circle-stroke-color': color.land,
-          'circle-stroke-width': 1,
-        }
-      : {
-          'circle-color': color.accent,
-          'circle-opacity': 0,
-          'circle-radius': pinRadius(HIRING_GAP_PX),
-          'circle-stroke-color': color.accent,
-          'circle-stroke-width': HIRING_LINE_PX,
-        },
-  }, beforeId);
-
   // Pins. Tier sets the emphasis: featured employers are the largest,
   // established companies next, everyone else smaller. On the dark map the
   // lower tiers are dimmer too and, closer in, a thin dark edge keeps
   // neighbours apart; on the light map every dot is the same ink, and where
-  // two overlap the darker overlap parts them. The sort key draws the higher
-  // tiers on top.
+  // two overlap the darker overlap parts them. A factory with open jobs is
+  // the same dot, a little larger and stronger (`HIRING_SCALE`), never ringed.
+  // The sort key draws the higher tiers on top.
   map.addLayer({
     id: LAYER.pins,
     type: 'circle',
@@ -714,7 +696,7 @@ export function addAppLayers(map: MapLibreMap, slots: BasemapSlots = {}): void {
       'circle-sort-key': ['+', ['*', TIER, 2], ['case', IS_HIRING, 1, 0]],
     },
     paint: {
-      'circle-color': LOOKS.pinTiersByTone ? byTier(color.ink, color.ink, color.inkQuiet) : color.ink,
+      'circle-color': LOOKS.pinTiersByTone ? ['case', IS_HIRING, color.ink, byTier(color.ink, color.ink, color.inkQuiet)] : color.ink,
       'circle-radius': pinRadius(),
       'circle-opacity': pinOpacity(),
       'circle-stroke-color': color.land,

@@ -6,7 +6,7 @@ import { industryByName, industryLabel, industryPath } from '@shared/industry';
 import { versionPath } from '@shared/versions';
 import { versionLine } from '../../lib/versions';
 import CompanyLogo from '../CompanyLogo';
-import { CompanyFamily, CompanyStanding, PlantFacts, peopleCount } from './RecordFacts';
+import { CompanyFamily, CompanyStanding, PlantFacts, ownCareerLine, peopleCount } from './RecordFacts';
 import { useMapStore } from '../../stores/mapStore';
 import { cityState, stateName } from '../../lib/places';
 import {
@@ -18,8 +18,8 @@ import {
   ShowAll,
   detailActionClass,
 } from '../layout/Page';
-import { plural } from '@/lib/utils';
-import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN, TypicalCareers } from './parts';
+import { cn, plural } from '@/lib/utils';
+import { type Head, streetAddress, factLinkClass, Footprint, OpenJobsSection, CAREERS_SHOWN } from './parts';
 
 /** How many factories are listed before "Show all". */
 const PLANTS_SHOWN = 12;
@@ -110,22 +110,20 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
     navigate('/map');
   };
 
-  // The careers the company has its own version of come first, each opening that version; then the
-  // careers on record at its factories that it has said nothing about.
-  const versions = data.versions ?? [];
-  const versioned = new Set(versions.map((version) => version.occupation.id));
-  const recorded = (data.occupations ?? []).filter((career) => !versioned.has(career.id));
-  const careers = [
-    ...versions.map((version) => ({ id: version.occupation.id, title: version.occupation.title, to: versionPath(version.occupation.id, data), line: versionLine(version), version: true })),
-    ...recorded.map((career) => ({
+  // Its own careers, as the server orders them: those of its open jobs (with how many are open), then the
+  // ones it has its own version of, then those recorded at its factories. A career it has a version of opens
+  // that version. The careers typical of its industry are not the company's and are not listed here.
+  const versions = new Map((data.versions ?? []).map((version) => [version.occupation.id, version]));
+  const careers = (data.careers ?? []).map((career) => {
+    const version = versions.get(career.id);
+    return {
       id: career.id,
       title: career.title,
-      to: `/occupations/${career.id}`,
-      line: [only ? null : plural(career.factoryCount, 'factory', 'factories'), career.headcount ? peopleCount(career.headcount) : null].filter(Boolean).join(' · ') || null,
-      version: false,
-    })),
-  ];
-  const typical = careers.length === 0 ? (data.typicalCareers ?? []) : [];
+      to: version ? versionPath(career.id, data) : `/occupations/${career.id}`,
+      line: [ownCareerLine(career), version ? versionLine(version) : null].filter(Boolean).join(' · ') || null,
+      version: Boolean(version),
+    };
+  });
   // A military service: its careers are the page. Each keeps its full title, with its code and home in the grey line.
   const service = data.service ?? null;
   const serviceCareers = data.serviceCareers ?? [];
@@ -217,53 +215,61 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         </DetailSection>
       )}
 
-      {/* Every factory: where it is and what it makes */}
-      {plants.length > 1 && (
-        <DetailSection id="factories" title="Factories">
-          <RecordList>
-            {shownPlants.map((plant) => (
-              <RecordRow
-                key={plant.id}
-                to={`/factories/${plant.id}`}
-                title={formatFactoryName(plant.name)}
-                subtitle={
-                  [
-                    cityState(plant.city, plant.state),
-                    plant.status === 'under construction' ? 'Under construction' : null,
-                    plant.workforceSize ? peopleCount(plant.workforceSize) : null,
-                    plant.products || (plant.industry ? industryLabel(plant.industry) : plant.specialization),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ') || null
-                }
-              />
-            ))}
-          </RecordList>
-          {sortedPlants.length > PLANTS_SHOWN && (
-            <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
-          )}
-        </DetailSection>
-      )}
-
-      {/* Its careers: the ones it has its own version of, then those recorded across its factories */}
-      {careers.length > 0 && (
-        <DetailSection id="occupations" title="Careers">
-          <RecordList>
-            {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
-              <RecordRow
-                key={career.id}
-                to={career.to}
-                title={career.title}
-                subtitle={career.line}
-                data-company-version={career.version ? career.id : undefined}
-              />
-            ))}
-          </RecordList>
-          {careers.length > CAREERS_SHOWN && (
-            <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
-          )}
-        </DetailSection>
-      )}
+      {/* Under the heading and the map, the page's two lists stand side by side on a desktop: its factories on
+          the left and its own careers on the right. One column on a phone. With no careers of its own there is
+          no Careers section, and the factories take the width. */}
+      <div className={cn('grid grid-cols-1 gap-x-12', plants.length > 1 && careers.length > 0 && 'lg:grid-cols-2')} data-company-lists>
+        {/* Every factory: where it is and what it makes */}
+        {plants.length > 1 && (
+          <DetailSection id="factories" title="Factories" className="min-w-0">
+            <RecordList>
+              {shownPlants.map((plant) => (
+                <RecordRow
+                  key={plant.id}
+                  to={`/factories/${plant.id}`}
+                  title={formatFactoryName(plant.name)}
+                  subtitle={
+                    [
+                      cityState(plant.city, plant.state),
+                      plant.status === 'under construction' ? 'Under construction' : null,
+                      plant.workforceSize ? peopleCount(plant.workforceSize) : null,
+                      plant.products || (plant.industry ? industryLabel(plant.industry) : plant.specialization),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || null
+                  }
+                />
+              ))}
+            </RecordList>
+            {sortedPlants.length > PLANTS_SHOWN && (
+              <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
+            )}
+          </DetailSection>
+        )}
+        {careers.length > 0 && (
+          <div className="min-w-0">
+            {/* Its careers: the ones it has its own version of, then those recorded across its factories */}
+            {careers.length > 0 && (
+              <DetailSection id="occupations" title="Careers">
+                <RecordList>
+                  {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
+                    <RecordRow
+                      key={career.id}
+                      to={career.to}
+                      title={career.title}
+                      subtitle={career.line}
+                      data-company-version={career.version ? career.id : undefined}
+                    />
+                  ))}
+                </RecordList>
+                {careers.length > CAREERS_SHOWN && (
+                  <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
+                )}
+              </DetailSection>
+            )}
+          </div>
+        )}
+      </div>
       {/* A service's careers: the ratings, MOS or specialties that are its own. One that has none yet says so. */}
       {service && (
         <DetailSection id="occupations" title="Careers">
@@ -291,8 +297,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
           )}
         </DetailSection>
       )}
-      {/* With none recorded, the one factory's industry says what kind of work there is. */}
-      {typical.length > 0 && <TypicalCareers careers={typical} />}
 
     </>
   );
