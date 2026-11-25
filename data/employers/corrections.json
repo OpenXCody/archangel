@@ -1055,6 +1055,22 @@
           "sameAs": "SANDEN INTERNATIONAL U.S.A., INC"
         }
       }
+    },
+    "WL Plastics": {
+      "why": "WL Plastics Lubbock (Ivory Ave), 10207 N Ivory Ave (texas-hubs-2.json), is OSHA's 'Lubbock 2', an establishment of its own 260 m east of the curated row WL Plastics Lubbock (Fir Ave), 10209 North Fir Avenue ('Lubbock 1', texas-hubs.json). The two names share the word 'Ave', so without this the loader would take the Fir Ave row for it.",
+      "plants": {
+        "WL Plastics Lubbock (Ivory Ave)": {
+          "isNew": true
+        }
+      }
+    },
+    "WW Tank & Vessel": {
+      "why": "The row Z-W INC (company Z-w), 89 m from WW Tank & Vessel Pampa (texas-hubs-2.json), is EPA registry facility 110042002926 at 2930 State Hwy 152 W, NAICS 332420, which the registry files as both Z-W INC and CRALL PRODUCTS; WW Tank's own site says its steel tank division at 2930 Hwy 152 West was formerly Crall Products. Without this the rehearsal inserted the plant beside it.",
+      "plants": {
+        "WW Tank & Vessel Pampa": {
+          "sameAs": "Z-W INC"
+        }
+      }
     }
   }
 }
