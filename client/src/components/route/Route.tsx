@@ -74,9 +74,11 @@ export function Route({ skills, marks = null, comesFrom = [], leadsTo = [], rend
   // A person's marks are read once the list has arrived: until then nothing is next and nothing opens.
   const ready = !marks || !marks.pending;
   const next = useMemo(
-    // In the route's own order, whichever way its stops are cut.
-    () => (marks && ready ? nextOf(skills, (id) => marks.statusOf(id) === 'held') : []),
-    [marks, ready, skills]
+    // In the route's own order, whichever way its stops are cut. A career's page (by group) names no next
+    // skill: the owner found NEXT and THEN, the column beside the route and the groups opened for it confusing,
+    // so there every group arrives closed and only the marks say what is held.
+    () => (marks && ready && !grouped ? nextOf(skills, (id) => marks.statusOf(id) === 'held') : []),
+    [marks, ready, skills, grouped]
   );
   const nextIds = useMemo(() => next.map((skill) => skill.id), [next]);
 
