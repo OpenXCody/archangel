@@ -1,0 +1,1299 @@
+{
+  "brief": "texas-hubs-2",
+  "retrieved": "2026-11-25",
+  "source": {
+    "name": "Texas factories that waited in texas-hubs.json for a location (its unplaced list of 36), now placed",
+    "publisher": "Archangel research, placements of 2026-11-25",
+    "url": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+    "licence": "Facts read from public pages and records: OSHA Form 300A establishment files for 2024 and 2025 (the copies texas-hubs.json read; a headcount only where the hours come to 1,000 to 3,000 a person), the EPA registry, the state's building registrations (TDLR) and Comptroller records, company, economic development and press pages. Points from whatever places each factory best: ArcGIS World Geocoding Service address points, Williamson County's and the cities of Austin and Houston's address points, the Harris County Appraisal District's parcels, and Esri World Imagery read by hand; each plant's coordinatesFrom says which. Every plant cites its sources; every headcount its own."
+  },
+  "companies": [
+    {
+      "name": "EVS Texas",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "evsmetal.com",
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://evsmetal.com/texas-metal-fabrication/"
+      ],
+      "plants": [
+        {
+          "name": "EVS Texas Pflugerville",
+          "city": "Pflugerville",
+          "state": "TX",
+          "address": "15508 Impact Way, Suite 100",
+          "zip": "78660",
+          "latitude": 30.4164,
+          "longitude": -97.59409,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332322",
+          "products": "Precision sheet metal parts and CNC-machined components (laser cutting, punching, forming, welding, powder coating)",
+          "employees": 100,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'EVS TEXAS INC' (EVS TX, INC), 400 S. Heatherwild Blvd, Pflugerville: 100 annual average employees (188,315 hours, about 1,880 a person). The filing gives the operation's earlier address; its Texas production has moved to 15508 Impact Way.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://evsmetal.com/texas-metal-fabrication/",
+            "https://evsmetal.com/contact/facilities-contacts/",
+            "https://pfdevelopment.com/news/press-releases/p/item/56082/precision-metal-fabrication-leader-breaks-ground-on-stateoftheart-manufacturing-facility-in-pflugervilles-one-thirty-business-park",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2024021777",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2022023681",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "austin-core",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress (score 100) '15508 Impact Way, Pflugerville, Texas, 78660' (https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer); EPA construction-permit points for the EVS site (110071658098, 110071959567) lie about 110 m and 140 m away",
+          "confidence": "medium",
+          "note": "Company page: 'EVS Metal's Pflugerville, Texas facility is the newest in the EVS network — a 139,000 square foot production center rebuilt from the ground up in 2026', at 15508 Impact Way, Suite 100, running laser cutting, CNC punching, forming, welding, hardware insertion, powder coating and multi-axis machining; ITAR registered. PCDC release (7 Mar 2024): groundbreaking in One Thirty Business Park for a 175,000 sq ft facility; the company, at 400 S. Heatherwilde since 2001, 'will relocate and expand its operations'. TDLR TABS2022023681: EVS Metal Fabrication shell building, south end of Impact Way, 162,284 sq ft (closed, due 30 Jun 2025); TABS2024021777: finish-out of Building One, Suite 100, for a new manufacturing operation."
+        }
+      ]
+    },
+    {
+      "name": "Active Power",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "activepower.com",
+      "industry": null,
+      "description": null,
+      "headquarters": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.activepower.com/wp-content/uploads/2025/01/Active-Power-US-OverviewBrochure-24-Jan-2025.pdf",
+        "https://activepower.com/"
+      ],
+      "plants": [
+        {
+          "name": "Active Power Austin",
+          "city": "Austin",
+          "state": "TX",
+          "address": "2128 W Braker Ln, BK12",
+          "zip": "78758",
+          "latitude": 30.39467,
+          "longitude": -97.71164,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335999",
+          "products": "Flywheel uninterruptible power supply (UPS) systems (CleanSource)",
+          "employees": 97,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the employer reported it to OSHA on Form 300A (establishment \"Active Power Inc.\", 2128 West Braker Lane BK12, Austin; 193,750 hours worked). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.activepower.com/wp-content/uploads/2025/01/Active-Power-US-OverviewBrochure-24-Jan-2025.pdf",
+            "https://activepower.com/",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "austin-core",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress (score 100) '2128 W Braker Ln, Austin, Texas, 78758' (https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer), the same point as the City of Austin's address point (place 504609), 27 m from the centre of the 286,000 sq ft building in the City's 2023 footprints",
+          "confidence": "high",
+          "note": "Company brochure (24 Jan 2025): 'Active Power operates a state-of-the-art manufacturing facility at our headquarters in Austin TX. Our factory is equipped with advanced machinery and technology ... The factory focuses on creating flywheels'; address Active Power Inc., 2128 West Braker Lane, Austin, Texas 78758; 'a member of the Piller Power Systems Group, a subsidiary of Langley Holdings plc'."
+        }
+      ]
+    },
+    {
+      "name": "TC Components (US LBM)",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://echo.epa.gov/detailed-facility-report?fid=110072322357"
+      ],
+      "plants": [
+        {
+          "name": "TC Components Taylor",
+          "city": "Taylor",
+          "state": "TX",
+          "address": "110 Southpark Blvd",
+          "zip": "76574",
+          "latitude": 30.54759,
+          "longitude": -97.40675,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321215",
+          "products": "Engineered wood members (trusses)",
+          "employees": 96,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'TC COMPONENTS AUSTIN' (US LBM Holdings LLC), '101 SOUTHPARK BLVD, TAYLOR 76547', the filing's spelling of 110 Southpark Blvd, 76574: 96 annual average employees (199,825 hours, about 2,082 a person). Contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://echo.epa.gov/detailed-facility-report?fid=110072322357",
+            "https://echo.epa.gov/detailed-facility-report?fid=110071298932",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "austin-core",
+          "coordinatesFrom": "Williamson County's address point for 110 Southpark Blvd, Taylor (https://gis.wilco.org/arcgis/rest/services/public/county_web_address/MapServer/0), the same point as ArcGIS World Geocoding Service's PointAddress '110 Southpark Blvd, Taylor, Texas, 76574'; 60 m from the parcel's 61,800 sq ft building in the county's footprints; EPA registry facility 110072322357 ('TEXAS BUILDING SUPPLY -TAYLOR COMPONENTS', 110 SOUTHPARK BLVD) 70 m away. The OSHA filing's '101 Southpark Blvd' has no address point; 110 is the only address on the street",
+          "confidence": "medium",
+          "note": "EPA registry: 110072322357 'TEXAS BUILDING SUPPLY -TAYLOR COMPONENTS', 110 SOUTHPARK BLVD, TAYLOR 76574, SIC 2439; 110071298932 and 110070602839 'HART COMPONENTS' at the same site. Williamson Central Appraisal District: 110 Southpark Blvd, 27.98 acres, industrial use (owner Alpine JPH LP). OSHA 2025: 'TC COMPONENTS AUSTIN', US LBM Holdings LLC, engineered wood member manufacturing."
+        }
+      ]
+    },
+    {
+      "name": "Big A Ice Company",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "fatice.com",
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://fatice.com/about/",
+        "https://data.texas.gov/resource/9cir-efmm.json?taxpayer_number=32057993704"
+      ],
+      "plants": [
+        {
+          "name": "Big A Ice Austin",
+          "city": "Austin",
+          "state": "TX",
+          "address": "7900 Industry Way, Suite 100",
+          "zip": "78744",
+          "latitude": 30.18409,
+          "longitude": -97.69404,
+          "subsector": "Beverage and Tobacco Product Manufacturing",
+          "naics": "312113",
+          "products": "Craft cocktail ice (spheres and cubes), sold as Fat Ice",
+          "employees": 56,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "Annual average number of employees for 2025 as the employer reported it to OSHA on Form 300A (establishment \"Big A Ice Company, LLC\", 7900 Industry Way, 100, Austin; 101,282 hours worked). The form counts everyone on the site's payroll and can include temporary workers the site supervises.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://fatice.com/about/",
+            "https://fatice.com/",
+            "https://data.texas.gov/resource/9cir-efmm.json?taxpayer_number=32057993704",
+            "https://data.texas.gov/resource/jrea-zgmq.json?taxpayer_number=32057993704",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "austin-core",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress (score 100) '7900 Industry Way, Austin, Texas, 78744' (https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer), the same point as the City of Austin's address point (place 6096146), 16 m from the centre of the 160,600 sq ft multi-tenant building in the City's 2023 footprints; Suite 100 itself was not located",
+          "confidence": "medium",
+          "note": "Comptroller franchise-tax record: BIG A ICE COMPANY, LLC, 7900 INDUSTRY WAY STE 100, AUSTIN 78744 (taxpayer 32057993704, SOS charter 6 Aug 2015, active); its sales-tax outlet is named FAT ICE (1340 Airport Commerce Dr Ste 200, permit of 2016). Fat Ice (fatice.com): craft cocktail ice, spheres and cubes, 'born behind the bar in Austin, Texas' in 2015. OSHA 2025 files the Industry Way site as block ice manufacturing (312113)."
+        }
+      ]
+    },
+    {
+      "name": "Cloeren",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [],
+      "plants": [
+        {
+          "name": "Cloeren Orange",
+          "city": "Orange",
+          "state": "TX",
+          "address": "5625 Old Highway 90",
+          "zip": "77630",
+          "latitude": 30.11188,
+          "longitude": -93.80381,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333514",
+          "products": "Flat extrusion dies and feedblocks",
+          "employees": 281,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Cloeren Incorporated', 5625 Hwy 90, Orange 77630: 281 annual average employees (632,352 hours worked, about 2,250 a person). The employer's own people at the address; contractors are not counted. No 2025 filing was found for this establishment.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://echo.epa.gov/detailed-facility-report?fid=110008159090",
+            "https://www.ptonline.com/articles/cloeren-breaks-ground-on-plant-expansion",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/EABPRJA9803009"
+          ],
+          "hub": "houston",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '5625 Old Highway 90, Orange, Texas, 77630'; the filed '5625 Hwy 90' matched only the US-90 street",
+          "confidence": "high",
+          "note": "OSHA files the site at '5625 Hwy 90'; the EPA registry has it as 'CLOEREN PLANT 1', 5625 Interstate 10 E (110008159090), and a 2008 state registration gives Cloeren Incorporated's address as 5625 Hwy 90, Orange. The address point is on the plant's lot, about 70 m north-west of the middle of its main building. Plastics Technology reports a second Orange site ('Plant 2'); it is not this record."
+        }
+      ]
+    },
+    {
+      "name": "CF Houston",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "CF Houston",
+          "city": "Houston",
+          "state": "TX",
+          "address": "2008 W W Thorne Blvd",
+          "zip": "77073",
+          "latitude": 30.00154,
+          "longitude": -95.39368,
+          "subsector": "Food Manufacturing",
+          "naics": "311991",
+          "products": "Fresh-cut vegetables",
+          "employees": 231,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'CF Houston LLC.', 2008 W. W. Thome BLVD (sic), Houston 77073: 231 annual average employees (497,071 hours worked, about 2,150 a person). The employer's own people at the address; contractors are not counted. Filed for 2024 with 275.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "houston",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '2008 W W Thorne Dr, Houston, Texas, 77073'; the City of Houston's site address point for 2008 W W THORNE BLVD, 77073 (30.00155, -95.39369) agrees within 2 m",
+          "confidence": "high",
+          "note": "The OSHA filing spells the street 'W. W. Thome'; the street is W W Thorne. A directory listing (MapQuest) gives Country Fresh Products, fresh-cut fruit and vegetables, at 2008 WW Thorne Blvd; that CF Houston LLC is that business was not confirmed."
+        }
+      ]
+    },
+    {
+      "name": "Shield AI",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "shield.ai",
+      "industry": null,
+      "description": null,
+      "headquarters": {
+        "city": "San Diego",
+        "state": "CA",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://shield.ai/its-all-systems-go-at-shield-ais-texas-unified-facility/",
+        "https://dallasinnovates.com/shield-ai-flies-taiwan-drone-swarm-without-human-pilots/"
+      ],
+      "plants": [
+        {
+          "name": "Shield AI Frisco",
+          "city": "Frisco",
+          "state": "TX",
+          "address": "16240 Gateway Path, Suite 100",
+          "zip": "75033",
+          "latitude": 33.21234,
+          "longitude": -96.80689,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336411",
+          "products": "V-BAT vertical take-off unmanned aircraft",
+          "employees": 313,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2024: 'Shield AI - Dallas', 16240 Gateway Path, Suite 100, Frisco, annual average employees (812,587 hours worked, about 2,600 a person). The employer's own people at the site; contractors are not counted. No 2025 filing for the site was among the rows read.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://shield.ai/its-all-systems-go-at-shield-ais-texas-unified-facility/",
+            "https://dallasinnovates.com/shield-ai-flies-taiwan-drone-swarm-without-human-pilots/",
+            "https://www.tdlr.texas.gov/TABS/Projects/TABS2025002049",
+            "https://www.tdlr.texas.gov/TABS/Projects/TABS2026005542"
+          ],
+          "hub": "dfw",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates: PointAddress, score 100, '16240 Gateway Path, Frisco, Texas, 75033' (33.212337, -96.806886), on the Star Business Park Building 7B as Esri World Imagery shows it; OpenStreetMap's 'Shield AI' node is in the same building, 110 m east",
+          "confidence": "high",
+          "note": "Dallas Innovates (13 Aug 2026): Shield AI's Frisco factory, the 'Batcave', is 'where the company builds and tests its systems, including the V-BAT drone'; Shield AI (27 Apr 2023) called the 107,000 sq ft Batcave brand-new. TDLR ties Shield AI to 16240 Gateway Path (a test room in Suite 100, 2024; 'Shield AI 2', Star Business Park Building 7B, 2025 to 2026). No source read names the Batcave's address, so no opening year is written."
+        }
+      ]
+    },
+    {
+      "name": "Maverick Power",
+      "alsoKnownAs": [
+        "Maverick Power LLC"
+      ],
+      "parent": null,
+      "domain": null,
+      "industry": "Switchgear",
+      "description": "Makes switchgear and power distribution equipment.",
+      "headquarters": {
+        "city": "McKinney",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://communityimpact.com/dallas-fort-worth/mckinney/business/2024/10/25/maverick-power-relocates-headquarters-to-mckinney-expands-operations"
+      ],
+      "plants": [
+        {
+          "name": "Maverick Power McKinney",
+          "city": "McKinney",
+          "state": "TX",
+          "address": "951 Harry McKillop Blvd, Building 200",
+          "zip": "75069",
+          "latitude": 33.17079,
+          "longitude": -96.60409,
+          "subsector": "Electrical Equipment, Appliance, and Component Manufacturing",
+          "naics": "335313",
+          "products": "Switchgear and power distribution equipment",
+          "employees": 270,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Maverick Power LLC - McKinney', 951 Harry McKillop Boulevard, Bldg 200, annual average employees (520,745 hours worked, about 1,930 a person). The employer's own people at the site; contractors are not counted.",
+          "opened": 2024,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://communityimpact.com/dallas-fort-worth/mckinney/business/2024/10/25/maverick-power-relocates-headquarters-to-mckinney-expands-operations",
+            "https://www.tdlr.texas.gov/TABS/Projects/TABS2024012196"
+          ],
+          "hub": "dfw",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates: PointAddress, score 100, '951 Harry McKillop Blvd, Mckinney, Texas, 75069' (33.170792, -96.604091), on Building 200 of McKinney National Business Park as the park's site plan (JLL leasing flyer) and Esri World Imagery show it",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "Cavco Industries",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "cavco.com",
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [],
+      "plants": [
+        {
+          "name": "Oak Creek Homes Lancaster",
+          "city": "Lancaster",
+          "state": "TX",
+          "address": "800 N Interstate 35E",
+          "zip": "75146",
+          "latitude": 32.59756,
+          "longitude": -96.82024,
+          "subsector": "Wood Product Manufacturing",
+          "naics": "321991",
+          "products": "Manufactured homes",
+          "employees": 255,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Oak Creek Homes, Lancaster', 800 N. I-35 E, annual average employees (510,000 hours worked, 2,000 a person, a round figure). The employer's own people at the site; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.tdlr.texas.gov/TABS/Projects/TABS2019002553",
+            "https://rv-pro.com/news/cavco-industries-completes-acquisition-of-american-homestar/"
+          ],
+          "hub": "dfw",
+          "coordinatesFrom": "Esri World Imagery: the centre of the factory building (its yard full of finished manufactured home sections) 150 m east of the ArcGIS World Geocoding Service PointAddress match for '800 N Interstate 35 E, Lancaster, Texas, 75146' (score 99.8; 32.59761, -96.8218), which itself stands on a restaurant pad by the frontage road",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "TreeHouse Foods",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [],
+      "plants": [
+        {
+          "name": "TreeHouse Foods Northlake",
+          "city": "Northlake",
+          "state": "TX",
+          "address": "13000 Ashmore Ln",
+          "zip": "76262",
+          "latitude": 33.02942,
+          "longitude": -97.26723,
+          "subsector": "Food Manufacturing",
+          "naics": "311920",
+          "products": "Roasted coffee",
+          "employees": 202,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Treehouse Foods Coffee Center- Northlake TX' (filed as Bay Valley Foods), 13000 Ashmore Ln, annual average employees (388,997 hours worked, about 1,930 a person). The employer's own people at the site; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://dallasinnovates.com/northlakes-farmer-brothers-to-sell-direct-shipping-business-for-100m-to-treehouse-foods/"
+          ],
+          "hub": "dfw",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates: PointAddress, score 100, '13000 Ashmore Ln, Northlake, Texas, 76262' (33.029416, -97.267227), on the building OpenStreetMap names 'Treehouse' (13 m away), as Esri World Imagery shows it",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "MAC Trailer",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "mactrailer.com",
+      "industry": null,
+      "description": null,
+      "headquarters": {
+        "city": "Alliance",
+        "state": "OH",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.mactrailer.com/",
+        "https://www.trailer-bodybuilders.com/trailers/media-gallery/21744529/mac-trailer-eyes-market-share-growth-with-new-facilities"
+      ],
+      "plants": [
+        {
+          "name": "MAC Trailer Rhome",
+          "city": "Rhome",
+          "state": "TX",
+          "address": "5940 East Highway 114",
+          "zip": "76078",
+          "latitude": 33.03608,
+          "longitude": -97.43943,
+          "subsector": "Transportation Equipment Manufacturing",
+          "naics": "336212",
+          "products": "Tank trailers",
+          "employees": 130,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'MAC Trailer Texas, Inc.', 5940 East Highway 114, Rhome, annual average employees (274,444 hours worked, about 2,110 a person). The employer's own people at the site; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.trailer-bodybuilders.com/trailers/media-gallery/21744529/mac-trailer-eyes-market-share-growth-with-new-facilities",
+            "https://echo.epa.gov/detailed-facility-report?fid=110071884728"
+          ],
+          "hub": "dfw",
+          "coordinatesFrom": "Esri World Imagery: the centre of the plant building (about 120,000 sq ft, tank trailers in rows on both sides) on the campus between the ArcGIS World Geocoding Service PointAddress matches for '5940 E State Highway 114' (score 97.2; 33.036501, -97.437706; the OSHA filing's address, east entrance) and '5810 E State Highway 114' (33.037015, -97.440797; the EPA registry's MAC TRAILER HASLET FACILITY 110071884728, west entrance)",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "Olé Mexican Foods",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [],
+      "plants": [
+        {
+          "name": "Olé Mexican Foods Dallas",
+          "city": "Dallas",
+          "state": "TX",
+          "address": "4441 Logistics Drive",
+          "zip": "75241",
+          "latitude": 32.62959,
+          "longitude": -96.74728,
+          "subsector": "Food Manufacturing",
+          "naics": "311830",
+          "products": "Tortillas",
+          "employees": 130,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+          "employeesNote": "OSHA Form 300A, 2025: 'Lancaster P-6' (Ole Mexican Foods, Inc), 4441 Logistic Dr., Dallas, annual average employees (262,080 hours worked, about 2,020 a person). The employer's own people at the site; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+            "https://www.bisnow.com/dallas-ft-worth/news/industrial/ole-mexican-foods-expands-dfw-footprint-with-purchase-of-a-more-than-200k-sf-industrial-space-in-south-dallas-111456",
+            "https://www.tdlr.texas.gov/TABS/Projects/TABS2026022132"
+          ],
+          "hub": "dfw",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates: PointAddress, score 100, '4441 Logistics Dr, Dallas, Texas, 75241' (32.629587, -96.747276), on the building as Esri World Imagery shows it",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "Red River Commodities",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "redriv.com",
+      "industry": null,
+      "description": null,
+      "headquarters": {
+        "city": "Fargo",
+        "state": "ND",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.redriv.com/company/facilities/"
+      ],
+      "plants": [
+        {
+          "name": "Red River Commodities Lubbock",
+          "city": "Lubbock",
+          "state": "TX",
+          "address": "212 NE Loop 289",
+          "zip": "79403",
+          "latitude": 33.61557,
+          "longitude": -101.83076,
+          "subsector": "Food Manufacturing",
+          "naics": "311119",
+          "products": "Wild bird and wildlife food",
+          "employees": 61,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Lubbock Wildlife' (Red River Commodities), 212 NE Loop 289, Lubbock: 61 annual average employees (133,165 hours, about 2,180 a person). The 2024 filing (64; 195,078 hours, 3,048 a person) fails the 1,000 to 3,000 test and is not used.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.redriv.com/company/facilities/",
+            "https://echo.epa.gov/detailed-facility-report?fid=110034769702",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress (score 100) '212 NE Loop 289, Lubbock, Texas, 79403' (https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer); EPA registry facility 110034769702 ('RED RIVER COMMODITIES', 212 NE LOOP 289) is 26 m away",
+          "confidence": "high",
+          "note": "Company facilities page: 'Lubbock, Texas – Produces wildlife food' (beside Fargo, Horace and Etten-Leur). OSHA files the site as 'Lubbock Wildlife', bird feed (2024) and other animal food (2025), 311119. EPA registry 110034769702: RED RIVER COMMODITIES, 212 NE LOOP 289, SIC 2048."
+        }
+      ]
+    },
+    {
+      "name": "Fashion Glass & Mirror",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": "Nonmetallic Mineral Products",
+      "description": "Makes and installs shower glass and mirrors for Texas builders.",
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://lockhartedc.com/fashion-glass-and-mirror"
+      ],
+      "plants": [
+        {
+          "name": "Fashion Glass & Mirror Lockhart",
+          "city": "Lockhart",
+          "state": "TX",
+          "address": "130 S Cesar Chavez Pkwy",
+          "zip": "78644",
+          "latitude": 29.88291,
+          "longitude": -97.71141,
+          "subsector": "Nonmetallic Mineral Product Manufacturing",
+          "naics": "327215",
+          "products": "Shower glass and mirrors",
+          "employees": 71,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Fashion Glass & Mirror- Lockhart', 130 S Cesar Chavez Pkwy: 71 annual average employees (144,757 hours worked, about 2,040 a person); 92 in 2024. The employer's own people at the address; contractors are not counted. Lockhart EDC's page (read 2026-11-24, undated) says 70.",
+          "opened": 2014,
+          "status": "operating",
+          "sources": [
+            "https://lockhartedc.com/fashion-glass-and-mirror",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/EABPRJB5801500",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ],
+          "hub": "austin-ring",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '130 S Cesar Chavez Pkwy, Lockhart, Texas, 78644'; on the building in imagery",
+          "confidence": "high",
+          "note": "State registration EABPRJB5801500 (Oct 2014 to Aug 2015): 'New 30,797 s.f. manufacturing building with a 2,455 s.f. showroom and office area'. The company files this establishment with OSHA under NAICS 238150 (glass installation contractors)."
+        }
+      ]
+    },
+    {
+      "name": "SLB",
+      "alsoKnownAs": [
+        "Schlumberger",
+        "Schlumberger Technology Corporation",
+        "Schlumberger Technology Corp",
+        "Schlumberger Technology Corp.",
+        "Schlumberger LLC",
+        "Schlumberger Ltd",
+        "Schlumberger Limited",
+        "Schlumberger Well Services",
+        "Cameron International",
+        "Cameron International Corporation",
+        "Cameron International Corp",
+        "Cameron, A Schlumberger Company"
+      ],
+      "parent": null,
+      "domain": "slb.com",
+      "industry": "Oilfield Equipment",
+      "description": "Oilfield services company that makes its own well completion, perforating and pressure-control equipment.",
+      "headquarters": {
+        "city": "Houston",
+        "state": "TX",
+        "country": "US"
+      },
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+      ],
+      "plants": [
+        {
+          "name": "SLB Katy (Colonial Parkway)",
+          "city": "Katy",
+          "state": "TX",
+          "address": "23500 Colonial Pkwy",
+          "zip": "77493",
+          "latitude": 29.79432,
+          "longitude": -95.78145,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas drilling equipment (filed as NAICS 333132)",
+          "employees": 509,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Schlumberger LLC', 23000 and 24000 Colonial Pkwy, Katy 77493: 509 annual average employees (1,340,810 hours worked, about 2,630 a person). The employer's own people at the address, offices on the site included; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/EABPRJB2804742",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2024007758",
+            "https://echo.epa.gov/detailed-facility-report?fid=110070207303"
+          ],
+          "hub": "houston",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '23500 Colonial Pkwy, Katy, Texas, 77493', the campus address in SLB's state registrations; on a building of the campus in imagery",
+          "confidence": "high",
+          "note": "OSHA files the establishment at '23000 and 24000 Colonial Pkwy'. State registrations name SLB at 23500 Colonial Parkway: 'Saturn Manufacturing Facility' (2012, office and storage added to the existing manufacturing buildings) and 'Katy Technology Center Building C' (2024). The EPA registry's 'SCHLUMBERGER TECHNOLOGY', 23500 Colonial Pkwy (110070207303, NAICS 333132), has its entrance point on the parkway 240 m east."
+        }
+      ]
+    },
+    {
+      "name": "Starplast USA",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "starplast.com",
+      "industry": "Plastic Products",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.starplast.com/blogs/assembly-instructions/us-manufacturing"
+      ],
+      "plants": [
+        {
+          "name": "Starplast USA Humble",
+          "city": "Humble",
+          "state": "TX",
+          "address": "8111 Humble Westfield Rd",
+          "zip": "77338",
+          "latitude": 30.00254,
+          "longitude": -95.30139,
+          "subsector": "Plastics and Rubber Products Manufacturing",
+          "naics": "326199",
+          "products": "Injection-molded plastic storage, housewares, pet and outdoor products",
+          "employees": 250,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Texas 2024' (filed under Starplast USA), 8111 Humble Westfield rd: 250 annual average employees (499,000 hours worked, about 2,000 a person). The employer's own people at the address; contractors are not counted. No 2025 filing was found for this establishment.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://www.starplast.com/blogs/assembly-instructions/us-manufacturing",
+            "https://rebusinessonline.com/jll-negotiates-181450-sf-industrial-lease-for-plastics-producer-in-houston/"
+          ],
+          "hub": "houston",
+          "coordinatesFrom": "Harris County Appraisal District parcel 1361170010005 (Reserve A4, Walhof Global Logistics Center, Duke Realty, 22.1 acres, listed at 8039 Humble Westfield Rd), its centroid, which is on the building; taken to be 'North Point 8111', the Point North Cargo Park building Starplast leased. No geocoder has 8111 as an address point (ArcGIS only interpolated it on the road, 160 m south)",
+          "confidence": "medium",
+          "note": "JLL (Oct 2017): Starplast 'will occupy 181,450 square feet at Point North 8111', a 250,660 sq ft building in Point North Cargo Park. Starplast USA (Apr 2025): a plastic injection molding manufacturer with manufacturing facilities and distribution centers in Houston, TX and Richmond, VA. Starplast also leased 337,700 sq ft at 8221 Volta Dr in 2022 (Point North Three), not placed here."
+        }
+      ]
+    },
+    {
+      "name": "Crown Holdings",
+      "alsoKnownAs": [
+        "Crown Cork & Seal",
+        "Crown Beverage Packaging",
+        "Crown Cork & Seal Company"
+      ],
+      "parent": null,
+      "domain": "crowncork.com",
+      "industry": "Metal Packaging",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Crown Sugar Land (Fort Bend)",
+          "city": "Sugar Land",
+          "state": "TX",
+          "address": "12910 Jess Pirtle Blvd",
+          "zip": "77478",
+          "latitude": 29.63821,
+          "longitude": -95.61128,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332431",
+          "products": "Aluminum beverage cans",
+          "employees": 126,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Crown Cork & Seal Complany, LLC - Fort Bend Plant', 12910 Jesse Pirtle Blvd.: 126 annual average employees (354,285 hours, about 2,810 a person). The 2025 filing (135; 433,387 hours, about 3,210 a person) fails the 1,000 to 3,000 test. Contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://echo.epa.gov/detailed-facility-report?fid=110000462561"
+          ],
+          "hub": "houston",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 98) for '12910 Jess Pirtle Blvd, Sugar Land, Texas, 77478'; on the can plant's building in imagery. The EPA registry's point for 'CROWN CORK & SEAL PLANT 060' (110000462561) is in a car park 125 m south-west and is not used",
+          "confidence": "high",
+          "note": "The OSHA filings spell the street 'Jesse Pirtle'; the geocoder and the EPA registry have 'Jess Pirtle'. A second 2025 filing for the same address ('Ft Bend', under 'Americas': 'Manufacturing of 2 piece Beverage Containers') repeats the figures."
+        }
+      ]
+    },
+    {
+      "name": "Newly Weds Foods",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "newlywedsfoods.com",
+      "industry": "Food Ingredients",
+      "description": "Makes custom food ingredients.",
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.newlywedsfoods.com/"
+      ],
+      "plants": [
+        {
+          "name": "Newly Weds Foods Mount Pleasant",
+          "city": "Mount Pleasant",
+          "state": "TX",
+          "address": "4125 FM 3417",
+          "zip": "75455",
+          "latitude": 33.09928,
+          "longitude": -94.97155,
+          "subsector": "Food Manufacturing",
+          "naics": "311824",
+          "products": "Batters and prepared flour mixes",
+          "employees": 262,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'NWF Mt. Pleasant', 4125 Farm Road 3417: 262 annual average employees (585,055 hours worked, about 2,230 a person). The employer's own people at the address; contractors are not counted. Filed for 2024 as 'Newly Weds Foods Mount Pleasant Texas' (250).",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.newlywedsfoods.com/"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '4125 FM 3417, Mount Pleasant, Texas, 75455'; on the plant building in imagery",
+          "confidence": "high",
+          "note": "OSHA describes the work as 'Prepared flour mixes made from purchased flour' (2025) and 'Batters, prepared, made from purchased flour' (2024)."
+        }
+      ]
+    },
+    {
+      "name": "Sonic Connectors",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": "Oilfield Equipment",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Sonic Connectors Midland",
+          "city": "Midland",
+          "state": "TX",
+          "address": "11915 W County Road 100",
+          "zip": "79706",
+          "latitude": 31.94019,
+          "longitude": -102.24718,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333132",
+          "products": "Oil and gas wellhead equipment, including Christmas tree assemblies",
+          "employees": 210,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Sonic Connectors LTD', 11915 W County RD 100: 210 annual average employees (594,781 hours worked, about 2,830 a person). The employer's own people at the address; contractors are not counted. Filed for 2024 with 199.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 99.5) for '11915 W County Road 100, Midland, Texas, 79706'; on the building in imagery",
+          "confidence": "high",
+          "note": "OSHA describes the work as 'Christmas tree assemblies, oil and gas field-type' (2024) and 'Oil and gas field-type drilling machinery and equipment' (2025). The 2025 filing gives ZIP 79765, the 2024 filing and the address point 79706."
+        }
+      ]
+    },
+    {
+      "name": "Morrow Energy",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": "Pressure Vessels",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "Morrow Energy Midland",
+          "city": "Midland",
+          "state": "TX",
+          "address": "10818 West County Road 72",
+          "zip": "79707",
+          "latitude": 31.9885,
+          "longitude": -102.24832,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332420",
+          "products": "Heavy-gauge steel vessels",
+          "employees": 127,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Morrow Energy LLC', 10818 West County Road 72: 127 annual average employees (239,497 hours worked, about 1,890 a person). The employer's own people at the address; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '10818 W County Road 72, Midland, Texas, 79707'; on the shop building in imagery",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "Red Dot Buildings",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [],
+      "plants": [
+        {
+          "name": "Red Dot Buildings Mineola",
+          "city": "Mineola",
+          "state": "TX",
+          "address": "1450 Bromberg Street",
+          "zip": "75773",
+          "latitude": 32.65063,
+          "longitude": -95.48267,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331221",
+          "products": "Cold-rolled steel shapes",
+          "employees": 99,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'ETAS' (filed under Red Dot Buildings), 1450 Bromberg Street: 99 annual average employees (203,930 hours worked, about 2,060 a person). The employer's own people at the address; contractors are not counted.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '1450 Bromberg St, Mineola, Texas, 75773'; on the building in imagery",
+          "confidence": "high",
+          "note": "OSHA describes the work as 'Cold rolling steel shapes (e.g., bar, plate, rod, sheet, strip) made from purchased steel'."
+        }
+      ]
+    },
+    {
+      "name": "WW Tank & Vessel",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "wwtank.com",
+      "industry": "Tanks",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://wwtank.com/"
+      ],
+      "plants": [
+        {
+          "name": "WW Tank & Vessel Pampa",
+          "city": "Pampa",
+          "state": "TX",
+          "address": "2930 Highway 152 W",
+          "zip": "79065",
+          "latitude": 35.53355,
+          "longitude": -100.99738,
+          "subsector": "Fabricated Metal Product Manufacturing",
+          "naics": "332420",
+          "products": "Steel storage tanks and code pressure and filtration vessels (heater treaters, separators)",
+          "employees": 75,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'WW Tank & Vessel', 2930 HWY 152 W: 75 annual average employees (172,990 hours worked, about 2,310 a person). The employer's own people at the address; contractors are not counted. Filed for 2024 with 60.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://wwtank.com/",
+            "https://echo.epa.gov/detailed-facility-report?fid=110042002926"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "Esri World Imagery, read by hand: the main shop of the tank and vessel yard on the north side of Highway 152, on the parcel west of Hunting Titan's 2800 Hwy 152 (Gray County Appraisal District parcels; Hunting Titan placed by OpenStreetMap). ArcGIS's PointAddress for '2930 Highway 152, Pampa' lies about 690 m north-west in an empty field and is not used",
+          "confidence": "medium",
+          "note": "WW Tank's site: 'WW Tank & Vessel Steel Tank Division (formerly Crall Products)', 2930 Hwy 152 West, Pampa; renamed WW Tank & Vessel Co. in 2018. OSHA: 'Water tanks, heavy gauge metal'. EPA registry facility 110042002926, 2930 State Hwy 152 W, NAICS 332420, is filed as both 'Z-W INC' and 'CRALL PRODUCTS': the stored row Z-W INC, 89 m away, is this factory."
+        }
+      ]
+    },
+    {
+      "name": "Camfil",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "camfil.com",
+      "industry": "Air Filters",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.camfil.com/"
+      ],
+      "plants": [
+        {
+          "name": "Camfil Kilgore",
+          "city": "Kilgore",
+          "state": "TX",
+          "address": "5863 Alliance Way",
+          "zip": "75662",
+          "latitude": 32.42412,
+          "longitude": -94.82936,
+          "subsector": "Machinery Manufacturing",
+          "naics": "333413",
+          "products": "Air filters",
+          "employees": 67,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'Kilgore' (Camfil USA-Kilgore), 5863 Alliance Way: 67 annual average employees (146,670 hours, about 2,190 a person). Filed for 2024 at 1001 Synergy Blvd, Kilgore (69); the new building was finished in November 2025, so the 2025 average is mostly the earlier site's people.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2023014779",
+            "https://kilgore-edc.com/news/article/camfil-breaks-ground-on-advanced-manufacturing-facility-in-kilgores-synergy-park",
+            "https://echo.epa.gov/detailed-facility-report?fid=110071335805"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '5863 Alliance Way, Kilgore, Texas, 75662'; the EPA registry's construction registration for the plant ('CAMFIL AIR POLLUTION CONTROL', 110071335805) is 31 m away. The imagery available predates the building",
+          "confidence": "medium",
+          "note": "State registration TABS2023014779 ('Camfil USA - Kilgore', 5862 Alliance Way): new construction of a 420,000 sq ft facility with offices, manufacturing and warehouse, May 2024 to November 2025, project closed."
+        }
+      ]
+    },
+    {
+      "name": "First Texas Products",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": "Instruments",
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv"
+      ],
+      "plants": [
+        {
+          "name": "First Texas Products El Paso",
+          "city": "El Paso",
+          "state": "TX",
+          "address": "1120 Alza Dr",
+          "zip": "79907",
+          "latitude": 31.70716,
+          "longitude": -106.29786,
+          "subsector": "Computer and Electronic Product Manufacturing",
+          "naics": "334511",
+          "products": "Metal detectors",
+          "employees": 60,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'First Texas Products LLC', 1120 Alza Dr: 60 annual average employees. The filing reports 124,800 hours, exactly 2,080 a person, so the hours are an estimate rather than a count. The employer's own people at the address; contractors are not counted. Filed for 2024 with 63.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://trademark.justia.com/owners/first-texas-products-llc-2458714",
+            "https://atlis.etesters.com/catalog/5081B022-1422-08DF-AABE-74C95ABF612B/teknetics/"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '1120 Alza Dr, El Paso, Texas, 79907'; on the building in imagery. The EPA registry's row for the address (110072345395) is a ZIP-code centroid and is not used",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "name": "WL Plastics",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": "wlplastics.com",
+      "industry": "Plastic Pipe",
+      "description": "Makes HDPE pipe.",
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://www.wlplastics.com/"
+      ],
+      "plants": [
+        {
+          "name": "WL Plastics Lubbock (Ivory Ave)",
+          "city": "Lubbock",
+          "state": "TX",
+          "address": "10207 N Ivory Ave",
+          "zip": "79403",
+          "latitude": 33.69489,
+          "longitude": -101.82806,
+          "subsector": "Plastics and Rubber Products Manufacturing",
+          "naics": "326122",
+          "products": "HDPE pipe",
+          "employees": 59,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'WL PLastics - Lubbock 2', 10207 N Ivory: 59 annual average employees (123,565 hours worked, about 2,090 a person). The employer's own people at the address; contractors are not counted. Filed for 2024 with 15.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://www.wlplastics.com/",
+            "https://echo.epa.gov/detailed-facility-report?fid=110071405295"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '10207 N Ivory Ave, Lubbock, Texas, 79403'; on the plant building in imagery; the EPA registry's 'WL PLASTICS UTILITY RELOCATION' (N Ivory Ave and FM 1294) is within 5 m",
+          "confidence": "high",
+          "note": "A separate establishment from WL Plastics Lubbock (Fir Ave), 10209 North Fir Avenue, 260 m west ('Lubbock 1' in OSHA's files)."
+        }
+      ]
+    },
+    {
+      "name": "U.S. Steel",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [],
+      "plants": [
+        {
+          "name": "U.S. Steel Hughes Springs",
+          "city": "Hughes Springs",
+          "state": "TX",
+          "address": "202 Hanes Blvd",
+          "zip": "75656",
+          "latitude": 32.99639,
+          "longitude": -94.63244,
+          "subsector": "Primary Metal Manufacturing",
+          "naics": "331110",
+          "products": "Couplings for oilfield casing and tubing",
+          "employees": 57,
+          "employeesYear": 2025,
+          "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+          "employeesNote": "OSHA Form 300A, 2025: 'U. S. Steel Tubular Products - Spring TX' (filed under U. S. Steel Tubular Products, LLC), 202 Hanes Blvd: 57 annual average employees (119,523 hours worked, about 2,100 a person). The employer's own people at the address; contractors are not counted. Filed for 2024 with 63.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+            "https://usstubular.com/manufacturing-facilities/wheeling-machine-products",
+            "https://echo.epa.gov/detailed-facility-report?fid=110008173387"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '202 Hanes Blvd, Hughes Springs, Texas, 75656'; on a building at the front of the site; the EPA registry's entrance point for 'WHEELING MACHINE PRODUCTS HUGHES SPRINGS', 202 Highway 250 S (110070375153), is 40 m west at the road",
+          "confidence": "high",
+          "note": "The site is U.S. Steel's Wheeling Machine Products coupling plant (EPA registry: 'WHEELING MACHINE PRODUCTS HUGHES SPRINGS', 202 Highway 250 S, NAICS 332996). U.S. Steel: Wheeling Machine Products operates in Hughes Springs, Texas and Pine Bluff, Arkansas, making couplings for oilfield casing and tubing."
+        }
+      ]
+    }
+  ],
+  "unplaced": [
+    {
+      "hub": "austin-core",
+      "company": "Canon Nanotechnologies",
+      "plant": "Canon Nanotechnologies Austin",
+      "city": "Austin",
+      "address": "1807 W Braker Ln, Building C",
+      "why": "Placed, but held on whether it is a factory. The filing's '807 W Braker Lane, Suite C100' drops the leading 1: the company and the EPA registry (110034392011) give 1807 W Braker Ln, which an ArcGIS PointAddress puts on the 76,500 sq ft building the City of Austin's footprints and OpenStreetMap give that address (30.38996, -97.70566). OSHA (333242) and the EPA registry (SIC 3559) file it as manufacturing, but cnt.canon.com calls it 'a focused R&D center' and no page read says anything is built or shipped from Austin (the FPA-1200NZ2C is Canon Inc.'s, made in Utsunomiya). OSHA 2025: 109 people, 227,649 hours (2,089 a person). The record below is ready if the owner takes the filings as enough.",
+      "sources": [
+        "https://cnt.canon.com/about/",
+        "https://echo.epa.gov/detailed-facility-report?fid=110034392011",
+        "https://www.tdlr.texas.gov/TABS/Search/Print/EABPRJA9812642",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "record": {
+        "name": "Canon Nanotechnologies Austin",
+        "city": "Austin",
+        "state": "TX",
+        "address": "1807 W Braker Ln, Building C",
+        "zip": "78758",
+        "latitude": 30.38996,
+        "longitude": -97.70566,
+        "subsector": "Machinery Manufacturing",
+        "naics": "333242",
+        "products": "Nanoimprint lithography equipment for chipmaking",
+        "employees": 109,
+        "employeesYear": 2025,
+        "employeesSource": "https://www.osha.gov/sites/default/largefiles/ITA_300A_Summary_Data_2025_through_08-31-2026.csv",
+        "employeesNote": "OSHA Form 300A, 2025: 'Canon Nanotechnologies, Inc', 807 W Braker Lane, Suite C100, Austin (the filing's spelling of 1807 W Braker Ln): 109 annual average employees (227,649 hours, about 2,090 a person).",
+        "opened": null,
+        "status": "operating",
+        "sources": [
+          "https://cnt.canon.com/about/",
+          "https://cnt.canon.com/",
+          "https://echo.epa.gov/detailed-facility-report?fid=110034392011",
+          "https://www.tdlr.texas.gov/TABS/Search/Print/EABPRJA9812642",
+          "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+        ],
+        "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress (score 100) '1807 W Braker Ln, Austin, Texas, 78758', on the 76,500 sq ft building of the City of Austin's 2023 building footprints that OpenStreetMap tags 1807 West Braker Lane (way 382505649)",
+        "hub": "austin-core"
+      }
+    },
+    {
+      "hub": "dfw",
+      "company": "Rheem",
+      "plant": "Rheem Lewisville",
+      "city": "Lewisville",
+      "address": "2773 Texas 114",
+      "why": "Held: nothing read shows the site is a factory. 2773 Highway 114 (76177) is in Fort Worth, Denton County, not Lewisville: Northwest Commerce Park Building 3, a 351,194 sq ft speculative warehouse of 2020 whose first fit-out (TDLR TABS2021012419) was for a logistics tenant. Rheem's postings there are for its Air Conditioning Division's distribution center, and its own Lewisville address is an office and learning center (1875 Waters Ridge Dr). OSHA 2024: 118 people (NAICS 333415). If a source puts production there, the ArcGIS PointAddress is 33.034969, -97.296547 (its building not checked on imagery), the city Fort Worth, and the company is stored as 'Rheem Manufacturing'.",
+      "sources": [
+        "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2021012419",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ]
+    },
+    {
+      "hub": "rest",
+      "company": "Hi-Pro Feeds",
+      "plant": "Hi-Pro Feeds Friona",
+      "city": "Friona",
+      "address": "1201 E 11th St",
+      "why": "Already stored, so not added: the filing's '1201 11th st' is East 11th Street (Hi-Pro's mill list: 1201 East 11th Street, Friona 79035), and the stored row 'HI-PRO FEEDS INC' under 'Hi-pro Feeds' in Friona (4e649670-cec0-4d22-bce0-a16af00cecbb, 34.64175, -102.70696) is EPA registry facility 110000599978 at that address. The other stored row, 'HILL COUNTRY FEEDMILL' in Comanche, is another mill. The record below, written into plants under 'Hi-Pro Feeds', would land on that row at 0 m and add only its address and people (OSHA 2024: 87, 208,682 hours, 2,399 a person; no 2025 filing found).",
+      "sources": [
+        "https://hiprofeeds.com/mill-locations-2/",
+        "https://echo.epa.gov/detailed-facility-report?fid=110000599978",
+        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+      ],
+      "record": {
+        "name": "Hi-Pro Feeds Friona",
+        "city": "Friona",
+        "state": "TX",
+        "address": "1201 E 11th St",
+        "zip": "79035",
+        "latitude": 34.64175,
+        "longitude": -102.70696,
+        "subsector": "Food Manufacturing",
+        "naics": "311119",
+        "products": "Animal feed (feed mill)",
+        "employees": 87,
+        "employeesYear": 2024,
+        "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+        "employeesNote": "OSHA Form 300A, 2024: 'Hi Pro Feeds' (Hi-Pro Feeds), 1201 11th st, Friona: 87 annual average employees (208,682 hours, about 2,400 a person).",
+        "opened": null,
+        "status": "operating",
+        "sources": [
+          "https://hiprofeeds.com/mill-locations-2/",
+          "https://echo.epa.gov/detailed-facility-report?fid=110000599978",
+          "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+        ],
+        "coordinatesFrom": "the stored row HI-PRO FEEDS INC (4e649670), which is EPA registry facility 110000599978 ('HI-PRO FEEDS INC.', 1201 E 11TH, Friona); ArcGIS World Geocoding Service's PointAddress for 1201 E 11th St is 190 m east",
+        "hub": "rest"
+      }
+    },
+    {
+      "hub": "houston",
+      "company": "Goodyear",
+      "plant": "Goodyear Beaumont Chemical Plant and Goodyear Houston Chemical Plant",
+      "city": "Beaumont / Houston",
+      "why": "Not a new plant: both are in texas-chemicals.json under Goodyear, but Goodyear sold them to an affiliate of Gemspring Capital Management with effect from 31 October 2025 (Modern Tire Dealer, 4 November 2025; the 2025 OSHA filings are under 'G-3 Chickadee Purchaser, LLC', Gemspring's working name: Beaumont 336, Houston 260). The business has no public name yet that was found, so no company is written for it; see the corrections and notes."
+    },
+    {
+      "hub": "sanantonio",
+      "company": "Saronic",
+      "plant": "Port Alpha shipyard",
+      "city": "Brownsville",
+      "why": "Under construction since the groundbreaking of 30 September 2026 on 835 acres at the Port of Brownsville (operations from 2028, up to 10,000 direct jobs over a decade; autonomous and manned vessels). No source gives the site's address or coordinates, and portofbrownsville.com refused us (403).",
+      "sources": [
+        "https://gov.texas.gov/news/post/governor-abbott-breaks-ground-on-saronics-3-billion-port-alpha-shipyard",
+        "https://www.navalnews.com/naval-news/2026/10/saronic-breaks-ground-on-port-alpha-shipyard-in-texas/",
+        "https://www.freightwaves.com/news/saronic-picks-texas-port-for-3b-shipyard-betting-on-defense-manufacturing-boom"
+      ]
+    },
+    {
+      "hub": "sanantonio",
+      "company": "Seatrium AmFELS (now Karpower Valley, Karpowership)",
+      "plant": "AmFELS shipyard",
+      "city": "Brownsville",
+      "why": "Rig repair and Jones Act newbuild yard (Charybdis, the hopper dredge Frederick Paup); Seatrium sold it to Karpower Valley on 30 January 2026 after finishing all its projects. Whether the yard builds anything under its new owner was not found, and there is no row for it. Not loaded until that is known.",
+      "sources": [
+        "https://maritime-executive.com/article/seatrium-sells-its-texas-shipyard-to-karpowership",
+        "https://www.marinelink.com/news/seatrium-wraps-amfels-yard-sale-535213"
+      ]
+    },
+    {
+      "hub": "sanantonio",
+      "company": "O.F. Mossberg & Sons",
+      "plant": "Maverick Arms Eagle Pass",
+      "city": "Eagle Pass",
+      "why": "Shotgun and rifle assembly, barrel production and distribution since 1989 (row MAVERICK ARMS INC). Its street address was not found and the row's coordinates (28.6922, -100.5000) look like a town point, so the plant is not placed; the company is listed to correct its name. mossberg.com refused us (403).",
+      "sources": [
+        "https://www.areadevelopment.com/newsItems/6-27-2014/maverick-arms-manufacturing-facility-expansion-eagle-pass-texas348934.shtml"
+      ]
+    },
+    {
+      "hub": "sanantonio",
+      "company": "Lefko USA",
+      "plant": "Lefko New Braunfels",
+      "city": "New Braunfels",
+      "why": "Announced 30 September 2025: its first U.S. plant, custom blow-moulded plastic parts, 149 jobs. No address, and no sign yet that it is built.",
+      "sources": [
+        "https://gov.texas.gov/news/post/governor-abbott-announces-lefko-manufacturing-facility-in-new-braunfels"
+      ]
+    },
+    {
+      "hub": "sanantonio",
+      "company": "Darkhive",
+      "plant": "Darkhive San Antonio",
+      "city": "San Antonio",
+      "why": "Drone start-up building autonomous drones in a 10,000 sq ft workshop in the Lone Star neighbourhood (36 people in 2024 reporting). No address found.",
+      "sources": [
+        "https://dronexl.co/2024/10/09/san-antonio-drone-startup-darkhive-takes-on-dji/",
+        "https://portsanantonio.us/sites/default/files/inline-files/2026%20-%2007%20-%2009%20-%20Technology%2C%20Talent%20Drive%20San%20Antonio%27s%20Aerospace%20Future.pdf"
+      ]
+    },
+    {
+      "hub": "rest",
+      "company": "Bull Moose Tube",
+      "plant": "Bull Moose Tube Sinton",
+      "city": "Sinton",
+      "why": "Filed with OSHA for 2025 at 8534 Hwy 89, the Steel Dynamics Sinton mill's own address (89 annual average employees, but 26,255 hours, so no headcount); the geocoders give only the mill's point, and a second pin on it would say nothing true about where the tube mill stands."
+    }
+  ],
+  "notes": "WHAT THIS FILE IS. The factories texas-hubs.json (migration 0076) left in its unplaced list because no point was found or kept for them, placed: 26 of the 36. The other ten wait in unplaced: Canon Nanotechnologies and Rheem are placed but not shown to be factories; Hi-Pro Feeds Friona is already a stored row; the seven texas-hubs.json's review left for other reasons are carried over as it wrote them. Each company is named as texas-hubs.json names it (in its companies, or in its unplaced list), so the loader finds the row a load made; other names are given only where texas-hubs.json gives them. WHAT CHANGED FROM THE ENTRIES. Addresses read again: CF Houston's street is W W Thorne (filed 'Thome'), Crown's Jess Pirtle (filed 'Jesse'), Olé's Logistics Drive (filed 'Logistic'), SLB's campus 23500 Colonial Pkwy (filed '23000 and 24000'), TC Components' 110 Southpark Blvd (filed '101', ZIP 76547), Cloeren's 5625 Old Highway 90 (filed 'Hwy 90'), EVS Texas's 15508 Impact Way (the filing has its earlier 400 S Heatherwilde). Headcounts: Crown Sugar Land 126 for 2024 (its 2025 filing fails the hours test); Fashion Glass & Mirror 71 for 2025 (a dated filing over the EDC's undated 70). FOR THE OWNER. SLB Katy is added 297 m from the row 'DYNA DRILL TECHNOLOGIES LLC' (company Dyna Drill Technologies; the EPA registry has it at 23400 Colonial Pkwy, inside the span of SLB's filing), since no source read says whose it is. WW Tank & Vessel Pampa is the stored row 'Z-W INC' (company Z-w), 89 m away: the EPA registry files that facility as both Z-W INC and Crall Products, WW Tank's former name; corrections.json says so (sameAs), and the row moves to WW Tank & Vessel at the file's point. Cloeren Orange is a new factory of the stored company Cloeren, whose only row ('CLOEREN INCORPORATED', Marshall, no address) is 277 km away. WL Plastics Lubbock (Ivory Ave) is a second establishment 260 m from the curated Fir Ave row; corrections.json says it is new. Camfil's 2025 people were mostly at its earlier Kilgore site. Fashion Glass & Mirror files the Lockhart site with OSHA as glass installation (238150); it is loaded as the state registration's manufacturing building. U.S. Steel Hughes Springs follows its filed code (331110); the EPA registry has 332996."
+}
