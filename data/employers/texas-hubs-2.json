@@ -5,7 +5,7 @@
     "name": "Texas factories that waited in texas-hubs.json for a location (its unplaced list of 36), now placed",
     "publisher": "Archangel research, placements of 2026-11-25",
     "url": "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data",
-    "licence": "Facts read from public pages and records: OSHA Form 300A establishment files for 2024 and 2025 (the copies texas-hubs.json read; a headcount only where the hours come to 1,000 to 3,000 a person), the EPA registry, the state's building registrations (TDLR) and Comptroller records, company, economic development and press pages. Points from whatever places each factory best: ArcGIS World Geocoding Service address points, Williamson County's and the cities of Austin and Houston's address points, the Harris County Appraisal District's parcels, and Esri World Imagery read by hand; each plant's coordinatesFrom says which. Every plant cites its sources; every headcount its own."
+    "licence": "Facts read from public pages and records: OSHA Form 300A establishment files for 2024 and 2025 (the copies texas-hubs.json read; a headcount only where the hours come to 1,000 to 3,000 a person), the EPA registry, the state's building registrations (TDLR) and Comptroller records, company, economic development and press pages. Points from whatever places each factory best: ArcGIS World Geocoding Service address points, Williamson County's and the cities of Austin and Houston's address points, the Harris County Appraisal District's and the Cass Appraisal District's parcels (the latter through TxGIO's StratMap land parcels), and Esri World Imagery read by hand; each plant's coordinatesFrom says which. Every plant cites its sources; every headcount its own."
   },
   "companies": [
     {
@@ -101,7 +101,7 @@
       ]
     },
     {
-      "name": "TC Components (US LBM)",
+      "name": "TC Components",
       "alsoKnownAs": [],
       "parent": null,
       "domain": null,
@@ -694,7 +694,7 @@
           "name": "Starplast USA Humble",
           "city": "Humble",
           "state": "TX",
-          "address": "8111 Humble Westfield Rd",
+          "address": "8111 FM 1960 Bypass W",
           "zip": "77338",
           "latitude": 30.00254,
           "longitude": -95.30139,
@@ -704,7 +704,7 @@
           "employees": 250,
           "employeesYear": 2024,
           "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
-          "employeesNote": "OSHA Form 300A, 2024: 'Texas 2024' (filed under Starplast USA), 8111 Humble Westfield rd: 250 annual average employees (499,000 hours worked, about 2,000 a person). The employer's own people at the address; contractors are not counted. No 2025 filing was found for this establishment.",
+          "employeesNote": "OSHA Form 300A, 2024: 'Texas 2024' (Starplast USA), filed at '8111 Humble Westfield rd', the building at 8111 FM 1960 Bypass W: 250 annual average employees (499,000 hours worked, about 2,000 a person). The employer's own people at the address; contractors are not counted. No 2025 filing found.",
           "opened": null,
           "status": "operating",
           "sources": [
@@ -713,9 +713,9 @@
             "https://rebusinessonline.com/jll-negotiates-181450-sf-industrial-lease-for-plastics-producer-in-houston/"
           ],
           "hub": "houston",
-          "coordinatesFrom": "Harris County Appraisal District parcel 1361170010005 (Reserve A4, Walhof Global Logistics Center, Duke Realty, 22.1 acres, listed at 8039 Humble Westfield Rd), its centroid, which is on the building; taken to be 'North Point 8111', the Point North Cargo Park building Starplast leased. No geocoder has 8111 as an address point (ArcGIS only interpolated it on the road, 160 m south)",
-          "confidence": "medium",
-          "note": "JLL (Oct 2017): Starplast 'will occupy 181,450 square feet at Point North 8111', a 250,660 sq ft building in Point North Cargo Park. Starplast USA (Apr 2025): a plastic injection molding manufacturer with manufacturing facilities and distribution centers in Houston, TX and Richmond, VA. Starplast also leased 337,700 sq ft at 8221 Volta Dr in 2022 (Point North Three), not placed here."
+          "coordinatesFrom": "Harris County Appraisal District parcel 1361170010005 (Reserve A4, Walhof Global Logistics Center, owner Duke Realty, 22.1 acres, listed at 8039 Humble Westfield Rd), its centroid, which is on the parcel's one building. ArcGIS World Geocoding Service has '8111 FM 1960 Bypass W, Humble, Texas, 77338' as a PointAddress (score 100) on the same building, 41 m west: it is North Point 8111, Duke Realty's 250,660 sq ft building at FM 1960 and US 59 in Point North Cargo Park, where Starplast leased 181,450 sq ft (JLL, Oct 2017). The OSHA filing's '8111 Humble Westfield rd' is an address in no source (ArcGIS only interpolated it on the road, 160 m south)",
+          "confidence": "high",
+          "note": "JLL (Oct 2017): Starplast 'will occupy 181,450 square feet at Point North 8111', a 250,660 sq ft building in Point North Cargo Park at FM 1960 and US 59 (8111 FM 1960 Bypass W). Starplast USA (Apr 2025): a plastic injection molding manufacturer with manufacturing facilities and distribution centers in Houston, TX and Richmond, VA. Starplast also leased 337,700 sq ft at 8221 Volta Dr in 2022 (Point North Three), not placed here."
         }
       ]
     },
@@ -1052,6 +1052,48 @@
       ]
     },
     {
+      "name": "Hi-Pro Feeds",
+      "alsoKnownAs": [],
+      "parent": null,
+      "domain": null,
+      "industry": null,
+      "description": null,
+      "headquarters": null,
+      "stateEmployees": null,
+      "sources": [
+        "https://hiprofeeds.com/mill-locations-2/"
+      ],
+      "plants": [
+        {
+          "name": "Hi-Pro Feeds Friona",
+          "city": "Friona",
+          "state": "TX",
+          "address": "1201 E 11th St",
+          "zip": "79035",
+          "latitude": 34.64175,
+          "longitude": -102.70696,
+          "subsector": "Food Manufacturing",
+          "naics": "311119",
+          "products": "Animal feed (feed mill)",
+          "employees": 87,
+          "employeesYear": 2024,
+          "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
+          "employeesNote": "OSHA Form 300A, 2024: 'Hi Pro Feeds' (Hi-Pro Feeds), 1201 11th st, Friona: 87 annual average employees (208,682 hours, about 2,400 a person). The employer's own people at the address; contractors are not counted. No 2025 filing was found.",
+          "opened": null,
+          "status": "operating",
+          "sources": [
+            "https://hiprofeeds.com/mill-locations-2/",
+            "https://echo.epa.gov/detailed-facility-report?fid=110000599978",
+            "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
+          ],
+          "hub": "rest",
+          "coordinatesFrom": "The stored row HI-PRO FEEDS INC (company Hi-pro Feeds, Friona), which is EPA registry facility 110000599978 ('HI-PRO FEEDS INC.', 1201 E 11TH, Friona): this record fills that row at its own point. ArcGIS World Geocoding Service's PointAddress for 1201 E 11th St is 190 m east",
+          "confidence": "high",
+          "note": "The filing's '1201 11th st' is East 11th Street (Hi-Pro's mill list: 1201 East 11th Street, Friona 79035), and the stored row 'HI-PRO FEEDS INC' in Friona is EPA registry facility 110000599978 at that address, so the record lands on that row (it adds the address and people) and adds no factory. The company's other stored row, 'HILL COUNTRY FEEDMILL' in Comanche, is another mill."
+        }
+      ]
+    },
+    {
       "name": "WL Plastics",
       "alsoKnownAs": [],
       "parent": null,
@@ -1110,8 +1152,8 @@
           "state": "TX",
           "address": "202 Hanes Blvd",
           "zip": "75656",
-          "latitude": 32.99639,
-          "longitude": -94.63244,
+          "latitude": 32.99651,
+          "longitude": -94.63112,
           "subsector": "Primary Metal Manufacturing",
           "naics": "331110",
           "products": "Couplings for oilfield casing and tubing",
@@ -1127,7 +1169,7 @@
             "https://echo.epa.gov/detailed-facility-report?fid=110008173387"
           ],
           "hub": "rest",
-          "coordinatesFrom": "ArcGIS World Geocoding Service findAddressCandidates, PointAddress match (score 100) for '202 Hanes Blvd, Hughes Springs, Texas, 75656'; on a building at the front of the site; the EPA registry's entrance point for 'WHEELING MACHINE PRODUCTS HUGHES SPRINGS', 202 Highway 250 S (110070375153), is 40 m west at the road",
+          "coordinatesFrom": "On the plant's building, read on Esri World Imagery, in Cass Appraisal District parcel 771103 (TxGIO StratMap land parcels: owner U S Steel Tubular Prod Inc, situs 202 Hanes Blvd, Hughes Springs 75656, 8.9 acres). ArcGIS World Geocoding Service's PointAddress for '202 Hanes Blvd' (score 100) is 124 m west on the neighbouring parcel 1031 (owner Kasling, situs 204 S FM 250) and is not used; the EPA registry's entrance point for 'WHEELING MACHINE PRODUCTS HUGHES SPRINGS', 202 Highway 250 S (110070375153), is at the road west of the site",
           "confidence": "high",
           "note": "The site is U.S. Steel's Wheeling Machine Products coupling plant (EPA registry: 'WHEELING MACHINE PRODUCTS HUGHES SPRINGS', 202 Highway 250 S, NAICS 332996). U.S. Steel: Wheeling Machine Products operates in Hughes Springs, Texas and Pine Bluff, Arkansas, making couplings for oilfield casing and tubing."
         }
@@ -1187,44 +1229,6 @@
         "https://www.tdlr.texas.gov/TABS/Search/Print/TABS2021012419",
         "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
       ]
-    },
-    {
-      "hub": "rest",
-      "company": "Hi-Pro Feeds",
-      "plant": "Hi-Pro Feeds Friona",
-      "city": "Friona",
-      "address": "1201 E 11th St",
-      "why": "Already stored, so not added: the filing's '1201 11th st' is East 11th Street (Hi-Pro's mill list: 1201 East 11th Street, Friona 79035), and the stored row 'HI-PRO FEEDS INC' under 'Hi-pro Feeds' in Friona (4e649670-cec0-4d22-bce0-a16af00cecbb, 34.64175, -102.70696) is EPA registry facility 110000599978 at that address. The other stored row, 'HILL COUNTRY FEEDMILL' in Comanche, is another mill. The record below, written into plants under 'Hi-Pro Feeds', would land on that row at 0 m and add only its address and people (OSHA 2024: 87, 208,682 hours, 2,399 a person; no 2025 filing found).",
-      "sources": [
-        "https://hiprofeeds.com/mill-locations-2/",
-        "https://echo.epa.gov/detailed-facility-report?fid=110000599978",
-        "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
-      ],
-      "record": {
-        "name": "Hi-Pro Feeds Friona",
-        "city": "Friona",
-        "state": "TX",
-        "address": "1201 E 11th St",
-        "zip": "79035",
-        "latitude": 34.64175,
-        "longitude": -102.70696,
-        "subsector": "Food Manufacturing",
-        "naics": "311119",
-        "products": "Animal feed (feed mill)",
-        "employees": 87,
-        "employeesYear": 2024,
-        "employeesSource": "https://www.osha.gov/sites/default/files/ITA_300A_Summary_Data_2024_through_12-31-2025.zip",
-        "employeesNote": "OSHA Form 300A, 2024: 'Hi Pro Feeds' (Hi-Pro Feeds), 1201 11th st, Friona: 87 annual average employees (208,682 hours, about 2,400 a person).",
-        "opened": null,
-        "status": "operating",
-        "sources": [
-          "https://hiprofeeds.com/mill-locations-2/",
-          "https://echo.epa.gov/detailed-facility-report?fid=110000599978",
-          "https://www.osha.gov/Establishment-Specific-Injury-and-Illness-Data"
-        ],
-        "coordinatesFrom": "the stored row HI-PRO FEEDS INC (4e649670), which is EPA registry facility 110000599978 ('HI-PRO FEEDS INC.', 1201 E 11TH, Friona); ArcGIS World Geocoding Service's PointAddress for 1201 E 11th St is 190 m east",
-        "hub": "rest"
-      }
     },
     {
       "hub": "houston",
@@ -1295,5 +1299,5 @@
       "why": "Filed with OSHA for 2025 at 8534 Hwy 89, the Steel Dynamics Sinton mill's own address (89 annual average employees, but 26,255 hours, so no headcount); the geocoders give only the mill's point, and a second pin on it would say nothing true about where the tube mill stands."
     }
   ],
-  "notes": "WHAT THIS FILE IS. The factories texas-hubs.json (migration 0076) left in its unplaced list because no point was found or kept for them, placed: 26 of the 36. The other ten wait in unplaced: Canon Nanotechnologies and Rheem are placed but not shown to be factories; Hi-Pro Feeds Friona is already a stored row; the seven texas-hubs.json's review left for other reasons are carried over as it wrote them. Each company is named as texas-hubs.json names it (in its companies, or in its unplaced list), so the loader finds the row a load made; other names are given only where texas-hubs.json gives them. WHAT CHANGED FROM THE ENTRIES. Addresses read again: CF Houston's street is W W Thorne (filed 'Thome'), Crown's Jess Pirtle (filed 'Jesse'), Olé's Logistics Drive (filed 'Logistic'), SLB's campus 23500 Colonial Pkwy (filed '23000 and 24000'), TC Components' 110 Southpark Blvd (filed '101', ZIP 76547), Cloeren's 5625 Old Highway 90 (filed 'Hwy 90'), EVS Texas's 15508 Impact Way (the filing has its earlier 400 S Heatherwilde). Headcounts: Crown Sugar Land 126 for 2024 (its 2025 filing fails the hours test); Fashion Glass & Mirror 71 for 2025 (a dated filing over the EDC's undated 70). FOR THE OWNER. SLB Katy is added 297 m from the row 'DYNA DRILL TECHNOLOGIES LLC' (company Dyna Drill Technologies; the EPA registry has it at 23400 Colonial Pkwy, inside the span of SLB's filing), since no source read says whose it is. WW Tank & Vessel Pampa is the stored row 'Z-W INC' (company Z-w), 89 m away: the EPA registry files that facility as both Z-W INC and Crall Products, WW Tank's former name; corrections.json says so (sameAs), and the row moves to WW Tank & Vessel at the file's point. Cloeren Orange is a new factory of the stored company Cloeren, whose only row ('CLOEREN INCORPORATED', Marshall, no address) is 277 km away. WL Plastics Lubbock (Ivory Ave) is a second establishment 260 m from the curated Fir Ave row; corrections.json says it is new. Camfil's 2025 people were mostly at its earlier Kilgore site. Fashion Glass & Mirror files the Lockhart site with OSHA as glass installation (238150); it is loaded as the state registration's manufacturing building. U.S. Steel Hughes Springs follows its filed code (331110); the EPA registry has 332996."
+  "notes": "WHAT THIS FILE IS. The factories texas-hubs.json (migration 0076) left in its unplaced list because no point was found or kept for them, placed: 27 of the 36. The other nine wait in unplaced: Canon Nanotechnologies and Rheem are placed but not shown to be factories; the seven texas-hubs.json's review left for other reasons are carried over as it wrote them. Each company is named as texas-hubs.json names it (in its companies, or in its unplaced list), so the loader finds the row a load made; other names are given only where texas-hubs.json gives them. The one exception is TC Components, which texas-hubs.json lists as 'TC Components (US LBM)': a company's name is loaded and shown as written, and US LBM, its owner, is said in the plant's note, not in its name. WHAT CHANGED FROM THE ENTRIES. Addresses read again: CF Houston's street is W W Thorne (filed 'Thome'), Crown's Jess Pirtle (filed 'Jesse'), Olé's Logistics Drive (filed 'Logistic'), SLB's campus 23500 Colonial Pkwy (filed '23000 and 24000'), TC Components' 110 Southpark Blvd (filed '101', ZIP 76547), Cloeren's 5625 Old Highway 90 (filed 'Hwy 90'), EVS Texas's 15508 Impact Way (the filing has its earlier 400 S Heatherwilde), Starplast's 8111 FM 1960 Bypass W (filed '8111 Humble Westfield rd', an address no source has). Headcounts: Crown Sugar Land 126 for 2024 (its 2025 filing fails the hours test); Fashion Glass & Mirror 71 for 2025 (a dated filing over the EDC's undated 70). FOR THE OWNER. Hi-Pro Feeds Friona is the stored row 'HI-PRO FEEDS INC' (company Hi-pro Feeds; EPA registry facility 110000599978 at 1201 E 11th St): it is loaded under Hi-Pro Feeds so that it fills that row (its address and people) at the row's own point, and adds no factory. U.S. Steel Hughes Springs is on its own building, in U.S. Steel Tubular's parcel: the geocoder's address point for 202 Hanes Blvd is on a neighbour's parcel, 124 m west. SLB Katy is added 297 m from the row 'DYNA DRILL TECHNOLOGIES LLC' (company Dyna Drill Technologies; the EPA registry has it at 23400 Colonial Pkwy, inside the span of SLB's filing), since no source read says whose it is. WW Tank & Vessel Pampa is the stored row 'Z-W INC' (company Z-w), 89 m away: the EPA registry files that facility as both Z-W INC and Crall Products, WW Tank's former name; corrections.json says so (sameAs), and the row moves to WW Tank & Vessel at the file's point. Cloeren Orange is a new factory of the stored company Cloeren, whose only row ('CLOEREN INCORPORATED', Marshall, no address) is 277 km away. WL Plastics Lubbock (Ivory Ave) is a second establishment 260 m from the curated Fir Ave row; corrections.json says it is new. Camfil's 2025 people were mostly at its earlier Kilgore site. Fashion Glass & Mirror files the Lockhart site with OSHA as glass installation (238150); it is loaded as the state registration's manufacturing building. U.S. Steel Hughes Springs follows its filed code (331110); the EPA registry has 332996."
 }

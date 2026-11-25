@@ -30,6 +30,7 @@ interface Plant {
   name: string;
   city: string;
   state: string;
+  address?: string | null;
   latitude: number;
   longitude: number;
   subsector?: string | null;
@@ -58,6 +59,10 @@ const read = (file: string) => JSON.parse(readFileSync(file, 'utf8')) as File;
 const file = read(RESEARCH);
 const earlier = read(EARLIER);
 const plants = file.companies.flatMap((c) => c.plants.map((p) => ({ company: c.name, ...p })));
+// The one name texas-hubs.json gave that would be shown as written ("TC Components (US LBM)"): loaded under the
+// company's own name, its owner said in the plant's note.
+const RENAMED: Record<string, string> = { 'TC Components': 'TC Components (US LBM)' };
+const earlierName = (name: string) => RENAMED[name] ?? name;
 
 // A load's SQL as its text, its data and the names it protects (a correction laid in later can protect one more).
 const loadParts = (sql: string) => {
@@ -91,10 +96,10 @@ test('the file is texas-hubs.json\'s waiting list, every entry placed or still w
   assert.equal(file.brief, 'texas-hubs-2');
   assert.equal(plants.length + file.unplaced.length, earlier.unplaced.length);
   const companies = (list: { company: string }[]) => list.map((entry) => entry.company).sort();
-  assert.deepEqual([...plants, ...file.unplaced].map((entry) => entry.company).sort(), companies(earlier.unplaced));
+  assert.deepEqual([...plants, ...file.unplaced].map((entry) => earlierName(entry.company)).sort(), companies(earlier.unplaced));
   for (const w of file.unplaced) assert.ok(w.why.trim().length > 0, `${w.company}: why it still waits`);
-  // Held on whether it is a factory, already a stored row, or not shown to be a factory: none is loaded.
-  for (const name of ['Canon Nanotechnologies', 'Hi-Pro Feeds', 'Rheem']) {
+  // Not shown to be a factory: neither is loaded.
+  for (const name of ['Canon Nanotechnologies', 'Rheem']) {
     assert.ok(file.unplaced.some((w) => w.company === name), `${name} still waits`);
     assert.equal(file.companies.some((c) => c.name === name), false, `${name} is not loaded`);
   }
@@ -103,7 +108,7 @@ test('the file is texas-hubs.json\'s waiting list, every entry placed or still w
 test('each company is named as texas-hubs.json names it, and other names are only those it gives', () => {
   const named = new Set([...earlier.companies.map((c) => c.name), ...earlier.unplaced.map((w) => w.company)]);
   for (const c of file.companies) {
-    assert.ok(named.has(c.name), `${c.name}: a name texas-hubs.json uses`);
+    assert.ok(named.has(earlierName(c.name)), `${c.name}: a name texas-hubs.json uses`);
     const there = earlier.companies.find((e) => e.name === c.name);
     assert.deepEqual(c.alsoKnownAs ?? [], there?.alsoKnownAs ?? [], `${c.name}: other names as texas-hubs.json gives them`);
   }
@@ -131,6 +136,13 @@ test('what the placements settled stays settled', () => {
   assert.deepEqual([plant('Crown Holdings', 'Crown Sugar Land (Fort Bend)')?.employees, plant('Crown Holdings', 'Crown Sugar Land (Fort Bend)')?.employeesYear], [126, 2024]);
   // No source ties the Batcave's opening to this address.
   assert.equal(plant('Shield AI', 'Shield AI Frisco')?.opened ?? null, null);
+  // On U.S. Steel Tubular's own building, not the geocoder's address point on the neighbour's parcel 124 m west.
+  assert.deepEqual([plant('U.S. Steel', 'U.S. Steel Hughes Springs')?.latitude, plant('U.S. Steel', 'U.S. Steel Hughes Springs')?.longitude], [32.99651, -94.63112]);
+  // The building's own address, not the filing's, which no source has.
+  assert.equal(plant('Starplast USA', 'Starplast USA Humble')?.address, '8111 FM 1960 Bypass W');
+  // Friona's mill is the stored row HI-PRO FEEDS INC: loaded at that row's point, so it fills the row and adds none.
+  assert.deepEqual([plant('Hi-Pro Feeds', 'Hi-Pro Feeds Friona')?.latitude, plant('Hi-Pro Feeds', 'Hi-Pro Feeds Friona')?.longitude], [34.64175, -102.70696]);
+  assert.equal(file.unplaced.some((w) => w.company === 'Hi-Pro Feeds'), false);
   // The second Lubbock establishment is not the curated Fir Ave row, and the Pampa yard is the stored Z-W INC row.
   const corrections = JSON.parse(readFileSync('data/employers/corrections.json', 'utf8')).companies;
   assert.equal(corrections['WL Plastics'].plants['WL Plastics Lubbock (Ivory Ave)'].isNew, true);
