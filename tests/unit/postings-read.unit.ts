@@ -200,9 +200,71 @@ test('the places the work is at, from the field as each feed writes it', () => {
   assert.deepEqual(places('Manassas, VA -  Fab 6'), ['Manassas, VA']);
   assert.deepEqual(places('Washington, District of Columbia, United States'), ['Washington, DC']);
   assert.deepEqual(places('Costa Mesa, California, United States; Remote'), ['Costa Mesa, CA']);
-  // No place: remote, a country alone, and abroad, even where a country's code is a state's.
+  // A Workday site named with spaces: its town, its state's letters, the country and the site's number.
+  assert.deepEqual(places('Auburn AL USA'), ['Auburn, AL']);
+  assert.deepEqual(places('Saint George UT US 1'), ['Saint George, UT']);
+  assert.deepEqual(places('Grand Rapids MI US 1; Indianapolis IN US 2'), ['Grand Rapids, MI', 'Indianapolis, IN']);
+  // The two cities named as a state are cities in this form too.
+  assert.deepEqual(places('Washington DC USA'), ['Washington, DC']);
+  assert.deepEqual(places('New York NY USA'), ['New York, NY']);
+  // A part that says there are more places is not the city.
+  assert.deepEqual(places('Dallas, Multiple Locations, TX'), ['Dallas, TX']);
+  // Plant City is the one town that begins with the word plant, and a town named for another state is a town beside
+  // that state's two letters, in every form: comma, hyphen and spaced. The two cities named as a state are cities
+  // beside their own, its name or its letters.
+  for (const [line, place] of [
+    ['Plant City, FL', 'Plant City, FL'], ['PLANT CITY, FL', 'Plant City, FL'], ['Plantation, FL', 'Plantation, FL'], ['Delaware, OH', 'Delaware, OH'],
+    ['Wyoming, MI', 'Wyoming, MI'], ['Oregon, OH', 'Oregon, OH'], ['Nevada, IA', 'Nevada, IA'], ['Indiana, PA', 'Indiana, PA'], ['Washington, PA', 'Washington, PA'],
+    ['US-OH-Delaware', 'Delaware, OH'], ['USA - Delaware, OH', 'Delaware, OH'], ['Delaware, OH, US', 'Delaware, OH'], ['US, OH, Delaware', 'Delaware, OH'],
+    ['Plant City FL USA', 'Plant City, FL'], ['Delaware OH USA', 'Delaware, OH'], ['Wyoming MI USA', 'Wyoming, MI'], ['Oregon OH USA', 'Oregon, OH'],
+    ['Nevada IA USA', 'Nevada, IA'], ['Indiana PA USA', 'Indiana, PA'],
+    ['New York, New York', 'New York, NY'], ['New York, New York, United States of America', 'New York, NY'], ['US-DC-Washington', 'Washington, DC'],
+    ['Washington, Washington, DC', 'Washington, DC'],
+  ]) {
+    assert.deepEqual(places(line), [place], line);
+  }
+  // A city between two states is the first state's, as each state is settled in the order it is written.
+  for (const [line, place] of [
+    ['Arizona, Phoenix, Nevada', 'Phoenix, AZ'], ['Oklahoma, Tulsa, Texas, Dallas', 'Tulsa, OK'], ['Ohio - Cincinnati - Kentucky', 'Cincinnati, OH'],
+    ['Georgia, Atlanta, Alabama', 'Atlanta, GA'],
+  ]) {
+    assert.deepEqual(places(line), [place], line);
+  }
+  // The District in any spelling is DC, and a ZIP code after a state's letters is left off.
+  for (const [line, place] of [
+    ['Washington, D.C.', 'Washington, DC'], ['Washington D.C., Washington, DC', 'Washington, DC'], ['Washington, DC 20001', 'Washington, DC'],
+    ['Dallas, TX 75201', 'Dallas, TX'], ['Dallas, TX 75201-1234', 'Dallas, TX'],
+  ]) {
+    assert.deepEqual(places(line), [place], line);
+  }
+  // A line of states' names alone names states, never a town, whichever way it is read: a state's name is a town's only
+  // beside another state's two letters. Workday's "City, State, Country" is no different: nothing in "Wyoming,
+  // Michigan, United States of America" tells a town from the state "Texas, Oklahoma, United States" names, so neither
+  // is a place (a board that names a site so has it written out on its line's sites). The two cities named as a state
+  // are no city beside another state's name.
+  for (const none of ['Texas, Oklahoma', 'Oklahoma, Texas', 'Texas, Louisiana, Oklahoma', 'Indiana, Ohio, Michigan', 'Ohio, Illinois', 'Florida, New York',
+    'USA - Texas - Oklahoma', 'United States-Texas-Oklahoma', 'Texas, Oklahoma, United States', 'Texas, Oklahoma, United States of America',
+    'Wyoming, Michigan, United States of America', 'Indiana, Pennsylvania', 'United States-Ohio-Delaware', 'Washington, Oregon', 'New York, New Jersey',
+    'Washington, WA']) {
+    assert.deepEqual(places(none), [], none);
+  }
+  // A site written with spaces whose town carries the employer's word for its business is read as a town of that name
+  // ("W Chester AEROSPACE", West Chester, Ohio, as GE Aerospace's board writes one site): it is a place, no factory is
+  // in a town so named, and the place waits for a person in Admin Tools.
+  assert.deepEqual(places('W Chester AEROSPACE OH US'), ['W Chester AEROSPACE, OH']);
+  // No place: remote, a country alone, and abroad, even where a country's code is a state's; a town with no state; a
+  // count of places; a site abroad named the same way; and a site named with spaces whose city is not one (a count of
+  // places, a building or a site, a way of working, the country, a state's name), held as the comma form's city is. The
+  // word plant begins a site of the employer's whatever follows it, but in Plant City.
   for (const none of ['Remote', 'Remote (Houston, TX)', 'United States', 'Auckland, NZ', 'Toronto, CAN', 'Munich, BY', 'Laval, Canada',
-    'Altona, Manitoba, CA, R0G 0B0', 'Bruchsal, BW, DE, 76646', 'GRANADERO BAIGORRIA, Santa Fe, AR, S2152FXA', 'Dublin, Dublin, Ireland']) {
+    'Altona, Manitoba, CA, R0G 0B0', 'Bruchsal, BW, DE, 76646', 'GRANADERO BAIGORRIA, Santa Fe, AR, S2152FXA', 'Dublin, Dublin, Ireland',
+    'Evendale', 'Lynn', '2 Locations', 'Istanbul TR 6', 'Carrara IT 2', 'Changwon 48 KR 6', 'Perth WA', 'Chennai TN',
+    'Multiple Locations TX USA', 'Plant TX USA', 'Plant 3 TX USA', 'Site AL USA', 'Building TX USA', 'Virtual TX USA', 'Texas TX USA',
+    'Home Office TX USA', 'Telework TX USA', 'Onsite TX USA', 'On-site TX USA', 'Hybrid TX USA', 'Factory TX USA', 'Warehouse TX USA',
+    'Office TX USA', 'HQ TX USA', 'United States TX USA', 'Texas, TX', 'Ohio', 'Texas, US', 'Plant, TX', 'Plant 3, TX', 'Plant #2, TX',
+    'Fab 6, NY', 'Home Office, TX', 'Telework, VA', 'Onsite, TX', 'Factory, MI', 'Warehouse, OH', 'HQ, TX', 'US-AL-REMOTE', 'USA - Texas - Remote',
+    'Plant A, TX', 'Plant III, OH', 'Plant One, OH', 'Plant-3, MI', 'Plant Fremont, CA', 'Plant A TX USA', 'Plant Two TX USA',
+    'Off-site, Ohio, US', 'Offsite, OH', 'Virtual Three, GA', 'Client Site TX USA', 'Customer Site, Texas', 'Nationwide TX USA', 'Nationwide, TX']) {
     assert.deepEqual(places(none), [], none);
   }
   // A feed that knows the country says so: abroad there is no place, whatever the field looks like.
@@ -215,6 +277,9 @@ test('the places the work is at, from the field as each feed writes it', () => {
   // The text only when the field is empty.
   assert.deepEqual(places('', 'Welder (Bastrop, TX)', 'Join the team in Bastrop, TX.'), ['Bastrop, TX']);
   assert.deepEqual(places('Hawthorne, CA', 'Welder', 'Some travel to Bastrop, TX.'), ['Hawthorne, CA']);
+  // A city found in the text is held to what a location line's is.
+  assert.deepEqual(places('', 'Welder (Plant A, TX)', 'Work from Remote, TX.'), []);
+  assert.deepEqual(places('', 'Welder (Plant City, FL)', ''), ['Plant City, FL']);
 });
 
 // --- Skills and makes ------------------------------------------------------------

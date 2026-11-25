@@ -16,7 +16,8 @@ const EMPLOYERS_MIGRATION = 'migrations/0065_posting_employers.sql';
 const NOT_THEIRS = 'data/employers/not-theirs.json';
 const NOT_THEIRS_MIGRATION = 'migrations/0066_rows_not_theirs.sql';
 const PLACES = 'data/employers/places.json';
-const PLACES_MIGRATION = 'migrations/0067_posting_places.sql';
+// The latest migration the places file built: 0067 first, 0081 now (GE Aerospace's Evendale). An applied one is never edited.
+const PLACES_MIGRATION = 'migrations/0081_posting_places_2.sql';
 
 interface Plant {
   name: string;
@@ -164,6 +165,26 @@ test('the three stand in order in the runner\'s list, after the migrations they 
   assert.ok(at('0065_posting_employers.sql') < at('0066_rows_not_theirs.sql'));
   assert.ok(at('0066_rows_not_theirs.sql') < at('0067_posting_places.sql'));
   assert.ok(at('0067_posting_places.sql') < at('0068_skill_taxonomy_4.sql'));
+  // The places decided again stand after everything production had, in their own place.
+  assert.ok(at('0078_military_paths_2.sql') < at('0081_posting_places_2.sql'));
+});
+
+test('GE Aerospace\'s Evendale is pointed at the factory filed under its mailing town, so a posting there and at Lynn is two jobs', () => {
+  const file = read<{ places: Record<string, unknown>[] }>(PLACES);
+  const evendale = file.places.filter((place) => place.employer === 'GE Aerospace' && place.city === 'Evendale');
+  assert.equal(evendale.length, 1);
+  assert.equal(evendale[0].state, 'OH');
+  assert.equal(evendale[0].decision, 'point');
+  assert.equal(evendale[0].company, 'GE Aerospace');
+  assert.equal(evendale[0].plant, 'GE Aerospace Evendale');
+  // The research file names the factory once, at 1 Neumann Way under Cincinnati: the place is decided by the data
+  // ('admin' in posting_decide), never by the near rule, which gives no second job to a posting placed at Lynn.
+  const named = read<{ companies: Company[] }>('data/employers/us-largest-plants.json').companies
+    .flatMap((c) => (c.plants ?? []).map((p) => ({ company: c.name, ...p })))
+    .filter((p) => p.company === 'GE Aerospace' && p.name === 'GE Aerospace Evendale');
+  assert.deepEqual(named.map((p) => `${p.city}, ${p.state}`), ['Cincinnati, OH']);
+  const sql = readFileSync(PLACES_MIGRATION, 'utf8');
+  assert.match(sql, /"source":"postings-ge-aerospace","employer":"GE Aerospace","city":"Evendale","state":"OH","decision":"point","company":"GE Aerospace","plant":"GE Aerospace Evendale"/);
 });
 
 test('a place decided by the data names no person and never overrides one a person decided, or took back', () => {

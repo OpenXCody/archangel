@@ -50,7 +50,11 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // The four services' descriptions, replaced where each is still the file's earlier one.
   '0077_military_employers_2.sql',
   // The military careers' paths again, with the skills the catalogue gained in 0070 (data/careers/military/paths.json).
-  '0078_military_paths_2.sql'];
+  '0078_military_paths_2.sql',
+  // The places postings name, decided by the data again (data/employers/places.json): GE Aerospace's Evendale, the
+  // village its factory filed under Cincinnati stands in, pointed at that factory. Numbered 0081 because 0079 and 0080
+  // were taken on other branches first (the list is ordered, not contiguous).
+  '0081_posting_places_2.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 
