@@ -223,6 +223,20 @@ test('the places the work is at, from the field as each feed writes it', () => {
   ]) {
     assert.deepEqual(places(line), [place], line);
   }
+  // A city between two states is the first state's, as each state is settled in the order it is written.
+  for (const [line, place] of [
+    ['Arizona, Phoenix, Nevada', 'Phoenix, AZ'], ['Oklahoma, Tulsa, Texas, Dallas', 'Tulsa, OK'], ['Ohio - Cincinnati - Kentucky', 'Cincinnati, OH'],
+    ['Georgia, Atlanta, Alabama', 'Atlanta, GA'],
+  ]) {
+    assert.deepEqual(places(line), [place], line);
+  }
+  // The District in any spelling is DC, and a ZIP code after a state's letters is left off.
+  for (const [line, place] of [
+    ['Washington, D.C.', 'Washington, DC'], ['Washington D.C., Washington, DC', 'Washington, DC'], ['Washington, DC 20001', 'Washington, DC'],
+    ['Dallas, TX 75201', 'Dallas, TX'], ['Dallas, TX 75201-1234', 'Dallas, TX'],
+  ]) {
+    assert.deepEqual(places(line), [place], line);
+  }
   // A line of states' names alone names states, never a town, whichever way it is read: a state's name is a town's only
   // beside another state's two letters. Workday's "City, State, Country" is no different: nothing in "Wyoming,
   // Michigan, United States of America" tells a town from the state "Texas, Oklahoma, United States" names, so neither
@@ -249,7 +263,8 @@ test('the places the work is at, from the field as each feed writes it', () => {
     'Home Office TX USA', 'Telework TX USA', 'Onsite TX USA', 'On-site TX USA', 'Hybrid TX USA', 'Factory TX USA', 'Warehouse TX USA',
     'Office TX USA', 'HQ TX USA', 'United States TX USA', 'Texas, TX', 'Ohio', 'Texas, US', 'Plant, TX', 'Plant 3, TX', 'Plant #2, TX',
     'Fab 6, NY', 'Home Office, TX', 'Telework, VA', 'Onsite, TX', 'Factory, MI', 'Warehouse, OH', 'HQ, TX', 'US-AL-REMOTE', 'USA - Texas - Remote',
-    'Plant A, TX', 'Plant III, OH', 'Plant One, OH', 'Plant-3, MI', 'Plant Fremont, CA', 'Plant A TX USA', 'Plant Two TX USA']) {
+    'Plant A, TX', 'Plant III, OH', 'Plant One, OH', 'Plant-3, MI', 'Plant Fremont, CA', 'Plant A TX USA', 'Plant Two TX USA',
+    'Off-site, Ohio, US', 'Offsite, OH', 'Virtual Three, GA', 'Client Site TX USA', 'Customer Site, Texas', 'Nationwide TX USA', 'Nationwide, TX']) {
     assert.deepEqual(places(none), [], none);
   }
   // A feed that knows the country says so: abroad there is no place, whatever the field looks like.

@@ -23,10 +23,11 @@ function tidyCity(city) {
 const MORE_PLACES = /^(multiple|various|several|\d+) locations?$/i;
 
 /**
- * A way of working or a kind of site, standing where a town would: "Hybrid", "Onsite", "Telework", "Home Office",
- * "HQ", "Factory", "Warehouse". Whole words only: "Factoryville" is a town.
+ * A way of working or a kind of site, standing where a town would: "Hybrid", "Onsite", "Off-site", "Client Site",
+ * "Nationwide", "Virtual Three", "Telework", "Home Office", "HQ", "Factory", "Warehouse". Whole words only:
+ * "Factoryville" is a town.
  */
-const NOT_A_TOWN = /^(hybrid|virtual|various|remote|on-?site|in[- ]office|telework(ing)?|telecommute|work from home|wfh|factory|warehouse|((home|head|main|corporate|field|regional|branch|sales)\s+)?office|((corporate|global|world)\s+)?(hq|headquarters))$/i;
+const NOT_A_TOWN = /^(hybrid|virtual\b.*|various|remote|nationwide|on-?site|off-?site|(client|customer)\s+site|in[- ]office|telework(ing)?|telecommute|work from home|wfh|factory|warehouse|((home|head|main|corporate|field|regional|branch|sales)\s+)?office|((corporate|global|world)\s+)?(hq|headquarters))$/i;
 
 /** The two cities named as a state, each beside the state it is the city of: New York, New York and Washington, DC. */
 const NAMESAKE = new Map([['new york', 'NY'], ['washington', 'DC']]);
@@ -75,9 +76,13 @@ function cityAndState(rest, countryFirst) {
     const state = stateOf(rest[stateAt]);
     return city !== undefined && !notACity(city, state, STATE_CODES.has(rest[stateAt])) ? { city: tidyCity(city), state } : null;
   };
-  const before = () => at.map((i) => pair(i - 1, i)).find(Boolean);
-  const after = () => at.map((i) => pair(i + 1, i)).find(Boolean);
-  return (countryFirst ? after() ?? before() : before() ?? after()) ?? null;
+  // Each state is settled in the order it is written, so a city between two states is the first one's ("Arizona,
+  // Phoenix, Nevada" is Phoenix, Arizona, as "Ohio - Cincinnati - Kentucky" is Cincinnati, Ohio).
+  for (const i of at) {
+    const found = countryFirst ? pair(i + 1, i) ?? pair(i - 1, i) : pair(i - 1, i) ?? pair(i + 1, i);
+    if (found) return found;
+  }
+  return null;
 }
 
 function onePlace(raw) {
@@ -95,7 +100,12 @@ function onePlace(raw) {
   // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens. A part that only says
   // there are other places ("Dallas, Multiple Locations, TX") is not the city.
   const bare = /^(US|USA|United States)-\S/.test(s);
-  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/)).map((p) => p.trim()).filter((p) => p && !MORE_PLACES.test(p));
+  // A part that is the District in any spelling ("D.C.", "D.C", "Washington D.C.") is its two letters, and a ZIP code
+  // written after a state's letters in the same part ("DC 20001", "TX 75001-1234") is left off.
+  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/))
+    .map((p) => p.trim().replace(/\bD\.\s?C\.?$/i, 'DC').replace(/^(?:washington\s+)?DC$/i, (m) => (/^washington/i.test(m) ? 'Washington DC' : 'DC')).replace(/^([A-Z]{2})\s+\d{5}(?:-\d{4})?$/, '$1'))
+    .flatMap((p) => (/^washington DC$/i.test(p) ? ['Washington', 'DC'] : [p]))
+    .filter((p) => p && !MORE_PLACES.test(p));
   if (!parts.length) return null;
   // "City, Region, CC, postcode": the third part is the country, whatever state shares its letters.
   if (parts.length >= 3 && !US.test(parts[0]) && /^[A-Z]{2}$/.test(parts[2]) && !US.test(parts[2]) && !STATE_BY_NAME.has(parts[1].toLowerCase()) && !STATE_CODES.has(parts[1])) return null;
