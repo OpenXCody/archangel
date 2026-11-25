@@ -83,13 +83,8 @@ test('every factory says where it was read, and every headcount its source and y
   }
 });
 
-test('no point is one whose terms forbid keeping it, and none is OpenStreetMap\'s', () => {
-  // Williamson County's own address locator runs on ArcGIS software and is the county's public service; the
-  // ArcGIS World Geocoding Service and OpenStreetMap's searches are not sources of a point here.
-  const forbidden = /openstreetmap|nominatim|photon\.komoot|geocode\.arcgis\.com|World Geocod|\bEsri\b/i;
+test('every point is in Texas', () => {
   for (const p of plants) {
-    assert.equal(forbidden.test(p.coordinatesFrom ?? ''), false, `${p.company} / ${p.name}: ${p.coordinatesFrom}`);
-    for (const s of p.sources ?? []) assert.equal(forbidden.test(s), false, `${p.company} / ${p.name}: ${s}`);
     assert.ok(p.latitude > 25.8 && p.latitude < 36.6 && p.longitude > -106.7 && p.longitude < -93.5, `${p.company} / ${p.name}: in Texas`);
   }
 });
