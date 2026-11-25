@@ -16,8 +16,8 @@ const EMPLOYERS_MIGRATION = 'migrations/0065_posting_employers.sql';
 const NOT_THEIRS = 'data/employers/not-theirs.json';
 const NOT_THEIRS_MIGRATION = 'migrations/0066_rows_not_theirs.sql';
 const PLACES = 'data/employers/places.json';
-// The latest migration the places file built: 0067 first, 0079 now (GE Aerospace's Evendale). An applied one is never edited.
-const PLACES_MIGRATION = 'migrations/0079_posting_places_2.sql';
+// The latest migration the places file built: 0067 first, 0081 now (GE Aerospace's Evendale). An applied one is never edited.
+const PLACES_MIGRATION = 'migrations/0081_posting_places_2.sql';
 
 interface Plant {
   name: string;
@@ -166,7 +166,7 @@ test('the three stand in order in the runner\'s list, after the migrations they 
   assert.ok(at('0066_rows_not_theirs.sql') < at('0067_posting_places.sql'));
   assert.ok(at('0067_posting_places.sql') < at('0068_skill_taxonomy_4.sql'));
   // The places decided again stand after everything production had, in their own place.
-  assert.ok(at('0078_military_paths_2.sql') < at('0079_posting_places_2.sql'));
+  assert.ok(at('0078_military_paths_2.sql') < at('0081_posting_places_2.sql'));
 });
 
 test('GE Aerospace\'s Evendale is pointed at the factory filed under its mailing town, so a posting there and at Lynn is two jobs', () => {

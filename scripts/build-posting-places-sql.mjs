@@ -4,7 +4,7 @@
 // Tools (Review, "Postings with no factory").
 //
 //   node scripts/build-posting-places-sql.mjs --check
-//   node scripts/build-posting-places-sql.mjs --out migrations/0079_posting_places_2.sql
+//   node scripts/build-posting-places-sql.mjs --out migrations/0081_posting_places_2.sql
 //   node scripts/build-posting-places-sql.mjs --registry tests/api/postings/boards.json --out test.sql test-places.json
 //
 // Each place is an employer of the registry (data/employers/boards.json, by its
@@ -50,7 +50,7 @@ export const FILE = path.join(ROOT, 'data', 'employers', 'places.json');
 export const REGISTRY = path.join(ROOT, 'data', 'employers', 'boards.json');
 export const RESEARCH = path.join(ROOT, 'data', 'employers');
 /** The latest migration the file built (0067 first). A change to the file is a new one, never an edit to an applied one. */
-export const MIGRATION = path.join(ROOT, 'migrations', '0079_posting_places_2.sql');
+export const MIGRATION = path.join(ROOT, 'migrations', '0081_posting_places_2.sql');
 export const LOAD = 'posting-places';
 /** posting_decide as 0067 leaves it: 0054's, with the near rule kept off places set aside and off postings placed otherwise. */
 export const DECIDE = path.join(HERE, 'posting-decide.sql');

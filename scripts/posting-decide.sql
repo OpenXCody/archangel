@@ -3,7 +3,7 @@
 -- within 10 km of a town where it has none). A place set aside as no plant, by a
 -- person in Admin Tools or by the data (data/employers/places.json), takes no
 -- plant by it. And a posting another of whose places has its plant (by the city,
--- or pointed) takes no second job by it. Read into 0067 and 0079 by
+-- or pointed) takes no second job by it. Read into 0067 and 0081 by
 -- scripts/build-posting-places-sql.mjs; a change to it is a change here and a new
 -- generated migration. The place a caller asks about (`p_place`) narrows only
 -- the answer: every place of a posting is weighed, so one place asked about

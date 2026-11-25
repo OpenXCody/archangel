@@ -606,6 +606,13 @@ test('before a text is asked for: a title that is a career, one that could be, a
   const why = siteNames({ sites: { Evendale: { place: 'Evendale, OH', why: 'The board writes the village.' } } });
   assert.deepEqual(why.posting({ title: 'Welder', location: 'Evendale', locations: ['Evendale'] }).locations, ['Evendale, OH']);
   assert.equal(why.key, named.key);
+  // A whole line the reader reads as states, never a town, is written out the same way where a person knows the town:
+  // Workday's "Wyoming, Michigan, United States of America" reads as "Texas, Oklahoma, United States" does.
+  const states = 'Wyoming, Michigan, United States of America';
+  assert.deepEqual(ask('Welder', states).places, []);
+  assert.deepEqual(checkRegistry(registry([line({ sites: { [states]: 'Wyoming, MI' } })])), []);
+  const town = siteNames({ sites: { [states]: 'Wyoming, MI' } }).posting({ title: 'Welder', location: states, locations: [states] });
+  assert.deepEqual(beforeText(reader, town, { employer: 'Acme', title: 'Welder' }, vocab).places, [{ city: 'Wyoming', state: 'MI' }]);
   // A board with no sites written out reads exactly as before.
   const plain = { title: 'Welder', location: 'Evendale', locations: ['Evendale'] };
   assert.equal(siteNames({}).posting(plain), plain);
@@ -846,8 +853,9 @@ test('the committed registry writes out GE Aerospace\'s sites where we list a fa
   const ge = loadRegistry().employers.find((entry: { slug: string }) => entry.slug === 'ge-aerospace');
   assert.equal(ge.sites.Evendale, 'Evendale, OH');
   assert.equal(ge.sites.Lynn, 'Lynn, MA');
-  // Only names the board uses, each as the town it is in: the board writes no Cincinnati (the factory filed there is
-  // the Evendale plant, which places.json points Evendale, OH at).
+  // Each as the town it is in. The board's own Cincinnati site, apart from Evendale, is not written out: we cannot place
+  // it yet, and written "Cincinnati, OH" its postings would be taken for the Evendale factory, which is filed under its
+  // mailing town, Cincinnati (places.json points Evendale, OH at it). It is decided in places.json once it is known.
   assert.equal(ge.sites.Cincinnati, undefined);
   for (const [name, place] of Object.entries(ge.sites)) assert.equal(place, `${name}, ${String(place).slice(-2)}`, name);
 });

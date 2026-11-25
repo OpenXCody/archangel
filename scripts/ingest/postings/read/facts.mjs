@@ -28,20 +28,35 @@ const MORE_PLACES = /^(multiple|various|several|\d+) locations?$/i;
  */
 const NOT_A_TOWN = /^(hybrid|virtual|various|remote|on-?site|in[- ]office|telework(ing)?|telecommute|work from home|wfh|factory|warehouse|((home|head|main|corporate|field|regional|branch|sales)\s+)?office|((corporate|global|world)\s+)?(hq|headquarters))$/i;
 
+/** The two cities named as a state, each beside the state it is the city of: New York, New York and Washington, DC. */
+const NAMESAKE = new Map([['new york', 'NY'], ['washington', 'DC']]);
+
 /**
- * What stands where a city would and is not one: a number; a building or a site of the employer's ("Fab 6",
- * "Building A", "Site", "Plant", "Plant 3": the word plant alone or with its number, so "Plant City" is a town); a
- * count of places; a way of working or a kind of site; the country; a state's two letters; and a state's name where
- * it is the state the line itself names ("Texas TX USA") or the line names no other. A town named for another state
- * is a town ("Delaware, OH", "Indiana, PA", "Wyoming, MI"), and the two cities named as states are cities. `state` is
- * the state the line names, or nothing. Every form of a location line holds its city to this.
+ * A word that begins a building or a site of the employer's: "Fab 6", "Building A", "Site", and the word plant with
+ * whatever follows it ("Plant", "Plant 3", "Plant A", "Plant III", "Plant One", "Plant-3", "Plant Fremont"). The one
+ * US town that begins with the word is Plant City, Florida.
  */
-function notACity(city, state = null) {
+const A_SITE = /^(fab|bldg|building|site|plant)\b/i;
+const PLANT_CITY = /^plant city$/i;
+
+/**
+ * What stands where a city would and is not one: a number; a building or a site of the employer's; a count of
+ * places; a way of working or a kind of site; the country; a state's two letters; and a state's name. A state's name
+ * is a town's only beside another state's two letters ("Delaware, OH", "US-OH-Delaware", "Delaware OH USA"): a line
+ * that writes only states' names ("Texas, Oklahoma", "Indiana, Ohio, Michigan", "USA - Texas - Oklahoma") names
+ * states, never a town, and so does one in Workday's "City, State, Country" ("Wyoming, Michigan, United States of
+ * America" reads as "Texas, Oklahoma, United States" does: nothing in the line tells a town from a state, so neither
+ * is a place, and a board that names a site so has it written out under its line's sites). The two cities named as
+ * a state are cities beside their own ("New York, New York", "Washington, District of Columbia", "Washington DC
+ * USA"). `state` is the state the city stands beside, or nothing, and `lettered` says it is written as its two
+ * letters. Every form of a location line holds its city to this.
+ */
+function notACity(city, state = null, lettered = false) {
   const lower = city.toLowerCase();
   const named = STATE_BY_NAME.get(lower);
-  if (named && lower !== 'washington' && lower !== 'new york' && (!state || named === state)) return true;
+  if (named && !(state && NAMESAKE.get(lower) === state) && !(lettered && state && named !== state)) return true;
   if (STATE_CODES.has(city) || US.test(city)) return true;
-  return /^\d|^(fab|bldg|building|site)\b|^plant(\s*(no\.?\s*|#\s*)?\d.*)?$/i.test(city) || MORE_PLACES.test(city) || NOT_A_TOWN.test(city);
+  return /^\d/.test(city) || (A_SITE.test(city) && !PLANT_CITY.test(city)) || MORE_PLACES.test(city) || NOT_A_TOWN.test(city);
 }
 
 /**
@@ -49,7 +64,8 @@ function notACity(city, state = null) {
  * state ("Delaware, OH", "Waterloo, IA, Iowa"), or, in a line that leads with the country, just after it
  * ("US-OH-Delaware", "USA - Vermont - Essex Junction"). A line that leads with the country and then writes the city
  * first ("USA - Oklahoma City, OK") is read the first way when the second finds no city. A state written twice is one
- * state: its second writing is never the city.
+ * state: its second writing is never the city. A city with a state's name stands only beside another state's two
+ * letters (notACity), so a line of states' names alone is no place, whichever way it is read.
  */
 function cityAndState(rest, countryFirst) {
   const stateOf = (p) => STATE_BY_NAME.get(p.toLowerCase()) ?? (STATE_CODES.has(p) ? p : null);
@@ -57,7 +73,7 @@ function cityAndState(rest, countryFirst) {
   const pair = (cityAt, stateAt) => {
     const city = rest[cityAt];
     const state = stateOf(rest[stateAt]);
-    return city !== undefined && !notACity(city, state) ? { city: tidyCity(city), state } : null;
+    return city !== undefined && !notACity(city, state, STATE_CODES.has(rest[stateAt])) ? { city: tidyCity(city), state } : null;
   };
   const before = () => at.map((i) => pair(i - 1, i)).find(Boolean);
   const after = () => at.map((i) => pair(i + 1, i)).find(Boolean);
@@ -73,7 +89,7 @@ function onePlace(raw) {
   // TX USA", "Plant TX USA", "Telework TX USA", "Home Office TX USA", "United States TX USA" and "Texas TX USA" are no
   // place, and "Delaware OH USA" is Delaware, Ohio.
   const spaced = /^([A-Za-z][A-Za-z .'-]*?)\s+([A-Z]{2})\s+(?:US|USA)(?:\s+\d{1,3})?$/.exec(s);
-  if (spaced && STATE_CODES.has(spaced[2])) return notACity(spaced[1].trim(), spaced[2]) ? null : { city: tidyCity(spaced[1]), state: spaced[2] };
+  if (spaced && STATE_CODES.has(spaced[2])) return notACity(spaced[1].trim(), spaced[2], true) ? null : { city: tidyCity(spaced[1]), state: spaced[2] };
   const lower = s.toLowerCase();
   if (ABROAD_NAMES.some((n) => lower.includes(n))) return null;
   // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens. A part that only says
@@ -89,6 +105,7 @@ function onePlace(raw) {
   // A state alone, or its letters alone (they may be a country's), is no place: a city is another part.
   if (rest.length < 2) return null;
   // "Washington, District of Columbia", "Delaware, OH": the city has a state's name; the state is the part after it.
+  // "Texas, Oklahoma" is two states, and no place.
   return cityAndState(rest, usAt === 0);
 }
 
@@ -102,11 +119,11 @@ export function readPlaces(location, title, lines) {
     for (const part of field.split(/\s*;\s*|\s+\|\s+|\s+or\s+(?=[A-Z])|\s\/\s/)) add(onePlace(part));
     return out;
   }
-  // No field: the title's brackets, then the opening lines.
+  // No field: the title's brackets, then the opening lines, each city held to what a location line's is.
   const text = [String(title ?? ''), ...lines().slice(0, 6).map((l) => l.text)].join(' \n ');
   const re = /\b([A-Z][A-Za-z.'-]+(?: [A-Z][A-Za-z.'-]+){0,2}), ([A-Z]{2})\b/g;
   let m;
-  while ((m = re.exec(text)) && out.length < 3) if (STATE_CODES.has(m[2])) add({ city: m[1], state: m[2] });
+  while ((m = re.exec(text)) && out.length < 3) if (STATE_CODES.has(m[2]) && !notACity(m[1], m[2], true)) add({ city: m[1], state: m[2] });
   return out;
 }
 
