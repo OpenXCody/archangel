@@ -19,35 +19,104 @@ function tidyCity(city) {
   return c;
 }
 
+/** A part that says there are other places, and is no place itself: "Multiple Locations", "2 Locations". */
+const MORE_PLACES = /^(multiple|various|several|\d+) locations?$/i;
+
+/**
+ * A way of working or a kind of site, standing where a town would: "Hybrid", "Onsite", "Off-site", "Client Site",
+ * "Nationwide", "Virtual Three", "Telework", "Home Office", "HQ", "Factory", "Warehouse". Whole words only:
+ * "Factoryville" is a town.
+ */
+const NOT_A_TOWN = /^(hybrid|virtual\b.*|various|remote|nationwide|on-?site|off-?site|(client|customer)\s+site|in[- ]office|telework(ing)?|telecommute|work from home|wfh|factory|warehouse|((home|head|main|corporate|field|regional|branch|sales)\s+)?office|((corporate|global|world)\s+)?(hq|headquarters))$/i;
+
+/** The two cities named as a state, each beside the state it is the city of: New York, New York and Washington, DC. */
+const NAMESAKE = new Map([['new york', 'NY'], ['washington', 'DC']]);
+
+/**
+ * A word that begins a building or a site of the employer's: "Fab 6", "Building A", "Site", and the word plant with
+ * whatever follows it ("Plant", "Plant 3", "Plant A", "Plant III", "Plant One", "Plant-3", "Plant Fremont"). The one
+ * US town that begins with the word is Plant City, Florida.
+ */
+const A_SITE = /^(fab|bldg|building|site|plant)\b/i;
+const PLANT_CITY = /^plant city$/i;
+
+/**
+ * What stands where a city would and is not one: a number; a building or a site of the employer's; a count of
+ * places; a way of working or a kind of site; the country; a state's two letters; and a state's name. A state's name
+ * is a town's only beside another state's two letters ("Delaware, OH", "US-OH-Delaware", "Delaware OH USA"): a line
+ * that writes only states' names ("Texas, Oklahoma", "Indiana, Ohio, Michigan", "USA - Texas - Oklahoma") names
+ * states, never a town, and so does one in Workday's "City, State, Country" ("Wyoming, Michigan, United States of
+ * America" reads as "Texas, Oklahoma, United States" does: nothing in the line tells a town from a state, so neither
+ * is a place, and a board that names a site so has it written out under its line's sites). The two cities named as
+ * a state are cities beside their own ("New York, New York", "Washington, District of Columbia", "Washington DC
+ * USA"). `state` is the state the city stands beside, or nothing, and `lettered` says it is written as its two
+ * letters. Every form of a location line holds its city to this.
+ */
+function notACity(city, state = null, lettered = false) {
+  const lower = city.toLowerCase();
+  const named = STATE_BY_NAME.get(lower);
+  if (named && !(state && NAMESAKE.get(lower) === state) && !(lettered && state && named !== state)) return true;
+  if (STATE_CODES.has(city) || US.test(city)) return true;
+  return /^\d/.test(city) || (A_SITE.test(city) && !PLANT_CITY.test(city)) || MORE_PLACES.test(city) || NOT_A_TOWN.test(city);
+}
+
+/**
+ * A city and its state from the parts of a line written with commas or hyphens: the city stands just before its
+ * state ("Delaware, OH", "Waterloo, IA, Iowa"), or, in a line that leads with the country, just after it
+ * ("US-OH-Delaware", "USA - Vermont - Essex Junction"). A line that leads with the country and then writes the city
+ * first ("USA - Oklahoma City, OK") is read the first way when the second finds no city. A state written twice is one
+ * state: its second writing is never the city. A city with a state's name stands only beside another state's two
+ * letters (notACity), so a line of states' names alone is no place, whichever way it is read.
+ */
+function cityAndState(rest, countryFirst) {
+  const stateOf = (p) => STATE_BY_NAME.get(p.toLowerCase()) ?? (STATE_CODES.has(p) ? p : null);
+  const at = rest.map((p, i) => (stateOf(p) ? i : -1)).filter((i) => i >= 0);
+  const pair = (cityAt, stateAt) => {
+    const city = rest[cityAt];
+    const state = stateOf(rest[stateAt]);
+    return city !== undefined && !notACity(city, state, STATE_CODES.has(rest[stateAt])) ? { city: tidyCity(city), state } : null;
+  };
+  // Each state is settled in the order it is written, so a city between two states is the first one's ("Arizona,
+  // Phoenix, Nevada" is Phoenix, Arizona, as "Ohio - Cincinnati - Kentucky" is Cincinnati, Ohio).
+  for (const i of at) {
+    const found = countryFirst ? pair(i + 1, i) ?? pair(i - 1, i) : pair(i - 1, i) ?? pair(i + 1, i);
+    if (found) return found;
+  }
+  return null;
+}
+
 function onePlace(raw) {
   let s = String(raw).split('~')[0].replace(/\s+/g, ' ').trim();
   if (!s || /^remote\b/i.test(s) || /^(hybrid|virtual|various|multiple locations?)$/i.test(s)) return null;
   s = s.replace(/\((?:remote|hybrid|onsite|on-site)\)/gi, '').trim();
+  // "Auburn AL USA", "Saint George UT US 1": a site named by its town, its state's letters and the country with
+  // spaces between, and the site's number after. Its city is held to what the comma form's is: "Multiple Locations
+  // TX USA", "Plant TX USA", "Telework TX USA", "Home Office TX USA", "United States TX USA" and "Texas TX USA" are no
+  // place, and "Delaware OH USA" is Delaware, Ohio.
+  const spaced = /^([A-Za-z][A-Za-z .'-]*?)\s+([A-Z]{2})\s+(?:US|USA)(?:\s+\d{1,3})?$/.exec(s);
+  if (spaced && STATE_CODES.has(spaced[2])) return notACity(spaced[1].trim(), spaced[2], true) ? null : { city: tidyCity(spaced[1]), state: spaced[2] };
   const lower = s.toLowerCase();
   if (ABROAD_NAMES.some((n) => lower.includes(n))) return null;
-  // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens.
+  // "United States-Utah-Salt Lake City", "US-NC-WILSON-4200": parts joined by bare hyphens. A part that only says
+  // there are other places ("Dallas, Multiple Locations, TX") is not the city.
   const bare = /^(US|USA|United States)-\S/.test(s);
-  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/)).map((p) => p.trim()).filter(Boolean);
+  // A part that is the District in any spelling ("D.C.", "D.C", "Washington D.C.") is its two letters, and a ZIP code
+  // written after a state's letters in the same part ("DC 20001", "TX 75001-1234") is left off.
+  const parts = (bare ? s.split('-') : s.split(/,|\s+-\s+/))
+    .map((p) => p.trim().replace(/\bD\.\s?C\.?$/i, 'DC').replace(/^(?:washington\s+)?DC$/i, (m) => (/^washington/i.test(m) ? 'Washington DC' : 'DC')).replace(/^([A-Z]{2})\s+\d{5}(?:-\d{4})?$/, '$1'))
+    .flatMap((p) => (/^washington DC$/i.test(p) ? ['Washington', 'DC'] : [p]))
+    .filter((p) => p && !MORE_PLACES.test(p));
   if (!parts.length) return null;
   // "City, Region, CC, postcode": the third part is the country, whatever state shares its letters.
   if (parts.length >= 3 && !US.test(parts[0]) && /^[A-Z]{2}$/.test(parts[2]) && !US.test(parts[2]) && !STATE_BY_NAME.has(parts[1].toLowerCase()) && !STATE_CODES.has(parts[1])) return null;
   if (parts.some((p) => ABROAD.has(p.toLowerCase()) && !STATE_CODES.has(p))) return null;
   const usAt = parts.findIndex((p) => US.test(p));
   const rest = parts.filter((p, i) => i !== usAt && !/^\d[\d -]*$/.test(p) && !/^[A-Z]\d[A-Z] ?\d[A-Z]\d$/.test(p));
-  let stateAt = rest.findIndex((p) => STATE_BY_NAME.has(p.toLowerCase()));
-  // "Washington, District of Columbia": the city has a state's name; the state is the later part.
-  if (stateAt === 0 && rest.length > 1 && (STATE_BY_NAME.has(rest[1].toLowerCase()) || STATE_CODES.has(rest[1]))) stateAt = 1;
-  if (stateAt < 0) stateAt = rest.findIndex((p, i) => STATE_CODES.has(p) && (i > 0 || rest.length > 1));
-  if (stateAt < 0) return null;
-  const state = STATE_BY_NAME.get(rest[stateAt].toLowerCase()) ?? rest[stateAt];
-  // The city stands before its state ("Austin, TX") or, in a feed that leads with the country, after it.
-  // A state written twice ("Waterloo, IA, Iowa, US") is still one state.
-  const isState = (p) => STATE_CODES.has(p) || STATE_BY_NAME.has(p.toLowerCase());
-  const before = rest.slice(0, stateAt).filter((p) => !isState(p) || /^(washington|new york)$/i.test(p));
-  const city = before.length ? before[before.length - 1] : rest.slice(stateAt + 1).find((p) => !isState(p));
-  if (!city || STATE_BY_NAME.has(city.toLowerCase()) && city.toLowerCase() !== 'washington' && city.toLowerCase() !== 'new york') return null;
-  if (/^\d|^(fab|bldg|building|site|plant)\b/i.test(city)) return null;
-  return { city: tidyCity(city), state };
+  // A state alone, or its letters alone (they may be a country's), is no place: a city is another part.
+  if (rest.length < 2) return null;
+  // "Washington, District of Columbia", "Delaware, OH": the city has a state's name; the state is the part after it.
+  // "Texas, Oklahoma" is two states, and no place.
+  return cityAndState(rest, usAt === 0);
 }
 
 /** Every US place the posting names as where the work is. */
@@ -60,11 +129,11 @@ export function readPlaces(location, title, lines) {
     for (const part of field.split(/\s*;\s*|\s+\|\s+|\s+or\s+(?=[A-Z])|\s\/\s/)) add(onePlace(part));
     return out;
   }
-  // No field: the title's brackets, then the opening lines.
+  // No field: the title's brackets, then the opening lines, each city held to what a location line's is.
   const text = [String(title ?? ''), ...lines().slice(0, 6).map((l) => l.text)].join(' \n ');
   const re = /\b([A-Z][A-Za-z.'-]+(?: [A-Z][A-Za-z.'-]+){0,2}), ([A-Z]{2})\b/g;
   let m;
-  while ((m = re.exec(text)) && out.length < 3) if (STATE_CODES.has(m[2])) add({ city: m[1], state: m[2] });
+  while ((m = re.exec(text)) && out.length < 3) if (STATE_CODES.has(m[2]) && !notACity(m[1], m[2], true)) add({ city: m[1], state: m[2] });
   return out;
 }
 

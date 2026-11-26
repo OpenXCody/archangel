@@ -15,9 +15,10 @@ import { canonical, recordHash } from '../lib/hash.mjs';
 import { diffRun } from '../lib/diff.mjs';
 import { chunks, inTransaction, note, registerSource, runRow, seconds } from '../lib/pipeline.mjs';
 import { BudgetSpent, CeilingReached, FeedError, Refusal } from './fetch.mjs';
-import { sourceOf } from './registry.mjs';
+import { siteKey, sitePlace, sourceOf } from './registry.mjs';
 import { SYSTEMS } from './systems/index.mjs';
 import { isUnitedStates } from './systems/shared.mjs';
+import { titleLines, titleTally } from './titles.mjs';
 
 /** Raise it when what is staged for a posting changes shape: every posting is staged again. */
 const VERSION = 2;
@@ -25,6 +26,8 @@ const VERSION = 2;
 const REREAD_DAYS = 30;
 /** How many of the words the catalogue lacks a run's report keeps: the commonest. */
 const UNKNOWN_KEPT = 30;
+/** How many of the location lines no place was read in a run's report keeps: the commonest. */
+const UNPLACED_KEPT = 30;
 const NIL = '00000000-0000-0000-0000-000000000000';
 
 const short = (text) => createHash('sha256').update(String(text ?? '')).digest('hex').slice(0, 32);
@@ -46,8 +49,27 @@ function placesOf(places) {
   return out;
 }
 
-/** Every location line a feed gives for a posting, as the one line the reader takes: semicolons between places. */
-const locationLine = (posting) => (posting.locations?.length ? posting.locations : [posting.location]).filter(Boolean).join('; ');
+/** Every location line a feed gives for a posting. */
+const linesOf = (posting) => (posting.locations?.length ? posting.locations : [posting.location]).filter(Boolean);
+/** The same as the one line the reader takes: semicolons between places. */
+export const locationLine = (posting) => linesOf(posting).join('; ');
+
+/**
+ * The board's sites as its line in the registry writes them out (`sites`): a
+ * location line that is one of them ("Evendale", in any letter case) is the
+ * place a person wrote beside it ("Evendale, OH", or the `place` of a site
+ * written with its why); every other line is as the feed gave it. `posting`
+ * names a listed posting's lines, and a posting's own record's once its text
+ * is read. `key` is what the names were, or null for a board that has none.
+ */
+export function siteNames(entry) {
+  const named = new Map(Object.entries(entry?.sites ?? {}).map(([name, written]) => [siteKey(name), sitePlace(written)]));
+  const line = (value) => (typeof value === 'string' && named.get(siteKey(value))) || value;
+  return {
+    key: named.size > 0 ? short(canonical(Object.fromEntries([...named].sort(([a], [b]) => a.localeCompare(b))))) : null,
+    posting: (posting) => (named.size === 0 ? posting : { ...posting, location: line(posting.location), locations: (posting.locations ?? []).map(line) }),
+  };
+}
 
 /**
  * Before a posting's text is asked for (where the text costs a request):
@@ -98,6 +120,8 @@ async function resumeOf(db, source, adapter) {
  *   spared      read at an earlier run and not kept, their listing as it was: not asked about again
  *   complete    the listing was read to its end. Only then is a posting that is missing counted as missing
  *
+ * `titles` is the titles counted under notCareer, by what the job is (titles.mjs): for the run's report only.
+ *
  * A listing that is cut short (a refusal, a site that stopped answering, the
  * platform's budget for the run) is still read as far as it went: what it
  * listed is staged, and nothing it did not list is taken to be gone. Where
@@ -105,12 +129,19 @@ async function resumeOf(db, source, adapter) {
  *
  * Where the text costs a request it is asked for only when the title could be
  * one of our careers and the listing is new or has changed.
+ *
+ * A site the board names by its town alone is read as the place its line in
+ * the registry writes beside it (`sites`), in the listing and in a posting's
+ * own record alike. The location lines of the postings that name no place
+ * are counted, the commonest kept for the run's report (`unplaced`): they are
+ * what a person writes out next.
  */
 export async function collect(db, entry, { session, reader, vocab, today = new Date().toISOString().slice(0, 10), again = false, log = () => {} }) {
   const adapter = SYSTEMS[entry.system];
   const source = sourceOf(entry);
   const started = Date.now();
   const tools = { get: session.get, post: session.post, today };
+  const sites = siteNames(entry);
 
   // What staging holds: to tell a listing that has not changed, and to keep its reading. And the postings
   // whose text was read before and which were not kept: they are not asked about again while their listing stands.
@@ -130,6 +161,19 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   const kept = new Map();
   const deferred = new Set();
   const unknown = new Map();
+  const unplaced = new Map();
+  /** Location lines of a posting that could be one of ours in which no US place was read, counted once a posting. */
+  const unread = (lines) => {
+    for (const line of new Set(lines.map((value) => String(value).trim().replace(/\s+/g, ' ').slice(0, 60)).filter(Boolean))) {
+      unplaced.set(line, (unplaced.get(line) ?? 0) + 1);
+    }
+  };
+  // The titles turned away as not one of our careers: the catalogue's gaps, for the report and nowhere else.
+  const titles = titleTally();
+  const notOurs = (posting) => {
+    counts.notCareer += 1;
+    titles.add(posting.title, locationLine(posting));
+  };
   let stopped = null;
   // Set once no more texts may be asked for in this run: enough for one run, a ceiling, a budget, or the site's own refusal.
   let spent = false;
@@ -160,15 +204,20 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     if (adapter.text) {
       const before = beforeText(reader, posting, base, vocab);
       if (!before.could) {
-        counts.notCareer += 1;
+        notOurs(posting);
         return;
       }
       // A listing that says where the work is, and it is nowhere in the United States, is not asked about further.
       if (before.places && before.places.length === 0) {
         counts.noPlace += 1;
+        unread(linesOf(posting));
         return;
       }
-      const listing = short(canonical({ title: posting.title, locations: posting.locations, path: posting.path ?? posting.url }));
+      const listing = short(canonical({
+        title: posting.title, locations: posting.locations, path: posting.path ?? posting.url,
+        // A posting whose places are only in its own record is read again when the board's names for its sites change.
+        ...(sites.key && !posting.locations?.length ? { sites: sites.key } : {}),
+      }));
       const staged = previous.get(posting.id);
       const fresh = staged && staged.payload?.listing === listing && !again &&
         Date.parse(today) - Date.parse(staged.facts?.readOn ?? '1970-01-01') < reread;
@@ -191,7 +240,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
         return;
       }
       try {
-        full = { ...posting, ...(await adapter.text(entry.board, posting, tools)), listing };
+        full = sites.posting({ ...posting, ...(await adapter.text(entry.board, posting, tools)), listing });
         counts.texts += 1;
       } catch (error) {
         // Listed a moment ago and gone now.
@@ -213,13 +262,14 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     }, vocab);
     // Nothing of a reading that has no career is used.
     if (!reading?.career) {
-      counts.notCareer += 1;
+      notOurs(posting);
       if (mark) passes.set(posting.id, mark);
       return;
     }
     const places = placesOf(reading.places);
     if (places.length === 0) {
       counts.noPlace += 1;
+      unread(linesOf(full));
       if (mark) passes.set(posting.id, mark);
       return;
     }
@@ -227,6 +277,12 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
       counts.noAddress += 1;
       if (mark) passes.set(posting.id, mark);
       return;
+    }
+    // A posting at several sites, some of which say no place we read: those are counted too, though it is kept at the rest.
+    const lines = linesOf(full);
+    if (lines.length > 1) {
+      const country = full.country ? { country: full.country } : {};
+      unread(lines.filter((line) => placesOf(reader.readPosting({ ...base, location: line, text: '', ...country }, vocab)?.places).length === 0));
     }
     // The words the catalogue lacks are counted for the run's report and kept nowhere else.
     for (const word of reading.unknown ?? []) {
@@ -264,7 +320,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   let complete = false;
   try {
     for await (const page of adapter.pages(entry.board, tools, from?.next ?? null)) {
-      for (const posting of page.postings) await take(posting);
+      for (const posting of page.postings) await take(sites.posting(posting));
       next = page.next;
       if (page.next === null) complete = true;
       // The texts could not all be asked for: a listing that can be taken up again stops here, and the next run
@@ -283,12 +339,13 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   // Every posting of ours the listing has shown, over as many runs as the listing took.
   const present = new Set([...(from?.seen ?? []), ...kept.keys(), ...deferred]);
   const resume = complete || !adapter.resumes || !next ? null : { next, seen: [...present] };
-  const words = [...unknown].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, UNKNOWN_KEPT);
+  const commonest = (tally, most) => [...tally].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, most);
   log(`fetch: ${entry.employer}: ${counts.read.toLocaleString('en-US')} postings listed${complete ? '' : ' (the listing was cut short)'}, ` +
     `${counts.kept.toLocaleString('en-US')} kept, ${session.requests} requests in ${seconds(started)} s`);
   return {
-    source, kept, deferred, present, passes, today, complete, resume, resumed: Boolean(from), stopped, counts, unknown: words,
-    requests: session.requests, seconds: seconds(started),
+    source, kept, deferred, present, passes, today, complete, resume, resumed: Boolean(from), stopped, counts,
+    unknown: commonest(unknown, UNKNOWN_KEPT), unplaced: commonest(unplaced, UNPLACED_KEPT),
+    titles: titles.summary(), requests: session.requests, seconds: seconds(started),
   };
 }
 
@@ -451,7 +508,7 @@ export async function stage(db, runId, collected, { log = console.log } = {}) {
   const staged = {
     ...counts, outcome: collected.stopped ? collected.stopped.outcome : 'read', requests: collected.requests, deferred: deferred.size,
     // `complete` is what posting_apply reads; `resume` is where the next run takes the listing up, with the ids seen so far.
-    complete, resumed: collected.resumed, resume: collected.resume, unknown: collected.unknown,
+    complete, resumed: collected.resumed, resume: collected.resume, unknown: collected.unknown, unplaced: collected.unplaced ?? [],
     new: fresh.length, changed: changed.length, same: diff.same.length, back: diff.back.length, gone: diff.gone.length,
   };
   await note(db, runId, { state: 'staged', counts: staged, timings: { fetch: collected.seconds, write: seconds(started) } });
@@ -485,8 +542,12 @@ export async function apply(db, runId, { log = console.log } = {}) {
   return applied;
 }
 
-/** What a run of a job source did, as text a person reads. */
-export async function report(db, runId, { everything = false, rehearsal = false } = {}) {
+/**
+ * What a run of a job source did, as text a person reads. `titles` is the run's tally of the titles it turned away
+ * (collect's `titles`): given only by the run itself, which writes it into this text and nowhere else, so a report
+ * read again later from the database has no such lines.
+ */
+export async function report(db, runId, { everything = false, rehearsal = false, titles = null } = {}) {
   const [run] = await db`
     SELECT r.*, s.name AS source_name, s.system, s.company FROM intake_runs r JOIN intake_sources s ON s.slug = r.source WHERE r.id = ${runId}`;
   if (!run) throw new Error(`There is no run ${runId}.`);
@@ -518,6 +579,14 @@ export async function report(db, runId, { everything = false, rehearsal = false 
   if (Array.isArray(c.unknown) && c.unknown.length > 0) {
     out.push(`  asked for and not in the catalogue (the ${c.unknown.length} commonest, with how many postings): ${c.unknown.map(([phrase, count]) => `${phrase} ${count}`).join(', ')}`);
   }
+  // Where postings that could be ours are and no US city and state was read: a site the board names by its town alone
+  // is written out on its line in the registry (`sites`), by a person.
+  if (Array.isArray(c.unplaced) && c.unplaced.length > 0) {
+    out.push(`  places named and not read as a US city and state (the ${c.unplaced.length} commonest, with how many postings; ` +
+      `a site named by its town alone is written out under "sites" on the board's line): ${c.unplaced.map(([line, count]) => `${line} ${count}`).join('; ')}`);
+  }
+  // The titles the board listed that are not one of our careers: where the catalogue has no career, or no name for one.
+  out.push(...titleLines(titles));
   const stages = ['write', 'resolve', 'apply', 'undo'].filter((stage) => t[stage] !== undefined);
   if (stages.length > 0) out.push(`  seconds: ${stages.map((stage) => `${stage} ${t[stage]}`).join(', ')}`);
 
@@ -593,7 +662,10 @@ export async function runEmployer(db, entry, { fetcher, reader, vocab, today, ag
     const counts = await stage(tx, runId, collected, { log });
     if (upTo !== 'stage') Object.assign(counts, await resolve(tx, runId, { log }));
     if (upTo === 'apply') Object.assign(counts, await apply(tx, runId, { log }));
-    return { runId, outcome: counts.outcome, counts, why: collected.stopped?.why ?? null, text: await report(tx, runId, { rehearsal: rehearse, everything }) };
+    return {
+      runId, outcome: counts.outcome, counts, why: collected.stopped?.why ?? null,
+      text: await report(tx, runId, { rehearsal: rehearse, everything, titles: collected.titles }),
+    };
   };
 
   if (!rehearse) return steps(db);

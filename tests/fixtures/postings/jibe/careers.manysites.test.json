@@ -1,0 +1,332 @@
+{
+ "jobs": [
+  {
+   "data": {
+    "slug": "7001",
+    "language": "en-us",
+    "languages": [
+     "en-us"
+    ],
+    "req_id": "7001",
+    "title": "Welder",
+    "description": "<p>Weld steel frames and brackets for the vehicles built on site, to drawings and work instructions.</p>",
+    "location_name": "Normal Illinois",
+    "street_address": "1 Works Way",
+    "city": "Normal",
+    "state": "Illinois",
+    "country": "United States",
+    "country_code": "US",
+    "postal_code": "61761",
+    "location_type": "LAT_LNG",
+    "latitude": 40.5109,
+    "longitude": -89.0561,
+    "categories": [
+     {
+      "name": "Manufacturing"
+     }
+    ],
+    "employment_type": "FULL_TIME",
+    "qualifications": "<ul><li>Two years of experience in MIG welding</li><li>High school diploma or GED</li></ul>",
+    "responsibilities": "<ul><li>Run MIG welding on steel and aluminium parts</li><li>Read blueprints and weld symbols</li></ul>",
+    "hiring_organization": "Manysites Works",
+    "posted_date": "2026-11-16T09:00:00+0000",
+    "update_date": "2026-11-17T09:00:00+0000",
+    "create_date": "2026-11-16T09:01:00+0000",
+    "apply_url": "https://careers.manysites.test/jobs/7001/login",
+    "meta_data": {
+     "canonical_url": "https://careers.manysites.test/jobs/7001?lang=en-us",
+     "last_mod": "2026-11-17T09:00:00+0000"
+    },
+    "full_location": "Normal, Illinois; Social Circle, Georgia; Windsor, Ontario",
+    "short_location": "Normal, Illinois",
+    "multipleLocations": true,
+    "additional_locations": [
+     {
+      "location_name": "100 Works Parkway (Social Circle Georgia)",
+      "street_address": "100 Works Parkway",
+      "city": "Social Circle",
+      "state": "Georgia",
+      "country": "United States",
+      "country_code": "US",
+      "postal_code": "30025",
+      "latitude": 33.6641,
+      "longitude": -83.7184
+     },
+     {
+      "location_name": "9 Lakeshore Road (Windsor Ontario)",
+      "street_address": "9 Lakeshore Road",
+      "city": "Windsor",
+      "state": "Ontario",
+      "country": "Canada",
+      "country_code": "CA",
+      "postal_code": "N9A 1A1",
+      "latitude": 42.3149,
+      "longitude": -83.0364
+     }
+    ]
+   }
+  },
+  {
+   "data": {
+    "slug": "7002",
+    "language": "en-us",
+    "languages": [
+     "en-us"
+    ],
+    "req_id": "7002",
+    "title": "CNC Machinist",
+    "description": "<p>Set up and run CNC mills and lathes that make the tooling for the lines on site.</p>",
+    "location_name": "Windsor Ontario",
+    "street_address": "9 Lakeshore Road",
+    "city": "Windsor",
+    "state": "Ontario",
+    "country": "Canada",
+    "country_code": "CA",
+    "postal_code": "N9A 1A1",
+    "location_type": "LAT_LNG",
+    "latitude": 42.3149,
+    "longitude": -83.0364,
+    "categories": [
+     {
+      "name": "Manufacturing"
+     }
+    ],
+    "employment_type": "FULL_TIME",
+    "qualifications": "<ul><li>Three years of experience as a CNC machinist</li><li>High school diploma or GED</li></ul>",
+    "responsibilities": "<ul><li>Set up CNC machines from programs and drawings</li><li>Measure parts with micrometers and calipers</li></ul>",
+    "hiring_organization": "Manysites Works",
+    "posted_date": "2026-11-16T09:00:00+0000",
+    "update_date": "2026-11-17T09:00:00+0000",
+    "create_date": "2026-11-16T09:01:00+0000",
+    "apply_url": "https://careers.manysites.test/jobs/7002/login",
+    "meta_data": {
+     "canonical_url": "https://careers.manysites.test/jobs/7002?lang=en-us",
+     "last_mod": "2026-11-17T09:00:00+0000"
+    },
+    "full_location": "Windsor, Ontario; Normal, Illinois",
+    "short_location": "Windsor, Ontario",
+    "multipleLocations": true,
+    "additional_locations": [
+     {
+      "location_name": "1 Works Way (Normal Illinois)",
+      "street_address": "1 Works Way",
+      "city": "Normal",
+      "state": "Illinois",
+      "country": "United States",
+      "country_code": "US",
+      "postal_code": "61761",
+      "latitude": 40.5109,
+      "longitude": -89.0561
+     }
+    ]
+   }
+  },
+  {
+   "data": {
+    "slug": "7003",
+    "language": "en-us",
+    "languages": [
+     "en-us"
+    ],
+    "req_id": "7003",
+    "title": "Maintenance Technician",
+    "description": "<p>Keep the presses, conveyors and robots of the line running, on a rotating shift.</p>",
+    "location_name": "Social Circle Georgia",
+    "street_address": "100 Works Parkway",
+    "city": "Social Circle",
+    "state": "Georgia",
+    "country": "United States",
+    "country_code": "US",
+    "postal_code": "30025",
+    "location_type": "LAT_LNG",
+    "latitude": 33.6641,
+    "longitude": -83.7184,
+    "categories": [
+     {
+      "name": "Manufacturing"
+     }
+    ],
+    "employment_type": "FULL_TIME",
+    "qualifications": "<ul><li>Two years of experience in industrial maintenance</li><li>High school diploma or GED</li></ul>",
+    "responsibilities": "<ul><li>Troubleshoot electrical and mechanical faults</li><li>Carry out preventive maintenance on the line</li></ul>",
+    "hiring_organization": "Manysites Works",
+    "posted_date": "2026-11-16T09:00:00+0000",
+    "update_date": "2026-11-17T09:00:00+0000",
+    "create_date": "2026-11-16T09:01:00+0000",
+    "apply_url": "https://careers.manysites.test/jobs/7003/login",
+    "meta_data": {
+     "canonical_url": "https://careers.manysites.test/jobs/7003?lang=en-us",
+     "last_mod": "2026-11-17T09:00:00+0000"
+    },
+    "full_location": "Social Circle, Georgia",
+    "short_location": "Social Circle, Georgia",
+    "multipleLocations": false
+   }
+  },
+  {
+   "data": {
+    "slug": "7004",
+    "language": "en-us",
+    "languages": [
+     "en-us"
+    ],
+    "req_id": "7004",
+    "title": "Welder",
+    "description": "<p>Weld steel frames and brackets for the vehicles built on site, to drawings and work instructions.</p>",
+    "location_name": "Windsor Ontario",
+    "street_address": "9 Lakeshore Road",
+    "city": "Windsor",
+    "state": "Ontario",
+    "country": "Canada",
+    "country_code": "CA",
+    "postal_code": "N9A 1A1",
+    "location_type": "LAT_LNG",
+    "latitude": 42.3149,
+    "longitude": -83.0364,
+    "categories": [
+     {
+      "name": "Manufacturing"
+     }
+    ],
+    "employment_type": "FULL_TIME",
+    "qualifications": "<ul><li>Two years of experience in MIG welding</li><li>High school diploma or GED</li></ul>",
+    "responsibilities": "<ul><li>Run MIG welding on steel and aluminium parts</li><li>Read blueprints and weld symbols</li></ul>",
+    "hiring_organization": "Manysites Works",
+    "posted_date": "2026-11-16T09:00:00+0000",
+    "update_date": "2026-11-17T09:00:00+0000",
+    "create_date": "2026-11-16T09:01:00+0000",
+    "apply_url": "https://careers.manysites.test/jobs/7004/login",
+    "meta_data": {
+     "canonical_url": "https://careers.manysites.test/jobs/7004?lang=en-us",
+     "last_mod": "2026-11-17T09:00:00+0000"
+    },
+    "full_location": "Windsor, Ontario; Monterrey, Nuevo Leon",
+    "short_location": "Windsor, Ontario",
+    "multipleLocations": true,
+    "additional_locations": [
+     {
+      "location_name": "5 Avenida Industrial (Monterrey Nuevo Leon)",
+      "street_address": "5 Avenida Industrial",
+      "city": "Monterrey",
+      "state": "Nuevo Leon",
+      "country": "Mexico",
+      "country_code": "MX",
+      "postal_code": "64000",
+      "latitude": 25.6866,
+      "longitude": -100.3161
+     }
+    ]
+   }
+  },
+  {
+   "data": {
+    "slug": "7005",
+    "language": "en-us",
+    "languages": [
+     "en-us"
+    ],
+    "req_id": "7005",
+    "title": "Maintenance Technician",
+    "description": "<p>Keep the presses, conveyors and robots of the line running, on a rotating shift.</p>",
+    "location_name": "Normal Illinois",
+    "street_address": "1 Works Way",
+    "city": "Normal",
+    "state": "Illinois",
+    "country": "United States",
+    "country_code": "US",
+    "postal_code": "61761",
+    "location_type": "LAT_LNG",
+    "latitude": 40.5109,
+    "longitude": -89.0561,
+    "categories": [
+     {
+      "name": "Manufacturing"
+     }
+    ],
+    "employment_type": "FULL_TIME",
+    "qualifications": "<ul><li>Two years of experience in industrial maintenance</li><li>High school diploma or GED</li></ul>",
+    "responsibilities": "<ul><li>Troubleshoot electrical and mechanical faults</li><li>Carry out preventive maintenance on the line</li></ul>",
+    "hiring_organization": "Manysites Works",
+    "posted_date": "2026-11-16T09:00:00+0000",
+    "update_date": "2026-11-17T09:00:00+0000",
+    "create_date": "2026-11-16T09:01:00+0000",
+    "apply_url": "https://careers.manysites.test/jobs/7005/login",
+    "meta_data": {
+     "canonical_url": "https://careers.manysites.test/jobs/7005?lang=en-us",
+     "last_mod": "2026-11-17T09:00:00+0000"
+    },
+    "full_location": "Normal, Illinois; Normal, Illinois",
+    "short_location": "Normal, Illinois",
+    "multipleLocations": true,
+    "additional_locations": [
+     {
+      "location_name": "40 Press Road (Normal Illinois)",
+      "street_address": "40 Press Road",
+      "city": "Normal",
+      "state": "Illinois",
+      "country": "United States",
+      "country_code": "US",
+      "postal_code": "61761",
+      "latitude": 40.5201,
+      "longitude": -88.9702
+     }
+    ]
+   }
+  },
+  {
+   "data": {
+    "slug": "7006",
+    "language": "en-us",
+    "languages": [
+     "en-us"
+    ],
+    "req_id": "7006",
+    "title": "Payroll Analyst",
+    "description": "<p>Run the payroll for the sites and answer questions about pay from the people who work there.</p>",
+    "location_name": "Normal Illinois",
+    "street_address": "1 Works Way",
+    "city": "Normal",
+    "state": "Illinois",
+    "country": "United States",
+    "country_code": "US",
+    "postal_code": "61761",
+    "location_type": "LAT_LNG",
+    "latitude": 40.5109,
+    "longitude": -89.0561,
+    "categories": [
+     {
+      "name": "Finance"
+     }
+    ],
+    "employment_type": "FULL_TIME",
+    "qualifications": "<ul><li>Two years of experience in payroll</li><li>A degree in accounting or finance</li></ul>",
+    "responsibilities": "<ul><li>Process payroll each week</li><li>Reconcile payroll accounts</li></ul>",
+    "hiring_organization": "Manysites Works",
+    "posted_date": "2026-11-16T09:00:00+0000",
+    "update_date": "2026-11-17T09:00:00+0000",
+    "create_date": "2026-11-16T09:01:00+0000",
+    "apply_url": "https://careers.manysites.test/jobs/7006/login",
+    "meta_data": {
+     "canonical_url": "https://careers.manysites.test/jobs/7006?lang=en-us",
+     "last_mod": "2026-11-17T09:00:00+0000"
+    },
+    "full_location": "Normal, Illinois; Social Circle, Georgia",
+    "short_location": "Normal, Illinois",
+    "multipleLocations": true,
+    "additional_locations": [
+     {
+      "location_name": "100 Works Parkway (Social Circle Georgia)",
+      "street_address": "100 Works Parkway",
+      "city": "Social Circle",
+      "state": "Georgia",
+      "country": "United States",
+      "country_code": "US",
+      "postal_code": "30025",
+      "latitude": 33.6641,
+      "longitude": -83.7184
+     }
+    ]
+   }
+  }
+ ]
+}
