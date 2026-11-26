@@ -461,12 +461,12 @@ input {
 }
 
 /*
- * Skill paths (components/path/, components/route/).
+ * Skill paths (components/path/, components/route/, components/layout/Tree.tsx).
  *
  * A tag is one skill; a group box holds a group's tags; a career's path is a
- * route, stops down one trunk. Lines are hairlines in the strong border
- * colour; what a person holds is lit and the rest is quiet. Nothing here
- * names a colour of its own.
+ * connector tree on its page and stops down the page in the employer's
+ * editor. Lines are hairlines in the strong border colour; what a person
+ * holds is lit and the rest is quiet. Nothing here names a colour of its own.
  */
 @layer components {
   /*
@@ -535,12 +535,11 @@ input {
   }
 
   /*
-   * The route (components/route/): a career's path as stops down one line,
-   * at every width. The trunk is one hairline through the centre of every
-   * mark: each line of the route draws the stretch beside itself, so it is
-   * whole however tall a row turns out, with nothing to measure. A mark is 44
-   * px square and stands on the trunk; --route-pad is the room above and
-   * under a line.
+   * The route (components/route/Route.tsx): a career's path cut into its
+   * stops, down the page, as the employer's editor of a company's version
+   * draws it. Its rows are switches (tags), so it has no trunk and nothing
+   * stands on one. --route-mark is a full finger; --route-pad is the room
+   * above and under a section's line.
    */
   .route {
     --route-mark: 44px;
@@ -553,28 +552,7 @@ input {
     min-width: 0;
     max-width: 35rem;
   }
-  /* The side column is the wide screen's; the block above the route is the narrow one's. */
-  .route-side {
-    display: none;
-  }
-  @media (min-width: 1024px) {
-    .route[data-route-two] {
-      grid-template-columns: minmax(0, 1fr) 288px;
-      column-gap: 4rem;
-      align-items: start;
-    }
-    .route[data-route-two] .route-next {
-      display: none;
-    }
-    .route[data-route-two] > .route-side {
-      display: block;
-      position: sticky;
-      top: 5.5rem;
-      min-width: 0;
-      padding-top: 14px;
-    }
-  }
-  /* A mark's glyph stands 12px inside its button: the stops are drawn that far left, so marks line up with the heading above them. */
+  /* A tag's box stands 12px inside its button: the stops are drawn that far left, so they line up with the heading above them. */
   .route-stops {
     margin: 0 0 0 -12px;
     padding: 0;
@@ -592,48 +570,7 @@ input {
     min-width: 0;
     padding: var(--route-pad) 0;
   }
-  .route-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: calc(var(--route-mark) / 2 - 0.5px);
-    width: 1px;
-    background-color: var(--line-strong);
-  }
-  .route-item[data-first]::before {
-    top: calc(var(--route-pad) + var(--route-mark) / 2);
-  }
-  .route-item[data-last]::before {
-    bottom: auto;
-    height: calc(var(--route-pad) + var(--route-mark) / 2);
-  }
-  .route-item[data-first][data-last]::before {
-    display: none;
-  }
-  /* What stands on the trunk: a mark, a section's ring, or a dot. Each covers the line behind it. */
-  .route-node {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex: none;
-    width: var(--route-mark);
-    height: var(--route-mark);
-    align-items: center;
-    justify-content: center;
-  }
-  .route-node > svg {
-    border-radius: 9999px;
-    background-color: var(--bg);
-  }
-  .route-dot {
-    width: 9px;
-    height: 9px;
-    border: 1.5px solid var(--text-3);
-    border-radius: 9999px;
-    background-color: var(--bg);
-  }
-  /* A section's line: the group's name in small capitals, a figure, the chevron. */
+  /* A section's line: the group's name, how many skills, the chevron. */
   .route-head {
     --route-pad: 6px;
   }
@@ -646,11 +583,9 @@ input {
     align-items: flex-start;
     gap: 10px;
     padding-right: 4px;
+    padding-left: 12px;
     border-radius: var(--radius);
     text-align: left;
-  }
-  .route-head-button > .route-node {
-    margin-right: -2px;
   }
   /* The chevron stands level with the group's name, on the first line. */
   .route-head-button > svg {
@@ -677,7 +612,7 @@ input {
   .route-head-count::before {
     content: ' ';
   }
-  /* One quiet line of the skills' names, two at most: secondary ink, a seeker's held ones in full ink. */
+  /* A closed section: one quiet line of its skills' names, two at most, in secondary ink. */
   .route-head-names {
     display: block;
     margin-top: 1px;
@@ -687,46 +622,6 @@ input {
   }
   .route-head-names > [data-name] {
     overflow-wrap: anywhere;
-  }
-  /* A skill's row: the name opens the skill's page, and wraps when it is long. */
-  .route-row-name {
-    display: flex;
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: var(--route-mark);
-    flex-direction: column;
-    justify-content: center;
-    padding: 6px 8px 6px 8px;
-    font-size: 15px;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-    color: var(--text-1);
-  }
-  .route-row[data-route-state='held'] .route-row-name,
-  .route-row[data-route-state='later'] .route-row-name {
-    color: var(--text-2);
-  }
-  .route-row[data-route-state='next'] .route-row-name {
-    font-weight: 600;
-  }
-  .route-row-word {
-    display: flex;
-    flex: none;
-    height: var(--route-mark);
-    align-items: center;
-    padding: 0 4px 0 8px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-1);
-  }
-  /* The ladder: one label and the careers beside it, wrapping under it on a narrow screen. */
-  .route-ladder {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 0 16px;
   }
   /*
    * The connector tree (components/layout/Tree.tsx): a root, and nodes
@@ -1102,14 +997,6 @@ input {
   /* The room under a card before the next node, inside the node's own item so its spine runs on through it. */
   .tree-item:has(> .tree-card) {
     padding-bottom: 12px;
-  }
-
-  /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
-  .route[data-route-plain] .route-item::before {
-    display: none;
-  }
-  .route[data-route-plain] .route-head-button {
-    padding-left: 12px;
   }
 
   @media (prefers-reduced-motion: reduce) {
