@@ -4,36 +4,32 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn, focusRing } from '@/lib/utils';
 
 /*
- * The contained system: the few parts every public page builds a compound
- * thing from, so what belongs together is drawn together and what opens says
- * so. Each part is for one thing:
+ * The contained system: the few parts a page builds a compound thing from, so
+ * what belongs together is drawn together and what opens says so. Each part
+ * is for one thing:
  *
  * - `Panel`: the frame. A hairline edge (`--line`) with an 8px corner, no
  *   fill, no shadow. Anything made of several parts sits in one: a list of
- *   records, a skill group of the Skills list, a connector tree. A
- *   panel never holds another panel (but for a tree node's card, below);
- *   inside it, parts are parted by hairlines. `PanelHead` is its heading row.
- * - `Disclosure`: a panel whose heading row is the button that opens it. The
- *   chevron stands at the row's right end and points down while it is closed,
- *   up while it is open; open, the frame's edge strengthens and the body
- *   appears inside the same frame, under a hairline, on the page's own colour
- *   (an open thing is never told by a grey fill). Everything that opens in
- *   place on a page is one, and each starts closed.
+ *   records (`RecordList`), a skill group of the Skills list, a connector
+ *   tree. A panel never holds another panel (but for a tree node's card,
+ *   below); inside it, parts are parted by hairlines. `PanelHead` is its
+ *   heading row, `PanelFooterLink` a last row that leads on.
  * - `Band`: the start of a long part of a page (a domain of the Skills list):
  *   a raised bar the width of the page, its name at section size, that opens
- *   its part with the same chevron, and while it is open holds under the
- *   header so nobody loses which part they are in. Bands stack as an index
- *   while closed. The raised fill marks the bar as the start of a part,
- *   whether it is open or not: it is never a state.
+ *   its part, and while it is open holds under the header so nobody loses
+ *   which part they are in. Bands stack as an index while closed. The raised
+ *   fill marks the bar as the start of a part, whether it is open or not: it
+ *   is never a state.
  * - `Tree` (`components/layout/Tree.tsx`): one thing and what hangs off it,
  *   as nodes joined by hairlines inside one panel (a career's skills, where
  *   it leads, the civilian careers a military one reaches). What a node is
  *   opens as its card (`TreeCard`), the one frame a panel holds: the node's
  *   own line runs into it, so it is never loose.
  *
- * Two marks at a row's right end, each meaning one thing: a chevron pointing
- * down (up when open) opens something here; a chevron pointing right goes to
- * another page.
+ * Everything that opens in place starts closed. Two marks at a row's right
+ * end, each meaning one thing: a chevron pointing down (up when open) opens
+ * something here (`OpenChevron`); a chevron pointing right goes to another
+ * page.
  *
  * Sections are headed with `SectionHeading` (`components/layout/Page.tsx`,
  * through `DetailSection`): 20px / 600, the same on every page.
@@ -44,12 +40,6 @@ export const panelClass = 'min-w-0 overflow-clip rounded-lg border border-line';
 
 /** A row inside a panel: its own padding, the hover reaching the frame (only where there is a pointer), the focus ring drawn inside it. */
 export const panelRowClass = cn('flex min-h-12 w-full min-w-0 items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover focus-visible:-outline-offset-2', focusRing);
-
-/** The primary button: the inverse pair, a full finger tall on a phone. */
-export const primaryActionClass = cn(
-  'inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-inverse-bg px-4 text-sm font-medium text-inverse-text transition-colors hover:bg-inverse-bg/90 sm:h-10',
-  focusRing
-);
 
 /** The secondary button: a hairline on nothing. */
 export const secondaryActionClass = cn(
@@ -81,46 +71,6 @@ export function PanelHead({ title, meta, as: Heading = 'h3', className }: { titl
     <div className={cn('flex min-h-12 items-center justify-between gap-3 border-b border-line px-4 py-2.5', className)}>
       <Heading className="min-w-0 break-words text-[15px] font-semibold leading-snug text-text-1">{title}</Heading>
       {meta && <span className="shrink-0 text-[13px] tabular-nums text-text-3">{meta}</span>}
-    </div>
-  );
-}
-
-interface DisclosureProps {
-  /** The heading row's name: what is inside. */
-  title: ReactNode;
-  /** A figure or word at the right of the heading row ("10 skills"). */
-  meta?: ReactNode;
-  /** A second line under the name, in meta ink. */
-  detail?: ReactNode;
-  open: boolean;
-  onToggle: () => void;
-  /** Drawn inside the frame while open. */
-  children: ReactNode;
-  /** What a screen reader hears the opened part called; the title when it is text. */
-  label?: string;
-  /** The heading level the name is (the button stands inside it). */
-  as?: 'h2' | 'h3' | 'h4';
-  className?: string;
-}
-
-/** A panel whose heading row is the button that opens it. See the notes at the top of this file. */
-export function Disclosure({ title, meta, detail, open, onToggle, children, label, as: Heading = 'h3', className, ...rest }: DisclosureProps & Record<`data-${string}`, string | undefined>) {
-  const id = useId();
-  return (
-    <div className={cn(panelClass, 'transition-colors', open && 'border-line-strong', className)} data-disclosure="" data-open={open || undefined} {...rest}>
-      <Heading className="m-0">
-        <button type="button" aria-expanded={open} aria-controls={id} onClick={onToggle} className={cn(panelRowClass, 'min-h-14 gap-4 py-3')}>
-          <span className="min-w-0 flex-1">
-            <span className="block break-words text-[15px] font-semibold leading-snug text-text-1">{title}</span>
-            {detail && <span className="mt-0.5 block break-words text-[13px] font-normal leading-[18px] text-text-3">{detail}</span>}
-          </span>
-          {meta && <span className={cn('shrink-0 text-right text-[13px] font-normal tabular-nums text-text-3', detail && 'self-start pt-0.5')}>{meta}</span>}
-          <OpenChevron open={open} />
-        </button>
-      </Heading>
-      <div id={id} role="region" aria-label={label ?? (typeof title === 'string' ? title : undefined)} hidden={!open} className="border-t border-line">
-        {open && children}
-      </div>
     </div>
   );
 }

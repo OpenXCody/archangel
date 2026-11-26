@@ -25,25 +25,25 @@ import { type Head, OpenJobsSection, MilitaryCareerRows } from './parts';
  *    career's kind says its service, with the service's mark, and the
  *    service's word is the way to its page ("Air Force specialty · 2A7X1");
  *    its name is the service's own title for the job.
- * 2. Its skills, straight after (`SkillGroups`): one sentence that says how
- *    many skills in how many groups and why they stand in this order (and,
- *    for a seeker who holds some, how many), then one frame holding a
+ * 2. Its skills, straight after (`SkillGroups`): one frame holding a
  *    connector tree (`Tree`): the career as the root, an elbow to each skill
  *    group, every group closed when the page arrives; a group opens its own
  *    branch of skills, and a skill opens what it is under itself
- *    (`SkillPreview`). Nothing asks anyone to sign in.
- * 3. Where it leads (a civilian career on a ladder): one panel, where people
+ *    (`SkillPreview`). A seeker's count stands beside the heading once they
+ *    hold a skill. Nothing asks anyone to sign in.
+ * 3. Where it leads (a civilian career on a ladder): one frame, where people
  *    come from, this career, where it leads, as the same connector tree
- *    (`CareerLadder`). Its frame is the place the career's own Atlas will take.
+ *    (`CareerLadder`).
  * 4. What else a person can do with it. A military career: the civilian
- *    careers within reach (`CivilianReach`), the same connector tree, the
- *    career its root and each civilian career a node that opens to what it
- *    asks that this path does not. A civilian career: its open
- *    jobs, the companies with their own version of it, the factories that
- *    have it on record, and last the military careers that reach it. Each a
- *    panel of rows. A section with nothing in it is not drawn, and nothing is
- *    listed twice.
+ *    careers within reach (`CivilianReach`), the same connector tree, each
+ *    civilian career a node that opens to what it asks that this path does
+ *    not. A civilian career: its open jobs, the companies with their own
+ *    version of it, the factories that have it on record, and last the
+ *    military careers that reach it. Each a panel of rows. A section with
+ *    nothing in it is not drawn, and nothing is listed twice.
  *
+ * The page's name is said once, in its heading: no tree's root says it again.
+ * No section carries a sentence about itself: a heading, then what it heads.
  * The page reads a person's marks and changes none: setting a goal and
  * marking a skill are done on Profile, never here.
  */
@@ -89,28 +89,18 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
           <p className="text-sm text-text-2">None yet.</p>
         </DetailSection>
       ) : (
-        <SkillGroups
-          title={service ? (data.officialTitle ?? data.title) : data.title}
-          skills={skills}
-          marks={marks}
-          keepAs={data.id}
-          before={marks && <ErrorNote error={markError} className="mb-3" />}
-        />
+        <SkillGroups skills={skills} marks={marks} keepAs={data.id} before={marks && <ErrorNote error={markError} className="mb-3" />} />
       )}
 
-      {/* Where it stands among careers: the place the career's own Atlas will take. */}
+      {/* Where it stands among careers: where people come to it from, and where it leads. */}
       {onLadder && (
-        <DetailSection
-          id="ladder"
-          title={(data.leadsTo?.length ?? 0) > 0 ? 'Where it leads' : 'Where it comes from'}
-          description={ladderSentence(data.comesFrom?.length ?? 0, data.leadsTo?.length ?? 0)}
-        >
-          <CareerLadder title={data.title} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
+        <DetailSection id="ladder" title={(data.leadsTo?.length ?? 0) > 0 ? 'Where it leads' : 'Where it comes from'}>
+          <CareerLadder comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
         </DetailSection>
       )}
 
       {/* A military career: what else its skills are for, the civilian careers they reach. */}
-      {service && <CivilianReach key={data.id} title={data.officialTitle ?? data.title} careers={withinReach} />}
+      {service && <CivilianReach key={data.id} careers={withinReach} />}
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
       {/* The newest five; "All N" leads to the rest on Jobs. */}
@@ -118,7 +108,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
       {versions.length > 0 && (
-        <DetailSection id="companies" title="Companies" description="Each says how this career is done there.">
+        <DetailSection id="companies" title="Companies">
           <RecordList
             data-career-versions=""
             footer={
@@ -173,20 +163,12 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       {/* Last, and only when some do: the military careers whose path covers a third or more of this one's. */}
       {reachedBy.length > 0 && (
-        <DetailSection id="military" title="Military careers that reach this" description="How much of this career's skills each already has.">
+        <DetailSection id="military" title="Military careers that reach this">
           <MilitaryCareerRows careers={reachedBy} data-reached-by="" />
         </DetailSection>
       )}
     </>
   );
-}
-
-/** The ladder's one sentence: what its sides are, and that several on a side are alternatives. */
-function ladderSentence(from: number, to: number): string {
-  const either = to > 1 || from > 1 ? ' Each is an alternative, not a sequence.' : '';
-  if (from > 0 && to > 0) return `Where people usually come to this career from, and where it usually leads next.${either}`;
-  if (to > 0) return `The careers people usually move on to from this one.${either}`;
-  return `Where people usually come to this career from.${either}`;
 }
 
 /**

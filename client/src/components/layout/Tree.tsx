@@ -8,32 +8,41 @@ import { OpenChevron } from './Panel';
 
 /*
  * The connector tree: one thing (the root) and what hangs off it, drawn as
- * nodes joined by hairlines. A career's ladder (`CareerLadder`: where people
- * come to it from, where it leads), a career's skills (`SkillGroups`: the
- * career, its skill groups, each group's skills) and a military career's
+ * nodes joined by hairlines. A career's skills (`SkillGroups`: the career,
+ * its skill groups, each group's skills), a career's ladder (`CareerLadder`:
+ * where people come to it from, where it leads) and a military career's
  * civilian careers within reach (`CivilianReach`) are each one.
  *
  * The rule: everything in a tree is a node on a line, or inside a node's own
  * card that the node's line runs into. Nothing stands loose, no stretch of
  * line runs past nothing, and nothing that acts (a page to go to, more of a
- * list) is drawn as a node: it is a button, inside a card or under the tree.
+ * list) is drawn as a node: it is a link inside a card, or a button under
+ * the tree.
  *
  * The grammar, the same at every level:
- * - The root is the one filled dot, its name beside it.
+ * - The root is the page's own record, so it never says the record's name
+ *   again: it is the one larger filled dot and what hangs off it, as a count
+ *   ("23 skills", "22 careers") or, on a ladder, "This career".
  * - A branch is a spine (an upright hairline) with an elbow out to each of
  *   its nodes. The parent's own line meets the spine; every line is whole and
  *   ends on a node, on the spine, or on the edge of a card.
  * - A node is one row, the same height everywhere (44px for a name of one
- *   line), running to the frame's right edge: its mark (an open ring; a skill
- *   a seeker holds, the product's mark), its name with its figure straight
- *   after it in meta ink ("Composite fabrication · 10 skills"), and at the
- *   row's right end what it does: a chevron pointing right goes to another
- *   page (`TreeLink`), one pointing down opens something here (`TreeToggle`),
- *   up while it is open. A node that only names what hangs off it (a ladder's
- *   "Comes from" down a phone) is `TreeHeading`: the ring and the words in
- *   small capitals, nothing to press. A second line under the name is for
- *   what is particular to one node (the makes a company runs on a skill),
- *   never for a figure every node has.
+ *   line), running to the frame's right edge: its mark, its name with its
+ *   figure straight after it in meta ink ("Composite fabrication · 10
+ *   skills"), and at the row's right end what it does: a chevron pointing
+ *   right goes to another page (`TreeLink`), one pointing down opens
+ *   something here (`TreeToggle`), up while it is open. A node that only
+ *   names what hangs off it (a ladder's "Comes from" down a phone) is
+ *   `TreeHeading`: the mark and the words in small capitals, nothing to
+ *   press. A second line under the name is for what is particular to one
+ *   node (the makes a company runs on a skill), never for a figure every
+ *   node has.
+ * - Open and closed are told apart by the mark, the ink and the chevron
+ *   together: a closed node is an open ring and its name at body weight; an
+ *   open one is a filled dot (as the root is, whose branch always shows), its
+ *   name heavier, its chevron turned, and its line running on down into what
+ *   it opened. A skill a seeker holds keeps the product's mark (the filled
+ *   check) open or closed, one being learned the half mark.
  * - What a node opens stands straight under it, at every width, and its
  *   siblings follow straight after: either a branch of its own (`TreeBranch
  *   nested`), indented, its spine running down from under the node's mark and
@@ -64,7 +73,7 @@ type Layout = 'wide' | 'stacked';
 const LayoutContext = createContext<Layout>('stacked');
 
 /** Whether the tree a part stands in is drawn across (`wide`) or down (`stacked`). */
-export function useTreeLayout(): Layout {
+function useTreeLayout(): Layout {
   return useContext(LayoutContext);
 }
 
@@ -106,31 +115,30 @@ export function Tree({ across, shape, before = false, after = false, className, 
   );
 }
 
-/** What a node's mark is: the root's filled dot, a node's open ring, or a seeker's mark on a skill. */
+/** What a node's mark is: the root's filled dot, a node's ring (open while it is closed, filled while it is open), or a seeker's mark on a skill. */
 export type TreeMark = 'root' | 'node' | 'held' | 'learning';
 
 /** A node's mark, in a box the width of every mark so the names line up and the lines meet each one at its edge. */
-export function TreeMarker({ mark }: { mark: TreeMark }) {
+function TreeMarker({ mark }: { mark: TreeMark }) {
   return (
     <span className="tree-mark" aria-hidden="true" data-mark={mark}>
-      {/* A seeker's mark at the size of a ring, so a held skill is never louder than the career it belongs to. */}
-      {mark === 'held' || mark === 'learning' ? <SkillMark status={mark} className="h-3 w-3" /> : <span className="tree-dot" />}
+      {/* A seeker's mark, a little larger than a ring so its check reads and it is never taken for an open node's dot. */}
+      {mark === 'held' || mark === 'learning' ? <SkillMark status={mark} className="h-3.5 w-3.5" /> : <span className="tree-dot" />}
     </span>
   );
 }
 
-/** The root: the filled dot and the name. Across, a ladder's column says what it is above it (`label`). */
-export function TreeRoot({ label, children, ...rest }: { label?: string; children: ReactNode } & Record<`data-${string}`, string | boolean | undefined>) {
+/**
+ * The root: the filled dot and what hangs off it, in a few words ("23
+ * skills", "This career"). Never the record's name: the page's heading says
+ * that, once.
+ */
+export function TreeRoot({ children, ...rest }: { children: ReactNode } & Record<`data-${string}`, string | boolean | undefined>) {
   const layout = useTreeLayout();
   const nameRef = useSnugName(layout === 'wide', children);
   return (
     <div className="tree-this">
-      {label && layout === 'wide' && (
-        <p className={cn(labelClass, 'tree-label')} data-for="this">
-          {label}
-        </p>
-      )}
-      <div className="tree-root" {...rest}>
+      <div className="tree-root" data-tree-root="" {...rest}>
         <TreeMarker mark="root" />
         <span ref={nameRef} className="min-w-0 break-words text-sm font-semibold leading-5 text-text-1">
           {children}
@@ -252,9 +260,9 @@ function Words({ title, figure, meta }: { title: ReactNode; figure?: ReactNode; 
   return (
     <span className="min-w-0 flex-1">
       <span className="block break-words text-sm leading-5 text-text-1">
-        {title}
+        <span className="tree-name">{title}</span>
         {figure != null && figure !== false && (
-          <span className="whitespace-nowrap text-xs tabular-nums text-text-3" data-tree-figure="">
+          <span className="whitespace-nowrap text-xs font-normal tabular-nums text-text-3" data-tree-figure="">
             <span aria-hidden="true"> · </span>
             <span className="sr-only">, </span>
             {figure}
@@ -326,8 +334,9 @@ export function TreeToggle({ mark = 'node', title, meta, figure, open, onToggle,
 
 /**
  * A node that names what hangs off it and does nothing itself (a ladder's
- * "Comes from" and "Leads to" down a phone): the ring and the words in small
- * capitals, its own branch straight under it.
+ * "Comes from" and "Leads to" down a phone): the mark and the words in small
+ * capitals, its own branch straight under it. Its item is always open, so its
+ * mark is the filled dot.
  */
 export function TreeHeading({ children, as: Heading = 'h3' }: { children: ReactNode; as?: 'h3' | 'h4' }) {
   return (

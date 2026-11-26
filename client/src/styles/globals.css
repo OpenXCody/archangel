@@ -785,27 +785,30 @@ input {
   }
   .tree[data-layout='wide'][data-shape='ladder'][data-before][data-after] {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
-    grid-template-areas: 'lb lt la' 'before this after';
+    grid-template-areas: 'lb . la' 'before this after';
   }
   .tree[data-layout='wide'][data-shape='ladder'][data-after]:not([data-before]) {
     grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
-    grid-template-areas: 'lt la' 'this after';
+    grid-template-areas: '. la' 'this after';
   }
   .tree[data-layout='wide'][data-shape='ladder'][data-before]:not([data-after]) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
-    grid-template-areas: 'lb lt' 'before this';
+    grid-template-areas: 'lb .' 'before this';
   }
   /*
-   * Across: a tree is its root, only as wide as its name needs (one line for
-   * most careers, two at most, balanced), and its branch in the next column,
-   * level with the first node, its rows running to the frame's right edge as
-   * a ladder's do; what a node of it opens stands under that node, in the
-   * same column. Its lines are measured as a ladder's are, so the two read as
-   * one drawing.
+   * Across: a tree is its root, only as wide as its few words need, and its
+   * branch in the next column, level with the first node, its rows running
+   * to the frame's right edge as a ladder's do; what a node of it opens
+   * stands under that node, in the same column. Its lines are measured as a
+   * ladder's are, so the two read as one drawing.
    */
   .tree[data-layout='wide'][data-shape='tree'] {
     grid-template-columns: fit-content(16rem) minmax(0, 1fr);
     grid-template-areas: 'this after';
+  }
+  /* Two trees on one page (a military career's skills, then the careers they reach) keep their spines on one upright. */
+  .tree[data-layout='wide'][data-shape='tree'] .tree-root {
+    min-width: 7.5rem;
   }
   .tree[data-layout='wide'] .tree-this,
   .tree[data-layout='wide'] .tree-side {
@@ -830,9 +833,6 @@ input {
   }
   .tree[data-layout='wide'] .tree-label[data-for='before'] {
     grid-area: lb;
-  }
-  .tree[data-layout='wide'] .tree-label[data-for='this'] {
-    grid-area: lt;
   }
   .tree[data-layout='wide'] .tree-label[data-for='after'] {
     grid-area: la;
@@ -859,6 +859,18 @@ input {
     height: var(--tree-dot);
     border-color: var(--text-1);
     background-color: var(--text-1);
+  }
+  /*
+   * Open and closed: a closed node is an open ring and its name at body
+   * weight; an open one is a filled dot, as the root is, and its name is
+   * heavier. A seeker's own mark on a skill stays as it is either way.
+   */
+  .tree-item[data-open] > .tree-node .tree-dot {
+    border-color: var(--text-1);
+    background-color: var(--text-1);
+  }
+  .tree-item[data-open] > .tree-node .tree-name {
+    font-weight: 600;
   }
 
   /* The root: the filled dot and the name, with its line out to each branch. */
@@ -1000,7 +1012,7 @@ input {
    * line starts a little lower under it.
    */
   .tree-node:has(.tree-mark[data-mark='held'], .tree-mark[data-mark='learning']) {
-    --tree-under: 6px;
+    --tree-under: 7px;
   }
   .tree-item[data-open] > .tree-node::after {
     content: '';

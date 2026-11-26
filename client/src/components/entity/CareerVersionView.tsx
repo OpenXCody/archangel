@@ -22,15 +22,16 @@ export function versionEditorPath(companyId: string, occupationId: string): stri
 
 /**
  * A company's version of a career ("Boeing CNC Operator"): the career's own
- * page, at the company. The same heading block and the same route, drawn from
- * the standard's skills with the company's changes applied: a skill it adds
- * says "Added", one it leaves out is not among the groups (the tree's last
- * node, "Left out of the standard", says how many and opens their names), and
- * a skill's node names the makes the company runs.
+ * page, at the company. The same heading block and the same tree of skills,
+ * drawn from the standard's skills with the company's changes applied: a
+ * skill it adds says "Added", one it leaves out is not among the groups (the
+ * tree's last node, "Left out of the standard", says how many and opens
+ * their names), and a skill's node names the makes the company runs. A
+ * version that changes nothing is the standard's tree, with neither.
  *
  * A seeker's marks and progress work as on the standard, counted against the
  * version's skills; a make the company runs that the person has run too is
- * brighter. One line under the name leads to the company and back to the
+ * brighter. The tags under the name lead to the company and back to the
  * standard.
  */
 export default function CareerVersionView({ data, at, head }: { data: OccupationDetail; at: string; head: Head }) {
@@ -100,8 +101,6 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       })),
     [version.skills, ranMakes]
   );
-  const leftOut = version.leftOut;
-  const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
 
   // The company's own people, and an admin, change it from here.
   const user = account?.user;
@@ -116,7 +115,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           canEdit ? (
             <Link
               to={versionEditorPath(company.id, data.id)}
-              className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}
+              className={cn(secondaryActionClass, 'px-3 sm:h-9')}
               data-version-edit
             >
               Edit
@@ -141,20 +140,12 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       ) : (
         // The same skills by group as the standard's page, the company's changes applied.
         <SkillGroups
-          title={version.title}
           skills={skills}
           marks={marks}
           keepAs={`${data.id}@${company.id}`}
           before={marks && <ErrorNote error={markError} className="mb-3" />}
           // What the company leaves out of the standard is not among the groups: the tree's last node holds it, closed.
-          leftOut={leftOut}
-          after={
-            same && (
-              <p className="mt-4 text-sm text-text-3" data-version-same>
-                The same skills as the standard path.
-              </p>
-            )
-          }
+          leftOut={version.leftOut}
         />
       )}
 

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../../lib/media';
 import { ShowAll } from '../layout/Page';
 import { panelClass } from '../layout/Panel';
@@ -15,11 +14,11 @@ const ACROSS = '(min-width: 640px)';
 /**
  * A career's place on its ladder, as one connector tree (`Tree`) in one
  * frame: where people come to it from, the career itself as the root, and
- * where it leads. Each career beside it is a node that opens its page.
- * Several on a side are alternatives, not a sequence.
+ * where it leads. The root says "This career" (the page's heading has its
+ * name); each career beside it is a node that opens its page.
  *
- * From 640 px the three stand side by side under their labels (Comes from,
- * This career, Leads to), the career's line running out to a spine on each
+ * From 640 px the three stand side by side, the sides under their labels
+ * (Comes from, Leads to), the career's line running out to a spine on each
  * side and an elbow to each career there: the career in the middle of its
  * sides, or, when a side runs past three careers, all three on the first row,
  * each label straight over its first node. Under 640 px it stands down the
@@ -30,25 +29,8 @@ const ACROSS = '(min-width: 640px)';
  * A side of more than four names three, and "Show all", the frame's last row
  * under the tree, shows the rest in place: more of a list is a button, never
  * a node.
- *
- * Its frame is the place the career's own Atlas will take (`atlas`,
- * `data-career-atlas-slot`), over the same careers. The frame, its heading and
- * its place on the page (after the skills, before the open jobs) are the
- * Atlas's, and these nodes stay under it as its words.
  */
-export function CareerLadder({
-  title,
-  comesFrom = [],
-  leadsTo = [],
-  atlas,
-}: {
-  /** The career this page is about. */
-  title: string;
-  comesFrom?: LadderCareer[];
-  leadsTo?: LadderCareer[];
-  /** The career's Atlas, when there is one to draw: it stands at the top of the frame. */
-  atlas?: React.ReactNode;
-}) {
+export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[] }) {
   const across = useMediaQuery(ACROSS);
   const [all, setAll] = useState(false);
   if (comesFrom.length === 0 && leadsTo.length === 0) return null;
@@ -61,12 +43,7 @@ export function CareerLadder({
   const nodes = (careers: LadderCareer[]) =>
     careers.map((career) => <TreeItem key={career.id} node={<TreeLink to={`/occupations/${career.id}`}>{career.title}</TreeLink>} />);
   return (
-    <div className={cn(panelClass, 'min-w-0')} data-career-ladder data-career-atlas-slot>
-      {atlas && (
-        <div className="border-b border-line" data-career-atlas>
-          {atlas}
-        </div>
-      )}
+    <div className={panelClass} data-career-ladder>
       {across ? (
         <Tree across="sm" shape="ladder" before={hasFrom} after={hasTo} data-top={from.length > SHOWN || to.length > SHOWN || undefined}>
           {hasFrom && (
@@ -74,9 +51,7 @@ export function CareerLadder({
               {nodes(from)}
             </TreeBranch>
           )}
-          <TreeRoot label="This career" data-ladder-this="">
-            {title}
-          </TreeRoot>
+          <TreeRoot data-ladder-this="">This career</TreeRoot>
           {hasTo && (
             <TreeBranch side="after" label="Leads to" data-path-ladder="after">
               {nodes(to)}
@@ -85,7 +60,7 @@ export function CareerLadder({
         </Tree>
       ) : (
         <Tree across="sm" shape="ladder" after>
-          <TreeRoot data-ladder-this="">{title}</TreeRoot>
+          <TreeRoot data-ladder-this="">This career</TreeRoot>
           <TreeBranch aria-label="Where it leads">
             {hasFrom && (
               <TreeItem open node={<TreeHeading>Comes from</TreeHeading>}>

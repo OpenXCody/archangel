@@ -176,7 +176,7 @@ export default function EntityDetail() {
     edit: canEdit ? (
       <Link
         to={editPath(RECORD_KIND[entityType], data.id)}
-        className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}
+        className={cn(secondaryActionClass, 'px-3 sm:h-9')}
         data-admin-edit
       >
         Edit

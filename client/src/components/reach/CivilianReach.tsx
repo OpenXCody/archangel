@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { plural } from '@/lib/utils';
 import type { CareerWithinReach } from '../../lib/api';
 import { DetailSection, ShowAll } from '../layout/Page';
 import { panelClass } from '../layout/Panel';
@@ -7,7 +8,8 @@ import { Tree, TreeBranch, TreeCard, TreeCardLink, TreeCardNames, TreeItem, Tree
 /**
  * "Civilian careers within reach", on a military career's page, after its
  * skills: what else a person can do with them, drawn as the same connector
- * tree as the skills above it (`Tree`). The military career is the root; an
+ * tree as the skills above it (`Tree`). The root is the military career, said
+ * as what hangs off it ("22 careers": the page's heading has its name); an
  * elbow runs to each civilian career whose path this one covers a third or
  * more of, the closest first, each one row with its figure straight after
  * its name ("Shipfitter · 13 of 18 skills"); five, then "Show all" as the
@@ -19,15 +21,11 @@ import { Tree, TreeBranch, TreeCard, TreeCardLink, TreeCardNames, TreeItem, Tree
  * What carries over is not listed again: the skills above are this path's.
  * Computed from the two paths: nothing here is a stored link.
  */
-export function CivilianReach({ title, careers }: { title: string; careers: CareerWithinReach[] }) {
+export function CivilianReach({ careers }: { careers: CareerWithinReach[] }) {
   if (careers.length === 0) return null;
   return (
-    <DetailSection
-      id="reach"
-      title="Civilian careers within reach"
-      description="Where these skills carry over. Each opens to the skills it asks that this path does not."
-    >
-      <ReachTree title={title} careers={careers} />
+    <DetailSection id="reach" title="Civilian careers within reach">
+      <ReachTree careers={careers} />
     </DetailSection>
   );
 }
@@ -47,7 +45,7 @@ function covers(career: CareerWithinReach): string {
 }
 
 /** The careers as the root's branch, each opening its card: one at a time, none to begin with. */
-function ReachTree({ title, careers }: { title: string; careers: CareerWithinReach[] }) {
+function ReachTree({ careers }: { careers: CareerWithinReach[] }) {
   const base = useId();
   const [all, setAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -60,7 +58,7 @@ function ReachTree({ title, careers }: { title: string; careers: CareerWithinRea
   return (
     <div className={panelClass} data-reach-list="">
       <Tree across="lg" shape="tree" after data-reach-tree="">
-        <TreeRoot>{title}</TreeRoot>
+        <TreeRoot data-reach-size="">{plural(careers.length, 'career', 'careers')}</TreeRoot>
         <TreeBranch aria-label="Civilian careers within reach">
           {shown.map((career, index) => {
             const isOpen = career.id === open;
@@ -87,7 +85,8 @@ function ReachTree({ title, careers }: { title: string; careers: CareerWithinRea
           })}
         </TreeBranch>
       </Tree>
-      {cut && <ShowAll open={all} total={careers.length} onToggle={() => (all ? showFewer() : setAll(true))} />}
+      {/* The root says how many there are, so the button does not count them again. */}
+      {cut && <ShowAll open={all} total={careers.length} label="Show all" onToggle={() => (all ? showFewer() : setAll(true))} />}
     </div>
   );
 }

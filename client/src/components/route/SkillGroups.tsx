@@ -16,8 +16,6 @@ interface Group {
 }
 
 interface SkillGroupsProps {
-  /** The career's name as its page says it: the tree's root. */
-  title: string;
   /** The path's skills, in the route's order (the server's `routeOf`): never reordered here. */
   skills: readonly PlacedSkill[];
   /** A seeker's marks, read and never changed: without them no mark and no figure but a group's size. */
@@ -26,24 +24,26 @@ interface SkillGroupsProps {
   keepAs: string;
   /**
    * A company's version: the skills of the standard path it leaves out. They
-   * are the root's last node, "Left out", which opens its card of their names.
+   * are the root's last node, "Left out of the standard", which opens its
+   * card of their names.
    */
   leftOut?: readonly { id: string; name: string }[];
-  /** What follows the tree inside the section (a company's version that changes nothing says so). */
-  after?: ReactNode;
   /** What stands above the heading inside the section (a note that the marks could not be read). */
   before?: ReactNode;
 }
 
 /**
  * A career's skills (`#skills`), drawn as the same connector tree as where it
- * leads (`Tree`, `components/layout/Tree.tsx`): the heading with "Open all",
- * one sentence that says how many skills in how many groups and why they stand
- * in this order (and, on a line of its own, how many a seeker holds, once
- * they hold one), then one frame holding the tree. The career is the root; an
- * elbow runs to each skill group, in the order the route first reaches it,
- * each one row: the group's name and, at its right end, its size ("10
- * skills"; "1 of 2 held" for a seeker who holds some of it).
+ * leads (`Tree`, `components/layout/Tree.tsx`): the heading, with a seeker's
+ * count beside it once they hold a skill ("2 of 24 held"; never "0 of") and
+ * "Open all" at its right, then one frame holding the tree. Nothing else:
+ * no sentence, and nothing that asks anyone to sign in.
+ *
+ * The root is the career, said as what hangs off it ("24 skills": the page's
+ * heading has its name). An elbow runs to each skill group, in the order the
+ * route first reaches it, each one row: the group's name and its size
+ * straight after it ("Shop basics · 2 skills"; "1 of 2 held" for a seeker
+ * who holds some of it).
  *
  * A group is a node that opens its own branch: its skills, in the route's
  * order, each on an elbow off the group's own spine, straight under the group
@@ -53,13 +53,13 @@ interface SkillGroupsProps {
  * time in a group. Every group and every skill starts closed, for everyone.
  *
  * A company's version that leaves skills of the standard out ends in one more
- * node off the career, "Left out", which opens their names as its card.
+ * node off the root, "Left out of the standard", which opens their names as
+ * its card.
  *
  * A seeker's held skills carry the product's mark on their node in place of
- * the open ring; nothing else about them changes. No skill is called next or
- * then, and nothing asks anyone to sign in: a visitor reads the same tree.
+ * the ring; nothing else about them changes. No skill is called next or then.
  */
-export function SkillGroups({ title, skills, marks, keepAs, leftOut = [], after, before }: SkillGroupsProps) {
+export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: SkillGroupsProps) {
   const headingId = useId();
   const base = useId();
   const route = useMemo(() => groupRoute(skills), [skills]);
@@ -92,6 +92,11 @@ export function SkillGroups({ title, skills, marks, keepAs, leftOut = [], after,
     if (open[group.key]) setChosenIn((current) => ({ ...current, [group.key]: null }));
     change({ ...open, [group.key]: !open[group.key] });
   };
+  const toggleAll = () => {
+    // Closing them all closes the cards inside them too, so the tree opens again as it arrived.
+    if (allOpen) setChosenIn({});
+    change(Object.fromEntries(groups.map((group) => [group.key, !allOpen])));
+  };
   const choose = (group: Group, skillId: string) =>
     setChosenIn((current) => ({ ...current, [group.key]: current[group.key] === skillId ? null : skillId }));
 
@@ -101,36 +106,26 @@ export function SkillGroups({ title, skills, marks, keepAs, leftOut = [], after,
       <SectionHeading
         id={headingId}
         title="Skills"
-        description={
-          <>
-            <span className="block" data-skills-size>
-              {plural(skills.length, 'skill', 'skills')} in {plural(groups.length, 'group', 'groups')}, in the order a person usually comes to them.
+        note={
+          // A seeker's one figure, beside the heading; nothing while they hold none.
+          share && share.held > 0 ? (
+            <span className="text-[13px] tabular-nums text-text-3" data-held-count>
+              {share.held} of {share.total} held
             </span>
-            {/* A seeker's one line of progress, under the sentence and never inside it; nothing while they hold none. */}
-            {share && share.held > 0 && (
-              <span className="mt-1 block" data-held-count>
-                You hold <span className="tabular-nums">{share.held}</span> of these {plural(skills.length, 'skill', 'skills')}.
-              </span>
-            )}
-          </>
+          ) : undefined
         }
         action={
           groups.length > 1 ? (
-            <button
-              type="button"
-              onClick={() => change(Object.fromEntries(groups.map((group) => [group.key, !allOpen])))}
-              className={cn(secondaryActionClass, 'h-9 px-3 sm:h-9')}
-              data-route-open-all
-            >
+            <button type="button" aria-expanded={allOpen} onClick={toggleAll} className={cn(secondaryActionClass, 'px-3 sm:h-9')} data-route-open-all>
               {allOpen ? 'Close all' : 'Open all'}
             </button>
           ) : undefined
         }
       />
-      <div className={cn(panelClass, 'mt-1')} data-skill-groups="">
+      <div className={panelClass} data-skill-groups="">
         <Tree across="lg" shape="tree" after data-skill-tree="">
-          <TreeRoot>{title}</TreeRoot>
-          <TreeBranch>
+          <TreeRoot data-skills-size="">{plural(skills.length, 'skill', 'skills')}</TreeRoot>
+          <TreeBranch aria-label="Skill groups">
             {groups.map((group, index) => {
               const isOpen = Boolean(open[group.key]);
               const held = ready ? shareOf(group.skills, ready).held : 0;
@@ -197,12 +192,11 @@ export function SkillGroups({ title, skills, marks, keepAs, leftOut = [], after,
           </TreeBranch>
         </Tree>
       </div>
-      {after}
     </section>
   );
 }
 
-/** The mark a skill's node carries: a seeker's own where they hold it or are learning it, else the open ring. */
+/** The mark a skill's node carries: a seeker's own where they hold it or are learning it, else the ring. */
 const MARK: Record<MarkStatus, TreeMark> = { held: 'held', learning: 'learning', none: 'node' };
 
 /** What a screen reader hears after a skill's name, for a seeker. */
@@ -242,7 +236,7 @@ function SkillNode({
         />
       }
     >
-      {open && <SkillPreview id={previewId} skill={skill} status={status} />}
+      {open && <SkillPreview id={previewId} skill={skill} />}
     </TreeItem>
   );
 }
