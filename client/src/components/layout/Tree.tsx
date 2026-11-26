@@ -81,9 +81,9 @@ interface TreeProps {
   /** From which width the tree stands across; under it, down. */
   across: 'sm' | 'lg';
   /**
-   * `ladder`: each column under its label, the root in the middle of what
-   * hangs off it. `tree`: no labels, the root level with its first node, and
-   * the root's column only as wide as its name.
+   * `ladder`: the root in the middle of what hangs off it, a side under its
+   * label when the ladder has two. `tree`: the root level with its first
+   * node, in a column only as wide as its few words.
    */
   shape: 'ladder' | 'tree';
   /** Whether a branch stands before the root (comes into it) and after it (hangs off it). */

@@ -147,7 +147,9 @@ test("no tree's root is given the record's name", () => {
   assert.deepEqual(roots, [
     "client/src/components/reach/CivilianReach.tsx: {plural(careers.length, 'career', 'careers')}",
     'client/src/components/route/CareerLadder.tsx: This career',
-    'client/src/components/route/CareerLadder.tsx: This career',
     "client/src/components/route/SkillGroups.tsx: {plural(skills.length, 'skill', 'skills')}",
   ]);
+  // And every root in the client is one of those: none is written another way.
+  const written = clientFiles().reduce((count, file) => count + (read(file).match(/<TreeRoot\b/g) ?? []).length, 0);
+  assert.equal(written, roots.length);
 });

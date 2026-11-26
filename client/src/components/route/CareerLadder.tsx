@@ -21,7 +21,8 @@ const ACROSS = '(min-width: 640px)';
  * a spine on each side and an elbow to each career there: the career in the
  * middle of its sides, or, when a side runs past three careers, all three on
  * the first row. Under 640 px it stands down the page as a career's skills
- * do: the career first, then its careers on its spine.
+ * do: the career first, then its careers on its spine; a career with only
+ * careers it comes from has them above it, their spine running down into it.
  *
  * A ladder with careers on both sides names them: across, "Comes from" and
  * "Leads to" over their columns, each straight over its first node; down, as
@@ -46,6 +47,8 @@ export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: Lad
   const hasTo = to.length > 0;
   // With careers on both sides each side is named; with one, the section's heading has said which it is.
   const both = hasFrom && hasTo;
+  // The career itself: the page's heading has its name, so the root says only what it is.
+  const root = <TreeRoot data-ladder-this="">This career</TreeRoot>;
   const nodes = (careers: LadderCareer[]) =>
     careers.map((career) => <TreeItem key={career.id} node={<TreeLink to={`/occupations/${career.id}`}>{career.title}</TreeLink>} />);
   return (
@@ -57,35 +60,44 @@ export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: Lad
               {nodes(from)}
             </TreeBranch>
           )}
-          <TreeRoot data-ladder-this="">This career</TreeRoot>
+          {root}
           {hasTo && (
             <TreeBranch side="after" label={both ? 'Leads to' : undefined} aria-label="Leads to" data-path-ladder="after">
               {nodes(to)}
             </TreeBranch>
           )}
         </Tree>
-      ) : (
+      ) : both ? (
         <Tree across="sm" shape="ladder" after>
-          <TreeRoot data-ladder-this="">This career</TreeRoot>
-          {both ? (
-            <TreeBranch aria-label="Where it comes from and where it leads">
-              <TreeItem open node={<TreeHeading>Comes from</TreeHeading>}>
-                <TreeBranch nested aria-label="Comes from" data-path-ladder="before">
-                  {nodes(from)}
-                </TreeBranch>
-              </TreeItem>
-              <TreeItem open node={<TreeHeading>Leads to</TreeHeading>}>
-                <TreeBranch nested aria-label="Leads to" data-path-ladder="after">
-                  {nodes(to)}
-                </TreeBranch>
-              </TreeItem>
-            </TreeBranch>
-          ) : (
-            // One side only: the section's heading says which, so its careers hang straight off the career.
-            <TreeBranch aria-label={hasTo ? 'Leads to' : 'Comes from'} data-path-ladder={hasTo ? 'after' : 'before'}>
-              {nodes(hasTo ? to : from)}
-            </TreeBranch>
-          )}
+          {root}
+          <TreeBranch aria-label="Where it comes from and where it leads">
+            <TreeItem open node={<TreeHeading>Comes from</TreeHeading>}>
+              <TreeBranch nested aria-label="Comes from" data-path-ladder="before">
+                {nodes(from)}
+              </TreeBranch>
+            </TreeItem>
+            <TreeItem open node={<TreeHeading>Leads to</TreeHeading>}>
+              <TreeBranch nested aria-label="Leads to" data-path-ladder="after">
+                {nodes(to)}
+              </TreeBranch>
+            </TreeItem>
+          </TreeBranch>
+        </Tree>
+      ) : hasTo ? (
+        // One side only: the section's heading says which, so its careers hang straight off the career, under it.
+        <Tree across="sm" shape="ladder" after>
+          {root}
+          <TreeBranch aria-label="Leads to" data-path-ladder="after">
+            {nodes(to)}
+          </TreeBranch>
+        </Tree>
+      ) : (
+        // Where it comes from stands above it, the spine running down into the career: the page reads the way a person moves.
+        <Tree across="sm" shape="ladder" before>
+          <TreeBranch side="before" aria-label="Comes from" data-path-ladder="before">
+            {nodes(from)}
+          </TreeBranch>
+          {root}
         </Tree>
       )}
       {(fromCut || toCut) && (

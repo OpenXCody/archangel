@@ -680,7 +680,7 @@ input {
     align-items: start;
   }
   .tree[data-layout='wide'][data-shape='ladder'][data-before][data-after] {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 1fr);
     grid-template-areas: 'lb . la' 'before this after';
   }
   /* One side only: no labels (the section's heading says which side it is), so no row for them. */
@@ -871,15 +871,14 @@ input {
     }
   }
   /*
-   * A ladder's side of one career stands centred on the career; when its name
-   * takes two lines, its elbow (at the first line) and the career's line (at
-   * the middle) part, so a short spine joins them.
+   * A ladder's side of one career stands level with the career: its first
+   * line on the career's own line, whatever wraps under it, so the elbow and
+   * the career's line are one straight stroke. (The side is centred on the
+   * career by the grid; the node is moved down by half of what its extra
+   * lines add.)
    */
-  .tree[data-layout='wide'][data-shape='ladder']:not([data-top]) .tree-side > .tree-branch > .tree-item:only-child::after {
-    display: block;
-    top: var(--tree-mid);
-    bottom: 50%;
-    height: auto;
+  .tree[data-layout='wide'][data-shape='ladder']:not([data-top]) .tree-side > .tree-branch > .tree-item:only-child {
+    transform: translateY(calc(50% - var(--tree-mid)));
   }
   /* Across, a branch before the root is mirrored: each elbow leaves its node's right end for a spine on the right. */
   .tree[data-layout='wide'] .tree-branch[data-side='before'] {

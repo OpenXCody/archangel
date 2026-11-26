@@ -469,6 +469,27 @@ test('a career stands on its ladder, a tree of its own after its skills; the Car
   await expect(after).toHaveAttribute('aria-label', 'Leads to');
   await assertHealthyLayout(page, '/occupations/:id first rung');
 
+  // A last rung with one before it: the section says where it comes from, and that career stands before this one
+  // (left of it across; above it down a phone, its line running down into the career).
+  const last = await careerByTitle(request, 'Tire Builder');
+  expect([last.comesFrom.length, last.leadsTo.length]).toEqual([1, 0]);
+  await page.goto(`/occupations/${last.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(ladder.locator('h2')).toHaveText('Where it comes from');
+  await expectTree(tree, 'a last rung');
+  await expect(after).toHaveCount(0);
+  await expect(before.locator('a')).toHaveText(last.comesFrom.map((career) => career.title));
+  await expect(tree.locator('.tree-label, [data-tree-heading]')).toHaveCount(0);
+  await expect(frame).not.toContainText(/Leads to|Comes from/i);
+  const [came, here] = [await place(before.locator('a')), await place(frame.locator('[data-ladder-this]'))];
+  if (across) {
+    expect(came.x + came.width, 'what it comes from is left of the career').toBeLessThanOrEqual(here.x + 1);
+    // One career on a side stands on the career's own line: the stroke between them is straight.
+    expect(Math.abs(came.y - here.y), 'level with the career').toBeLessThanOrEqual(1);
+  } else {
+    expect(came.y + came.height, 'what it comes from is above the career').toBeLessThanOrEqual(here.y + 1);
+  }
+  await assertHealthyLayout(page, '/occupations/:id last rung');
+
   // A career on no ladder: its skills alone, and no section for a ladder.
   const alone = await careerByTitle(request, 'Hydraulics Technician');
   expect(alone.comesFrom.length + alone.leadsTo.length).toBe(0);
