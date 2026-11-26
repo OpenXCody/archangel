@@ -34,7 +34,7 @@ interface SkillGroupBoxProps {
 
 /**
  * A skill group: one small line with the group's name and how much of it the
- * person holds ("Workplace safety · 1 of 5"), and the skills as tags directly
+ * person holds ("Shop safety · 1 of 5"), and the skills as tags directly
  * under it. There is no frame around it. It is still a fieldset and its
  * legend, so the name labels the skills for a screen reader. It knows nothing
  * of the page it is on.

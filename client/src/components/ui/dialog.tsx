@@ -53,6 +53,28 @@ const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
+/**
+ * A panel: the dialog's behaviour (focus kept inside it, Escape and a press
+ * outside close it) with no place, motion, veil or close button of its own.
+ * Whoever draws it says where it stands: over the whole screen, or down one
+ * edge with the page still in sight beside it.
+ */
+const DialogPanel = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn("fixed z-50 bg-bg text-text-1 focus:outline-none", className)}
+      {...props}
+    >
+      {children}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogPanel.displayName = "DialogPanel"
+
 const DialogHeader = ({
   className,
   ...props
@@ -115,6 +137,7 @@ export {
   DialogTrigger,
   DialogClose,
   DialogContent,
+  DialogPanel,
   DialogHeader,
   DialogFooter,
   DialogTitle,

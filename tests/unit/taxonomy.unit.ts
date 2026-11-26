@@ -33,8 +33,9 @@ interface TaxonomyFile {
 const BUILDER = 'scripts/build-taxonomy-sql.mjs';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const CATALOGUE = 'data/skills/catalogue.json';
-// The taxonomy's latest migration. 0042 was the first, 0049 the second, 0060 the third and 0068 the fourth; each is as it was applied.
-const MIGRATION = 'migrations/0071_skill_taxonomy_5.sql';
+// The taxonomy's latest migration. 0042 was the first, 0049 the second, 0060 the third, 0068 the fourth and 0071 the fifth; each is as it was applied.
+const MIGRATION = 'migrations/0083_skill_taxonomy_6.sql';
+const FIFTH = 'migrations/0071_skill_taxonomy_5.sql';
 
 const taxonomy = JSON.parse(readFileSync(TAXONOMY, 'utf8')) as TaxonomyFile;
 const catalogue = JSON.parse(readFileSync(CATALOGUE, 'utf8')) as { skills: { name: string }[] };
@@ -181,9 +182,12 @@ test('the migration is in the runner\'s list', () => {
   const list = [...runner.matchAll(/'(\d{4}_[a-z0-9_]+\.sql)'/g)].map((m) => m[1]);
   assert.ok(list.indexOf('0068_skill_taxonomy_4.sql') > list.indexOf('0060_skill_taxonomy_3.sql'));
   assert.ok(list.indexOf('0071_skill_taxonomy_5.sql') > list.indexOf('0068_skill_taxonomy_4.sql'));
+  // The sixth adds, renames and removes no skill, so it needs no catalogue pass before it either.
+  assert.ok(list.indexOf('0083_skill_taxonomy_6.sql') > list.indexOf('0071_skill_taxonomy_5.sql'));
+  assert.ok(list.indexOf('0083_skill_taxonomy_6.sql') > list.indexOf('0082_texas_hubs_2.sql'));
 });
 
-// Read from the fourth's own file: the latest restates it with the fifth's groups and skills.
+// Read from the fourth's own file: the later ones restate it with their own groups and skills.
 test('the fourth taxonomy changes the order of the domains and nothing else: Safety is last', () => {
   const domains = (sql: string) => [...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '((?:[^']|'')+)', '(?:[^']|'')+', (\d+)\)[,;]$/gm)].map((m) => ({ slug: m[1], name: m[2], position: Number(m[3]) }));
   const before = readFileSync('migrations/0060_skill_taxonomy_3.sql', 'utf8');
@@ -217,7 +221,7 @@ test('the fifth taxonomy places the new skills, most in 51 new groups, and moves
   const skillsOf = (sql: string) => new Map([...sql.matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', ([123]), \d+\)[,;]$/gm)].map((m) => [m[1], `${m[2]} ${m[3]}`]));
   const domains = (sql: string) => [...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '((?:[^']|'')+)', '(?:[^']|'')+', (\d+)\)[,;]$/gm)].map((m) => m[1]);
   const before = readFileSync('migrations/0068_skill_taxonomy_4.sql', 'utf8');
-  const after = readFileSync(MIGRATION, 'utf8');
+  const after = readFileSync(FIFTH, 'utf8');
   // The domains are the sixteen, in the fourth's order: Safety last.
   assert.deepEqual(domains(after), domains(before));
   const added = [...groups(after).keys()].filter((slug) => !groups(before).has(slug));
@@ -234,6 +238,58 @@ test('the fifth taxonomy places the new skills, most in 51 new groups, and moves
   // Safety is ancillary: it gains no skill.
   const safety = (sql: string) => [...skillsOf(sql).values()].filter((place) => ['workplace-safety', 'hazardous-energy', 'hazardous-materials'].includes(place.split(' ')[0])).length;
   assert.equal(safety(after) - safety(before), 0);
+});
+
+test('the sixth taxonomy re-cuts the groups to the Atlas\'s: seven new groups of skills already placed, and no skill added, removed or at another level', () => {
+  const groups = (sql: string) => new Map([...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '([a-z0-9-]+)', '((?:[^']|'')+)', '(?:[^']|'')+', \d+\)[,;]$/gm)].map((m) => [m[1], { domain: m[2], name: m[3].replace(/''/g, "'") }]));
+  const skillsOf = (sql: string) => new Map([...sql.matchAll(/^ {2}\('((?:[^']|'')+)', '([a-z0-9-]+)', ([123]), \d+\)[,;]$/gm)].map((m) => [m[1].replace(/''/g, "'"), { group: m[2], level: Number(m[3]) }]));
+  const domains = (sql: string) => [...sql.matchAll(/^ {2}\('([a-z0-9-]+)', '((?:[^']|'')+)', '((?:[^']|'')+)', (\d+)\)[,;]$/gm)].map((m) => m.slice(1).join(' | '));
+  const before = readFileSync(FIFTH, 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  // The sixteen domains as they were: slug, name, sentence and place.
+  assert.deepEqual(domains(after), domains(before));
+  // Every group that was there is there under its slug, in its domain; seven are new.
+  const added = [...groups(after).keys()].filter((slug) => !groups(before).has(slug));
+  assert.deepEqual(added.sort(), ['electrical-fundamentals', 'hand-tools', 'machine-care', 'mechanical-fundamentals', 'multi-axis-machining', 'precision-measurement', 'validation']);
+  assert.equal(groups(before).size, 194);
+  assert.equal(groups(after).size, 201);
+  for (const [slug, group] of groups(before)) assert.equal(groups(after).get(slug)?.domain, group.domain, `${slug} stays in ${group.domain}`);
+  // Names are the Atlas's: 127 of the 194 change, and no two groups share one.
+  assert.equal([...groups(before)].filter(([slug, group]) => groups(after).get(slug)?.name !== group.name).length, 127);
+  assert.equal(new Set([...groups(after).values()].map((group) => group.name)).size, 201);
+  for (const [slug, name] of [['measurement-tools', 'Measuring'], ['gmp-and-sanitation', 'GMP'], ['design-documentation', 'CAD'], ['workplace-safety', 'Shop safety'], ['electrical-fundamentals', 'Electrical basics'], ['mechanical-fundamentals', 'Power transmission']]) {
+    assert.equal(groups(after).get(slug)?.name, name);
+  }
+  // The skills are the same 1,023 at the same levels; 27 stand in another group.
+  const was = skillsOf(before);
+  const now = skillsOf(after);
+  assert.equal(was.size, 1023);
+  assert.deepEqual([...now.keys()].sort(), [...was.keys()].sort());
+  for (const [name, place] of was) assert.equal(now.get(name)?.level, place.level, `${name} keeps its level`);
+  const moved = [...was].filter(([name, place]) => now.get(name)?.group !== place.group).map(([name]) => name);
+  assert.equal(moved.length, 27);
+  // 23 of them into the new groups, which hold nothing else; four into a group that was there.
+  const intoOld = moved.filter((name) => !added.includes(now.get(name)!.group)).map((name) => `${name}: ${was.get(name)!.group} to ${now.get(name)!.group}`).sort();
+  assert.deepEqual(intoOld, [
+    'Data Analysis and Scripting: manufacturing-engineering to design-documentation',
+    'Fabric Inspection: part-inspection to fabric-forming',
+    'Potable Water and Drain Plumbing: rv-and-modular-building to fluid-system-assembly',
+    'Weighing and Dispensing: tablet-manufacturing to lot-control',
+  ]);
+  assert.equal([...now].filter(([, place]) => added.includes(place.group)).length, 23);
+  // Four of the 27 change domain with their group: two that moved to a group of another domain, and one
+  // skill of each new group cut from two domains.
+  const domainOf = (sql: string, name: string) => groups(sql).get(skillsOf(sql).get(name)!.group)!.domain;
+  const crossed = moved.filter((name) => domainOf(before, name) !== domainOf(after, name)).map((name) => `${name}: ${domainOf(before, name)} to ${domainOf(after, name)}`).sort();
+  assert.deepEqual(crossed, [
+    'Belt and Chain Drive Maintenance: maintenance to assembly',
+    'Fabric Inspection: quality to materials',
+    'Multimeter Testing: test to maintenance',
+    'Weighing and Dispensing: process to production',
+  ]);
+  // And the statements around the lists are the same ones.
+  const statements = (sql: string) => sql.split('\n').filter((line) => !line.startsWith('  (') && !line.startsWith('--'));
+  assert.deepEqual(statements(after), statements(before));
 });
 
 // Read from the third's own file: the latest restates it with the domains in another order.
