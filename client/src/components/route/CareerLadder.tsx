@@ -17,14 +17,18 @@ const ACROSS = '(min-width: 640px)';
  * where it leads. The root says "This career" (the page's heading has its
  * name); each career beside it is a node that opens its page.
  *
- * From 640 px the three stand side by side, the sides under their labels
- * (Comes from, Leads to), the career's line running out to a spine on each
- * side and an elbow to each career there: the career in the middle of its
- * sides, or, when a side runs past three careers, all three on the first row,
- * each label straight over its first node. Under 640 px it stands down the
- * page as a career's skills do: the career first, then "Comes from" and
- * "Leads to" as two nodes on its spine, each with its careers on a spine of
- * its own, so which way is which is said by the tree and not by a loose label.
+ * From 640 px the three stand side by side, the career's line running out to
+ * a spine on each side and an elbow to each career there: the career in the
+ * middle of its sides, or, when a side runs past three careers, all three on
+ * the first row. Under 640 px it stands down the page as a career's skills
+ * do: the career first, then its careers on its spine.
+ *
+ * A ladder with careers on both sides names them: across, "Comes from" and
+ * "Leads to" over their columns, each straight over its first node; down, as
+ * two nodes on the career's spine, each with its careers on a spine of its
+ * own, so which way is which is said by the tree and not by a loose label. A
+ * ladder with one side names nothing: the section's heading ("Where it
+ * leads", "Where it comes from") has said which it is.
  *
  * A side of more than four names three, and "Show all", the frame's last row
  * under the tree, shows the rest in place: more of a list is a button, never
@@ -40,6 +44,8 @@ export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: Lad
   const toCut = leadsTo.length > SHOWN + 1;
   const hasFrom = from.length > 0;
   const hasTo = to.length > 0;
+  // With careers on both sides each side is named; with one, the section's heading has said which it is.
+  const both = hasFrom && hasTo;
   const nodes = (careers: LadderCareer[]) =>
     careers.map((career) => <TreeItem key={career.id} node={<TreeLink to={`/occupations/${career.id}`}>{career.title}</TreeLink>} />);
   return (
@@ -47,13 +53,13 @@ export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: Lad
       {across ? (
         <Tree across="sm" shape="ladder" before={hasFrom} after={hasTo} data-top={from.length > SHOWN || to.length > SHOWN || undefined}>
           {hasFrom && (
-            <TreeBranch side="before" label="Comes from" data-path-ladder="before">
+            <TreeBranch side="before" label={both ? 'Comes from' : undefined} aria-label="Comes from" data-path-ladder="before">
               {nodes(from)}
             </TreeBranch>
           )}
           <TreeRoot data-ladder-this="">This career</TreeRoot>
           {hasTo && (
-            <TreeBranch side="after" label="Leads to" data-path-ladder="after">
+            <TreeBranch side="after" label={both ? 'Leads to' : undefined} aria-label="Leads to" data-path-ladder="after">
               {nodes(to)}
             </TreeBranch>
           )}
@@ -61,22 +67,25 @@ export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: Lad
       ) : (
         <Tree across="sm" shape="ladder" after>
           <TreeRoot data-ladder-this="">This career</TreeRoot>
-          <TreeBranch aria-label="Where it leads">
-            {hasFrom && (
+          {both ? (
+            <TreeBranch aria-label="Where it comes from and where it leads">
               <TreeItem open node={<TreeHeading>Comes from</TreeHeading>}>
                 <TreeBranch nested aria-label="Comes from" data-path-ladder="before">
                   {nodes(from)}
                 </TreeBranch>
               </TreeItem>
-            )}
-            {hasTo && (
               <TreeItem open node={<TreeHeading>Leads to</TreeHeading>}>
                 <TreeBranch nested aria-label="Leads to" data-path-ladder="after">
                   {nodes(to)}
                 </TreeBranch>
               </TreeItem>
-            )}
-          </TreeBranch>
+            </TreeBranch>
+          ) : (
+            // One side only: the section's heading says which, so its careers hang straight off the career.
+            <TreeBranch aria-label={hasTo ? 'Leads to' : 'Comes from'} data-path-ladder={hasTo ? 'after' : 'before'}>
+              {nodes(hasTo ? to : from)}
+            </TreeBranch>
+          )}
         </Tree>
       )}
       {(fromCut || toCut) && (

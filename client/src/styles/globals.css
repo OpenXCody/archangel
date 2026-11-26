@@ -666,11 +666,12 @@ input {
   }
 
   /*
-   * Across: a ladder is three columns under their labels, the career in the
-   * middle of what hangs off it. When a side runs past three careers
-   * (`data-top`), the career and both sides start on the first row instead,
-   * so each label stands straight over its first node and the career's line
-   * meets each spine at its top, as a career's skills do.
+   * Across: a ladder is three columns, each side under its label when there
+   * are two sides, the career in the middle of what hangs off it. When a side
+   * runs past three careers (`data-top`), the career and both sides start on
+   * the first row instead, so each label stands straight over its first node
+   * and the career's line meets each spine at its top, as a career's skills
+   * do.
    */
   .tree[data-layout='wide'][data-shape='ladder'] {
     align-items: center;
@@ -682,13 +683,14 @@ input {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
     grid-template-areas: 'lb . la' 'before this after';
   }
+  /* One side only: no labels (the section's heading says which side it is), so no row for them. */
   .tree[data-layout='wide'][data-shape='ladder'][data-after]:not([data-before]) {
     grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
-    grid-template-areas: '. la' 'this after';
+    grid-template-areas: 'this after';
   }
   .tree[data-layout='wide'][data-shape='ladder'][data-before]:not([data-after]) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
-    grid-template-areas: 'lb .' 'before this';
+    grid-template-areas: 'before this';
   }
   /*
    * Across: a tree is its root, only as wide as its few words need, and its

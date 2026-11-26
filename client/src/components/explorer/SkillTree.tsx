@@ -22,13 +22,15 @@ import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../
  * domain begins with its own bar, which nobody can miss.
  */
 export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
-  // A list narrowed to one domain is that domain, open.
+  // A list narrowed to one domain is that domain, open, whatever the person did to its bar in the whole list:
+  // what they open and close there is kept apart from what they open and close in the index of all sixteen.
   const one = domains.length === 1;
   const [open, setOpen] = useState<Record<string, boolean>>(() => readOpen());
-  const isOpen = (state: Record<string, boolean>, slug: string) => state[slug] ?? one;
+  const keyOf = (slug: string) => (one ? `only:${slug}` : slug);
+  const isOpen = (state: Record<string, boolean>, slug: string) => state[keyOf(slug)] ?? one;
   const toggle = (slug: string) =>
     setOpen((current) => {
-      const next = { ...current, [slug]: !isOpen(current, slug) };
+      const next = { ...current, [keyOf(slug)]: !isOpen(current, slug) };
       writeStored(STORE, JSON.stringify(next), 'session');
       return next;
     });
