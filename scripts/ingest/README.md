@@ -301,9 +301,31 @@ Tools calls the same functions.
 board calls itself, the `company` exactly as our data names it, `also` for
 other companies we list under their own names whose plants the same board
 hires for, the `system`, the `board`'s token or address, optionally a
-`ceiling` of requests, `sites` and a `note`) and `leftOut` (the `employer`,
-`why`: `refused`, `not verified` or `no adapter`, `what` refused or is
-missing, and `when`). Adding an employer is a line.
+`ceiling` of requests, `sites`, its own `states` and a `note`) and `leftOut`
+(the `employer`, `why`: `refused`, `not verified` or `no adapter`, `what`
+refused or is missing, and `when`). Adding an employer is a line. At its top
+the file says `states`, where new jobs are ported from (below).
+
+**The lines are in the order they are read, which is the order of priority**:
+the employers with factories in Texas first, the largest first (by the people
+recorded at their Texas factories, then by how many factories), those that
+make machines, transportation equipment, aerospace and defense, semiconductors
+and electronics, and electrical and industrial equipment ahead of the other
+industries; then the employers with no factory in Texas, which are read for
+the jobs already ported; food and drink last. The boards of a platform with a
+budget (Workday's) are read after the others, by whose turn it is (below),
+and the file's order settles a tie there. A new line goes where its employer
+stands in that order.
+
+A line added without its board ever having been asked for says so in its
+`note` ("Added unverified on Nov 26, 2026": the twenty Workday boards and one
+Ashby board moved in from `leftOut` that day, each left out before only
+because the machine that keeps the registry does not ask Workday). A Workday
+address of theirs is the board the employer's own indexed pages or site name,
+written under `/wday/cxs` with the tenant taken to be the first word of the
+host, as it is on every board read so far. The first run from GitHub is the
+verification: a board that does not answer is `unreachable` in that run's row
+and nothing else happens; a person then corrects the line or moves it back.
 
 `sites` is for a board that names its sites by their town alone and says no
 state anywhere: GE Aerospace's Workday tenant writes "Evendale", "Lynn",
@@ -345,6 +367,65 @@ holds the file to its shape and fails on a system no adapter reads. An
 employer's source is `postings-<slug>`; its ids are kept under
 `POSTINGS_<SLUG>` in `external_references`.
 
+### Where new jobs are ported from
+
+`states` at the top of the registry (`["TX"]`) names the states new jobs are
+ported from, for every line; a line that carries its own `states` is ported
+from those instead (the owner's "unless otherwise stated"). Two-letter codes
+of the 50 states and the District of Columbia; the check holds them. A
+registry that names none ports from everywhere, as before.
+
+**It looks forward only.** Nothing already ported is closed or removed for it.
+For a place outside the states the rule is "keep what is there, add nothing":
+
+- a job of ours that already exists there is tended exactly as before: brought
+  in line with its posting, closed only when its posting is gone from two
+  complete listings, reopened if it returns, expiring as before;
+- no new job is made there, and no place there waits for a person (a place
+  outside the states that waited leaves the list at its source's next run,
+  journalled, so undoing the run puts it back);
+- a posting with places inside and outside the states is kept with all of
+  them, and becomes new jobs at the places inside only;
+- a posting none of whose places is inside the states, and that we hold no job
+  for, is not kept: it is counted (`outside` on the run) and let go, it is not
+  among the lines no place was read in, and where the listing says its place
+  its text is never asked for (each text is a request). A posting whose places
+  are only in its own record (Workday's "2 Locations") is asked for once, and
+  noted in `posting_passes` like any other read and not kept.
+
+**Which boards are read.** A board is read while its company (the line's
+company and `also`, with the companies recorded as parts of them) has a
+factory in the states, or a job from that board is still open anywhere
+(`boardStanding` in `jobs.mjs`; open by its status, so a job past its expiry
+is still tended and comes back with the next complete listing that includes
+it). A company with neither is not read for now: its line stays in the
+registry, nothing is asked of its site, and each run leaves a row that says so
+in plain words (outcome `not read`, a line in `load_log` that is not marked
+for a look, and the run's summary names the boards). It is read again from
+the first run after the company has a factory in the states.
+
+**Where the rule lives.** The runner writes each line's states onto its
+source's row at every run (`intake_sources.states`, null for everywhere;
+`scopeSource`), and the database decides by them: migration
+`0091_new_jobs_in_scope.sql` restates `posting_resolve` and `posting_apply` as
+0054 wrote them with the rule and nothing else (a place outside the states
+stands in the plan only where its outside id already names a job), so it
+holds wherever a job is decided: a run, a place pointed in Admin Tools, a
+place decided by `places.json`. `posting_decide` is untouched (the generated
+posting-places migrations restate it). The migration itself closes and
+deletes nothing; it gives every source of jobs that exists when it is applied
+the states the registry has in this change (Texas), so the rule holds from
+then on and not only from each source's next run. The runner refuses to run a
+registry that names states against a database that has not had it. What the
+runner itself leaves out (a posting wholly outside, a board not read) saves
+requests and staging; the database would make no job of them either.
+
+One limit: where a listing names only a posting's first site and its other
+sites are in its own record (Oracle, iCIMS portals and SuccessFactors career
+sites), a posting listed outside the states is not asked about, so a second
+site of it inside them is not seen. Workday says "2 Locations" in its listing
+for such a posting, and its text is asked for.
+
 ### The adapters
 
 One per hiring system. Each gives the board's listing a request at a time
@@ -367,7 +448,10 @@ page's postings, texts included, before it asks for the next page. A posting
 whose text costs a request is asked for only when its title could be ours and
 its line in the listing (title, places, path) is new or has changed, or its
 reading is 30 days old (60 for Workday: `rereadDays`); `--again` reads every
-one again (after the reader changed). An adapter decides nothing: a field the
+one again (after the reader changed). Where the registry names the states new
+jobs are ported from, a text is also not asked for when the listing says the
+posting's place and none of it is in them, unless a job of ours stands behind
+the posting ("Where new jobs are ported from", above). An adapter decides nothing: a field the
 feed states on its own (Lever's and Ashby's pay, a shift, full-time) is
 passed as a hint and used where the text says nothing.
 
@@ -420,24 +504,58 @@ the platform turns a busy robot away (it reset the scout after about 870
 requests in an hour, and answered 429 to a first request the same day). So
 the platform has a budget for the whole run, across all of its boards: 300
 requests (`budget` in `systems/workday.mjs`; `--budget <n>` for another
-number), four seconds apart whichever board they are for, twenty minutes. The boards without a budget are
-read first, in the registry's order. Then the budget is spent where it is
-most needed (`inTurn` in `jobs.mjs`): a listing an earlier run left cut first,
-then a board whose last complete listing is a week old or more (its jobs
-expire a week after that, and must not leave the lists while new boards are
-read in), then a board never listed to its end, then the board whose last
-complete listing is oldest; the registry's order settles a tie. A board the
-budget did not reach has no run that day and is said in the summary; it is a
-source all the same (every line of the registry is registered when a run
-starts), so Admin Tools lists it as not run yet. The workflow reads Workday's
-boards alone three more times a day (`postings --system workday`), each run
-with the same budget: 1,200 requests a day at most, never more than 300 in an
-hour. Listing all twelve Workday boards is about 930 requests, so in the
-steady state each is listed in full daily; while they are first read in, the
-texts (about one posting in five could be ours) take most of the budget, and
-the first pass over all of them takes three or four days. (With one run a
-day it was about two weeks, as long as a job lasts: five days after the first
-run on production eight of the twelve boards had not had a run.)
+number), four seconds apart whichever board they are for, twenty minutes. The
+boards without a budget are read first, in the registry's order. Then the
+budget is spent by one rule (`inTurn` in `jobs.mjs`): **the board that has
+waited longest since its last turn goes first, and a board that has never had
+a turn goes before all of those**. A turn is a run that read the board's
+listing to the end, or had at least half of the run's budget (`wasTurn`); the
+registry's order, which is the order of priority, settles a tie, so it is the
+order among the boards never read. So no listing, however long, is
+taken up twice before every other board has had its turn: the first board in
+line has the whole budget before it, its run reaches the end of its listing
+or spends the budget, which is a turn either way, and it goes to the back of
+the line, while every board behind it moves up at each run. With n boards a
+board waits n runs at the very most, and that only if every other listing is
+longer than a whole budget. A listing that was cut is still taken up where it
+stopped, when its turn comes round. The board the budget ran out on after
+less than half of it has had no turn and keeps its place ahead of every board
+that did; so does a board that was refused or did not answer part way, at the
+cost of the few requests it makes. A run notes the budget its
+platform had (`counts.budget`), which is what makes a cut run a turn.
+(Before November 26, 2026 a cut listing went first, then a board a week past
+its last whole listing, then one never read: Northrop Grumman's listing was
+cut at 300 requests run after run and taken up first at each, and for two
+days no other Workday board was read. `tests/unit/postings-scope.unit.ts`
+replays those two days both ways.) A board the budget did not reach has no
+run that day and is said in the summary; it is a source all the same (every
+line of the registry is registered when a run starts), so Admin Tools lists
+it as not run yet. The workflow reads Workday's boards alone three more times
+a day (`postings --system workday`), each run with the same budget: 1,200
+requests a day at most, never more than 300 in an hour. The registry has 32
+Workday boards since November 26, 2026. Listing the twelve it had before was
+about 930 requests; the twenty added have never been listed, so how long a
+pass over all 32 takes is known only from their first runs (each run's row
+says the requests it made). The texts, which took most of the budget while
+boards were first read in, are now asked for only where a posting could be
+ours and is in the states, or its places are only in its own record, or a job
+of ours stands behind it.
+
+**Workday boards are not narrowed to the states.** The adapter narrows a
+board to the United States by the board's own country filter (`countryFacet`)
+and no further. Narrowing by the board's site filters would be safe for our
+jobs under one condition, which the runner can check (a narrowed listing only
+ever replaces a narrowed one, or starts when the board holds no open job, so
+no job we hold can look gone because of the filter), but what such a filter
+returns cannot be established from the two saved boards alone, and nothing is
+asked of Workday from the machine that keeps this code: whether a site filter
+also matches a posting's additional sites, whether the list of sites a board
+offers is complete, and how the new boards name their sites (a site named by
+its town alone reads as no state, and a narrowed listing would hide exactly
+the postings whose site a person still has to write out under `sites`). A
+wrong guess would lose Texas postings silently on the boards just added. So
+every board is listed as before and the rule above is applied to what comes
+back; the turn rule is what keeps one board from taking the budget.
 
 **The stop rule.** A 401, 403 or 429, a challenge page, or a connection reset
 ends that employer for the run. It is written to the run (`refused`, with what
@@ -475,6 +593,11 @@ only, and says what was missing.
    plant stands nearest a town in its list;
 5. none: the posting waits, and its place goes on the list an admin sees. A
    plant is never added and a state is never guessed.
+
+Since migration 0091 a place outside the states new jobs are ported from
+("Where new jobs are ported from", above) is weighed only where a job of ours
+already stands at it: any other makes no job by rules 1 to 4 and does not
+wait by rule 5.
 
 A place can also be decided ahead of a run, by the data rather than by a
 person: see "Places decided by the data", below. A `left` place makes no job by
@@ -572,11 +695,11 @@ present everything the listing showed over all of its runs. Any other system
 starts its listing again.
 
 A job from a source expires 14 days after the last complete listing that
-included it. Fourteen because a board on a budgeted platform can wait
-days for its turn while other boards are first read in (one a week past its
-last complete listing goes ahead of the new ones): an expiry shorter than the
-slowest cycle would take a job off the lists between two listings that both
-had it. The
+included it. Fourteen because a board on a budgeted platform waits for its
+turn while the others have theirs (a pass over all of Workday's boards takes
+more than a day, and a listing longer than a run's budget takes a turn for
+each budget's worth): an expiry shorter than the slowest cycle would take a job off the
+lists between two listings that both had it. The
 other boards are listed in full daily, so for them 14 days is how long jobs
 stay if runs stop altogether.
 
@@ -618,9 +741,11 @@ for runs over saved boards; `--registry <file.json>` is another registry,
 
 `postings` ends with what the run did as a whole: its requests by platform
 (against the budget where there is one), the boards listed in full, the ones
-cut short and why (and whether each is taken up there or started again), and
-the ones the budget did not reach; then a line per employer and each run's
-report. A day's run of every employer is under an hour: twenty minutes of it
+cut short and why (and whether each is taken up there or started again), the
+ones the budget did not reach, and the ones not read for now (no factory
+where new jobs are ported from and no open job); then a line per employer and
+each run's report. Before it reads anything it says where new jobs are ported
+from. A day's run of every employer is under an hour: twenty minutes of it
 is Workday's budget, and about a quarter of an hour the listings of the other
 boards (Cargill's 77 pages of SuccessFactors search, two seconds apart, are
 the longest). While boards are first read in, their texts add up to half an
@@ -643,9 +768,14 @@ job there at once, or leave it.
 local server that plays each refusal, a platform's budget, a listing cut and
 taken up again, and every adapter against a reduced copy of what its system
 answered (`tests/fixtures/postings/`; the two that read web pages against
-made-up postings in the pages' shape); `tests/api/postings.sh` runs made-up
-boards, written as an employer writes a posting, through all of it with the
-reader that ships.
+made-up postings in the pages' shape); `tests/unit/postings-scope.unit.ts`
+checks where new jobs are ported from (the registry's states and a line's
+own, what a board is turned into under the rule, a board that is not read),
+whose turn the budget is, and migration 0091 against the functions it
+restates; `tests/api/postings.sh` runs made-up boards, written as an employer
+writes a posting, through all of it with the reader that ships, the rule
+included (new jobs in the states only, a job elsewhere tended, closed and
+reopened as before, a board not read, a line with its own states).
 
 ### One row for one plant
 

@@ -896,23 +896,29 @@ function longBoard(tenant: string, count: number, without: number[] = []) {
   put(`workday/${tenant}/list.json`, JSON.stringify({ jobPostings, facets: [] }));
 }
 
-test('the budget is spent where it is most needed: a cut listing, then a board a week past its last whole listing, then one never read', async () => {
+test('the budget goes to the board that has waited longest for its turn: a cut listing is not taken up ahead of the others', async () => {
+  // tests/unit/postings-scope.unit.ts replays the rule over the two days one long listing took the whole budget.
   const day = 86_400_000;
   const now = Date.parse('2026-11-24T09:23:00Z');
-  const history: Record<string, { cut?: boolean; whole?: number }> = {
-    'postings-fresh': { whole: now - 2 * day },
+  // Each board's runs, newest first, as inTurn reads them.
+  const history: Record<string, { runs?: { ago: number; complete: boolean; requests: number }[] }> = {
+    'postings-fresh': { runs: [{ ago: 2, complete: true, requests: 40 }] },
     'postings-never': {},
-    'postings-stale': { whole: now - 9 * day },
-    'postings-cut': { cut: true, whole: now - 3 * day },
+    'postings-stale': { runs: [{ ago: 9, complete: true, requests: 60 }] },
+    // Cut by the budget at its last run, after the whole of it: that was its turn, and it is behind every board that has waited longer.
+    'postings-cut': { runs: [{ ago: 0.25, complete: false, requests: 300 }, { ago: 3, complete: true, requests: 90 }] },
+    // The budget ran out on this one after a tenth of it: no turn, so it stands where its last whole listing puts it.
+    'postings-tail': { runs: [{ ago: 0.25, complete: false, requests: 30 }, { ago: 7, complete: true, requests: 50 }] },
   };
   const db = async (strings: TemplateStringsArray, slug: string) => {
     const known = history[slug] ?? {};
-    if (strings.join('').includes('max(started_at)')) return [{ at: known.whole ? new Date(known.whole) : null }];
-    return known.cut ? [{ counts: { read: 40, resume: { next: { offset: 40 } } } }] : [];
+    if (!strings.join('').includes('FROM intake_runs')) return [];
+    return (known.runs ?? []).map((run) => ({ started_at: new Date(now - run.ago * day), read: 20 * run.requests, complete: run.complete, requests: run.requests, budget: null }));
   };
   const entry = (slug: string, system: string) => ({ slug, employer: slug, company: slug, system, board: slug });
-  const order = await inTurn(db, [entry('fresh', 'workday'), entry('one', 'greenhouse'), entry('never', 'workday'), entry('stale', 'workday'), entry('cut', 'workday')], { now });
-  assert.deepEqual(order.map((line: { slug: string }) => line.slug), ['one', 'cut', 'stale', 'never', 'fresh'], 'a board with no budget first; jobs already on the lists are kept before new boards are read in');
+  const order = await inTurn(db, [entry('fresh', 'workday'), entry('one', 'greenhouse'), entry('never', 'workday'), entry('stale', 'workday'), entry('cut', 'workday'), entry('tail', 'workday')]);
+  assert.deepEqual(order.map((line: { slug: string }) => line.slug), ['one', 'never', 'stale', 'tail', 'fresh', 'cut'],
+    'a board with no budget first; then the board never read; then by how long each has waited since its last turn');
 });
 
 test('a listing cut by the budget has read everything up to the cut, and the next run takes it up there', async () => {

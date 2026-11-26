@@ -5,6 +5,10 @@
 // This is where the requests are. The list is narrowed to the United States
 // when the board offers that as a filter, and the runner asks for the text
 // only of postings whose title it keeps and whose listing is new or changed.
+// It is not narrowed further, to the states new jobs are ported from: what a
+// board's site filters return is not known well enough to rely on (see
+// scripts/ingest/README.md, "A platform's budget"); the runner sets aside
+// what is outside them from the listing as it comes.
 import { distinct, isoTime, shape, webAddress, words } from './shared.mjs';
 
 export const name = 'Workday';
@@ -12,8 +16,9 @@ export const how = 'One request per 20 postings for the list, then one per kept 
 // Every Workday board is a tenant of one platform, and the platform turns a busy robot away (it reset the
 // scout after about 870 requests in an hour, and answered 429 the same day). So the platform has a budget
 // for the whole run, across every board on it: 300 requests, four seconds apart, about twenty minutes. It
-// is spent on the boards whose complete listing is oldest first; a listing the budget cuts is taken up at
-// the next run where it stopped, with every text up to the cut already read.
+// goes to the board that has waited longest for its turn (inTurn in jobs.mjs), so one long listing cannot
+// take it run after run; a listing the budget cuts is taken up where it stopped when its turn comes round
+// again, with every text up to the cut already read.
 export const pace = 4000;
 export const budget = { platform: 'myworkdayjobs.com', requests: 300 };
 export const resumes = true;

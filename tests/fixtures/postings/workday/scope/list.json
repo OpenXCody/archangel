@@ -1,0 +1,87 @@
+{
+ "total": 7,
+ "jobPostings": [
+  {
+   "title": "Welder",
+   "externalPath": "/job/Fort-Worth-TX/Welder_S1",
+   "locationsText": "Fort Worth, TX",
+   "postedOn": "Posted Yesterday",
+   "bulletFields": [
+    "S1"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Tucson-AZ/Welder_S2",
+   "locationsText": "Tucson, AZ",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "S2"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Tucson-AZ/Welder_S3",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted 3 Days Ago",
+   "bulletFields": [
+    "S3"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Wichita-KS/Welder_S4",
+   "locationsText": "Wichita, KS",
+   "postedOn": "Posted 6 Days Ago",
+   "bulletFields": [
+    "S4"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Tucson-AZ/Welder_S5",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "S5"
+   ]
+  },
+  {
+   "title": "Payroll Analyst",
+   "externalPath": "/job/Fort-Worth-TX/Payroll-Analyst_S6",
+   "locationsText": "Fort Worth, TX",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "S6"
+   ]
+  },
+  {
+   "title": "Welder",
+   "externalPath": "/job/Evendale/Welder_S7",
+   "locationsText": "Evendale",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "S7"
+   ]
+  }
+ ],
+ "facets": [
+  {
+   "facetParameter": "locationMainGroup",
+   "values": [
+    {
+     "facetParameter": "locationCountry",
+     "descriptor": "Location Country",
+     "values": [
+      {
+       "descriptor": "United States of America",
+       "id": "bc33aa3152ec42d4995f4791a106ed09",
+       "count": 7
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "userAuthenticated": false
+}

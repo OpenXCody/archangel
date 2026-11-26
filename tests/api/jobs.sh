@@ -4,8 +4,9 @@
 # with their skills, and undo a Declined or Hired. Every step is also tried by
 # someone who must be refused. Then what comes before a job: finding a career
 # by the words a plant uses, finding a company by its name, and asking for a
-# company or a plant that is not in the data. Prints one line per check and
-# exits non-zero if any fail.
+# company or a plant that is not in the data. And the one order jobs are
+# listed in: the newest day first, food and drink last within a day, the
+# companies in turn. Prints one line per check and exits non-zero if any fail.
 #
 # LOCAL ONLY: it creates and deletes users (emails ending @jobs.test), makes
 # them active members of two companies and one of them an admin directly in
@@ -396,6 +397,42 @@ check "a sixth request waits for the first five" 409 "$(req s2 POST /employer/co
 LAST=$(sql "SELECT id FROM company_requests WHERE user_id='$(uid s2)' AND status='requested' ORDER BY created_at DESC LIMIT 1")
 check "the person withdraws one"      200 "$(req s2 DELETE /employer/company-requests/$LAST)"
 expect "four are left waiting"        4 "$(sql "SELECT COUNT(*) FROM company_requests WHERE user_id='$(uid s2)' AND status='requested'")"
+# --- The one order jobs are listed in (jobsInOrder) -----------------------------------
+# The newest day first; within a day the jobs at a food or drink factory after every other job of that day; within each
+# of those, one job of each company in turn. Four companies of this run in an empty part of Nevada: one makes gears, one
+# has a factory with no industry recorded, one makes food and one bottles drinks. Their jobs are written straight to the
+# database, each with its own hour, so the order is a matter of the rows alone.
+ORD="Jobtest$RUN Order"
+psql "$DB" -qtA -v ON_ERROR_STOP=1 -v ord="$ORD" -v occ="$OCC" >/dev/null <<'SQL'
+INSERT INTO companies (name) VALUES (:'ord' || ' Gears'), (:'ord' || ' Plain'), (:'ord' || ' Foods'), (:'ord' || ' Bottling');
+INSERT INTO factories (company_id, name, latitude, longitude, city, state, primary_naics_description)
+SELECT (SELECT id FROM companies WHERE name = :'ord' || ' ' || c), upper(:'ord' || ' ' || c), lat, '-117.0000', 'Orderville', 'NV', industry FROM (VALUES
+  ('Foods',    '40.9000', 'Food Manufacturing'),
+  ('Gears',    '40.9300', 'Machinery Manufacturing'),
+  ('Bottling', '40.9900', 'Beverage and Tobacco Product Manufacturing'),
+  ('Plain',    '41.0500', NULL)
+) AS t(c, lat, industry);
+INSERT INTO jobs (company_id, factory_id, occupation_id, title, status, posted_at, expires_at)
+SELECT f.company_id, f.id, :'occ', 'Order check ' || t.tag, 'open', current_date - t.days_ago + t.at, (now() AT TIME ZONE 'UTC') + interval '30 days'
+FROM (VALUES
+  ('Foods',    'F1', 0, time '10:00'), ('Bottling', 'B1', 0, time '11:00'), ('Gears', 'M1', 0, time '09:00'), ('Gears', 'M2', 0, time '08:00'),
+  ('Plain',    'N1', 0, time '07:00'), ('Foods',    'F0', 1, time '12:00'), ('Gears', 'M0', 1, time '06:00')
+) AS t(c, tag, days_ago, at)
+JOIN factories f ON f.name = upper(:'ord' || ' ' || t.c);
+SQL
+ordered() { req anon GET "$1" | j "jobs.map((x) => x.title.split(' ').pop()).join(' ')"; }
+# Today: the gear maker's newest and the plain factory's, then the gear maker's second; then drink and food, though they
+# were posted last; then yesterday the same way.
+expect "within a day, food and drink come after every other job; the companies take turns within each" 'M1 N1 M2 B1 F1 M0 F0' "$(ordered "/jobs?q=Jobtest$RUN+Order")"
+expect "the order is the same a page at a time" 'M1 N1 M2|B1 F1 M0|F0' "$(ordered "/jobs?q=Jobtest$RUN+Order&limit=3")|$(ordered "/jobs?q=Jobtest$RUN+Order&limit=3&offset=3")|$(ordered "/jobs?q=Jobtest$RUN+Order&limit=3&offset=6")"
+expect "a food company's own list is its jobs, newest day first" 'F1 F0' "$(ordered "/jobs?companyId=$(sql "SELECT id FROM companies WHERE name = '$ORD Foods'")")"
+# Near a place the nearest comes first, whatever it makes: the food factory stands on the spot asked about.
+expect "with a place given the order by distance is unchanged: the nearest first, food or not" 'F1 F0 M1 M2 M0 B1 N1' "$(ordered "/jobs?near=40.9,-117.0&within=30&q=Jobtest$RUN+Order")"
+# Every list of jobs follows the one order (the hand-written statements too): the map's panel for the box these four
+# factories stand in lists its newest open jobs by it.
+OUT=$(req anon GET '/map/bounds/overview?west=-117.1&south=40.85&east=-116.9&north=41.1')
+expect "the map's panel lists a place's jobs in the same order" "7 $(ordered "/jobs?q=Jobtest$RUN+Order&limit=6")" "$(printf '%s' "$OUT" | j "openJobs + ' ' + o.jobs.map((x) => x.title.split(' ').pop()).join(' ')")"
+
 sql "DELETE FROM companies WHERE id='$CO_ID'" >/dev/null
 cleanup; trap 'rm -rf "$D"' EXIT
 expect "nothing of this run is left behind" "0 0 0 0" "$(sql "SELECT (SELECT COUNT(*) FROM users WHERE email LIKE '%@jobs.test') || ' ' || (SELECT COUNT(*) FROM company_requests WHERE name LIKE 'Jobtest$RUN%') || ' ' || (SELECT COUNT(*) FROM companies WHERE name LIKE 'Jobtest$RUN%') || ' ' || (SELECT COUNT(*) FROM occupations WHERE title LIKE 'Jobtest %$RUN')")"

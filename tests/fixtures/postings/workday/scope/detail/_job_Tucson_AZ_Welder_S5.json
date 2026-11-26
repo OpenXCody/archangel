@@ -1,0 +1,23 @@
+{
+ "jobPostingInfo": {
+  "title": "Welder",
+  "jobDescription": "<p>You will weld steel frames at our works.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding of carbon steel</li></ul>",
+  "location": "Tucson, AZ",
+  "additionalLocations": [
+   "Wichita, KS"
+  ],
+  "startDate": "2026-11-18",
+  "timeType": "Full time",
+  "jobReqId": "S5",
+  "jobRequisitionLocation": {
+   "descriptor": "Tucson, AZ",
+   "country": {
+    "descriptor": "United States of America",
+    "id": "bc33aa3152ec42d4995f4791a106ed09",
+    "alpha2Code": "US"
+   }
+  },
+  "externalUrl": "https://scope.wd1.myworkdayjobs.com/Careers/job/Tucson-AZ/Welder_S5"
+ },
+ "userAuthenticated": false
+}

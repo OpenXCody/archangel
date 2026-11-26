@@ -14,6 +14,13 @@
 // beside it; a site that is not on the line has no place, because a state is
 // never guessed.
 //
+// `states` says where NEW jobs are ported from: the file's own (at its top:
+// ["TX"]) for every line, and a line's own where it says otherwise. Two-letter
+// codes of the 50 states and the District of Columbia. It looks forward only:
+// a job already ported from a place outside them is tended as before, and no
+// new job is made there (the runner, jobs.mjs, and migration 0091). A file
+// that says none ports from everywhere.
+//
 //   node scripts/ingest/postings/registry.mjs --check     holds the file to its shape; writes nothing
 //
 // The runner (scripts/ingest/run.mjs) reads it through `loadRegistry` and
@@ -31,7 +38,10 @@ export const REGISTRY_FILE = path.join(ROOT, 'data', 'employers', 'boards.json')
 export const SOURCE_PREFIX = 'postings-';
 
 const LEFT_OUT = new Set(['refused', 'not verified', 'no adapter']);
-const EMPLOYER_KEYS = new Set(['slug', 'employer', 'company', 'also', 'system', 'board', 'ceiling', 'sites', 'note']);
+const EMPLOYER_KEYS = new Set(['slug', 'employer', 'company', 'also', 'system', 'board', 'ceiling', 'sites', 'states', 'note']);
+/** The 50 states and the District of Columbia, as a place's state is written. */
+const STATE_CODES = new Set(('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND ' +
+  'OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY').split(' '));
 const LEFT_OUT_KEYS = new Set(['employer', 'why', 'what', 'when', 'system']);
 const MOST_REQUESTS = 2000;
 
@@ -80,6 +90,27 @@ function siteProblems(sites) {
   return problems;
 }
 
+/** What is wrong with a `states` (the file's, or a line's own), as sentences: a list of states by their two letters, each once. */
+function statesProblems(states) {
+  if (!Array.isArray(states) || states.length === 0) return ['states is a list of the states new jobs are ported from, by their two letters, such as ["TX"]'];
+  const problems = [];
+  for (const state of states) {
+    if (typeof state !== 'string' || !STATE_CODES.has(state)) problems.push(`states: ${JSON.stringify(state)} is not one of the 50 states or DC by its two letters`);
+  }
+  if (new Set(states).size !== states.length) problems.push('states names a state twice');
+  return problems;
+}
+
+/**
+ * The states new jobs are ported from for an employer's line: its own `states`
+ * where it says, else the file's; null where neither says, which is
+ * everywhere. Sorted, so the same states are the same list.
+ */
+export function statesOf(registry, entry) {
+  const said = Array.isArray(entry?.states) ? entry.states : Array.isArray(registry?.states) ? registry.states : null;
+  return said && said.length > 0 ? [...new Set(said)].sort() : null;
+}
+
 /** What a board must look like for each system, and why not when it does not. */
 const BOARD = {
   greenhouse: (board) => /^[a-z0-9][a-z0-9_-]*$/i.test(board) || 'a Greenhouse board is its token, such as "spacex"',
@@ -100,6 +131,7 @@ export function checkRegistry(registry) {
   if (!registry || typeof registry !== 'object' || Array.isArray(registry)) return ['the file is not an object'];
   if (!Array.isArray(registry.employers)) say('employers', 'is not a list');
   if (!Array.isArray(registry.leftOut)) say('leftOut', 'is not a list');
+  if (registry.states !== undefined) for (const problem of statesProblems(registry.states)) say('the file', problem);
   const slugs = new Set();
   const names = new Set();
   for (const [index, entry] of (Array.isArray(registry.employers) ? registry.employers : []).entries()) {
@@ -131,6 +163,7 @@ export function checkRegistry(registry) {
       say(where, `ceiling is a whole number of requests from 1 to ${MOST_REQUESTS}`);
     }
     if (entry.sites !== undefined) for (const problem of siteProblems(entry.sites)) say(where, problem);
+    if (entry.states !== undefined) for (const problem of statesProblems(entry.states)) say(where, problem);
     if (entry.note !== undefined && !text(entry.note)) say(where, 'note is text');
   }
   for (const [index, entry] of (Array.isArray(registry.leftOut) ? registry.leftOut : []).entries()) {
@@ -188,6 +221,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     for (const entry of registry.employers) bySystem[entry.system] = (bySystem[entry.system] ?? 0) + 1;
     console.log(`${path.basename(file)}: ${registry.employers.length} employers are read (${Object.entries(bySystem).sort().map(([system, n]) => `${system} ${n}`).join(', ')}); ` +
       `${registry.leftOut.length} are left out (${[...LEFT_OUT].map((why) => `${why} ${registry.leftOut.filter((entry) => entry.why === why).length}`).join(', ')}).`);
+    const own = registry.employers.filter((entry) => entry.states !== undefined);
+    console.log(registry.states
+      ? `New jobs are ported from ${statesOf(registry, null).join(', ')}` +
+        `${own.length > 0 ? `; ${own.length} ${own.length === 1 ? 'line says' : 'lines say'} its own (${own.map((entry) => `${entry.slug}: ${statesOf(registry, entry).join(', ')}`).join('; ')})` : ''}.`
+      : `New jobs are ported from everywhere: the file names no states${own.length > 0 ? ` (${own.length} of its lines do)` : ''}.`);
     if (!process.argv.includes('--check')) console.log('Nothing is written: this only checks. The runner reads the file itself.');
   } catch (error) {
     console.error(error.message);
