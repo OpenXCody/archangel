@@ -1,10 +1,11 @@
 import { useId, useMemo, type ReactNode } from 'react';
+import { atlasSections } from '@shared/atlas';
 import { groupRoute } from '@shared/route';
 import { cn, plural } from '@/lib/utils';
 import { useKept } from '../../lib/kept';
 import { SectionHeading } from '../layout/Page';
 import { panelClass, secondaryActionClass } from '../layout/Panel';
-import { Tree, TreeBranch, TreeCard, TreeCardNames, TreeItem, TreeRoot, TreeToggle, type TreeMark } from '../layout/Tree';
+import { Tree, TreeBranch, TreeCard, TreeCardNames, TreeHeading, TreeItem, TreeRoot, TreeToggle, type TreeMark } from '../layout/Tree';
 import { SecondLine } from '../path/SkillTag';
 import { shareOf, type MarkStatus, type PlacedSkill, type SkillMarks } from '../path/model';
 import { SkillPreview } from './SkillPreview';
@@ -90,6 +91,8 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
       ),
     [route]
   );
+  // The groups as the Atlas places them: Fundamentals, then each field the path reaches, in the wheel's order.
+  const sections = useMemo(() => atlasSections(groups), [groups]);
   const ready = marks && !marks.pending ? marks : null;
   const share = ready ? shareOf(skills, ready) : null;
 
@@ -118,33 +121,8 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
   const toggleSkill = (skillId: string) => setOpened((current) => ({ ...current, cards: { ...current.cards, [skillId]: !current.cards[skillId] } }));
   const toggleLeftOut = () => setOpened((current) => ({ ...current, leftOut: !current.leftOut }));
 
-  return (
-    <section id="skills" aria-labelledby={headingId} className="mt-14 scroll-mt-20" data-skills-section>
-      {before}
-      <SectionHeading
-        id={headingId}
-        title="Skills"
-        note={
-          // A seeker's one figure, beside the heading; nothing while they hold none.
-          share && share.held > 0 ? (
-            <span className="text-[13px] tabular-nums text-text-3" data-held-count>
-              {share.held} of {share.total} held
-            </span>
-          ) : undefined
-        }
-        action={
-          groups.length > 1 ? (
-            <button type="button" aria-expanded={allOpen} onClick={toggleAll} className={cn(secondaryActionClass, 'px-3 sm:h-9')} data-route-open-all>
-              {allOpen ? 'Close all' : 'Open all'}
-            </button>
-          ) : undefined
-        }
-      />
-      <div className={panelClass} data-skill-groups="">
-        <Tree across="lg" shape="tree" after data-skill-tree="">
-          <TreeRoot data-skills-size="">{plural(skills.length, 'skill', 'skills')}</TreeRoot>
-          <TreeBranch aria-label="Skill groups">
-            {groups.map((group, index) => {
+  const groupNode = (group: Group) => {
+    const index = groups.indexOf(group);
               const isOpen = Boolean(opened.groups[group.key]);
               const held = ready ? shareOf(group.skills, ready).held : 0;
               const branchId = `${base}-group-${index}`;
@@ -184,7 +162,46 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
                   )}
                 </TreeItem>
               );
-            })}
+  };
+
+  return (
+    <section id="skills" aria-labelledby={headingId} className="mt-14 scroll-mt-20" data-skills-section>
+      {before}
+      <SectionHeading
+        id={headingId}
+        title="Skills"
+        note={
+          // A seeker's one figure, beside the heading; nothing while they hold none.
+          share && share.held > 0 ? (
+            <span className="text-[13px] tabular-nums text-text-3" data-held-count>
+              {share.held} of {share.total} held
+            </span>
+          ) : undefined
+        }
+        action={
+          groups.length > 1 ? (
+            <button type="button" aria-expanded={allOpen} onClick={toggleAll} className={cn(secondaryActionClass, 'px-3 sm:h-9')} data-route-open-all>
+              {allOpen ? 'Close all' : 'Open all'}
+            </button>
+          ) : undefined
+        }
+      />
+      <div className={panelClass} data-skill-groups="">
+        <Tree across="lg" shape="tree" after data-skill-tree="">
+          <TreeRoot data-skills-size="">{plural(skills.length, 'skill', 'skills')}</TreeRoot>
+          <TreeBranch aria-label="Skills, as the Atlas places them">
+            {sections.map((section) =>
+              // A group the Atlas does not place has no part to stand under: it hangs off the root itself.
+              section.name === null ? (
+                section.groups.map((group) => groupNode(group))
+              ) : (
+                <TreeItem key={section.key} open data-atlas-section={section.key} node={<TreeHeading>{section.name}</TreeHeading>}>
+                  <TreeBranch nested aria-label={section.name}>
+                    {section.groups.map((group) => groupNode(group))}
+                  </TreeBranch>
+                </TreeItem>
+              )
+            )}
             {leftOut.length > 0 && (
               <TreeItem
                 open={opened.leftOut}
