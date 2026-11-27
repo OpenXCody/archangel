@@ -1,18 +1,16 @@
-import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
-import { cn, focusRing } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { JobDetail, JobPath, JobPathSkill } from '../../lib/jobs';
-import { careerRangeLine, jobSkillParts } from '../../lib/jobSkills';
+import { jobSkillParts } from '../../lib/jobSkills';
 import { companyShortName } from '@shared/versions';
 import { SkillMark } from '../account/SkillStatusButton';
-import { DetailSection, RecordList, RecordRow, detailActionClass, rowHoverClass } from '../layout/Page';
+import { DetailSection, RecordList, RecordRow } from '../layout/Page';
 import { ShareRing } from '../path/HeldShare';
 import { shareOf, type MarkStatus, type PathSkillItem, type PlacedSkill, type Share, type SkillMarks } from '../path/model';
 import { SkillGroupBox } from '../path/SkillGroupBox';
 import { SkillTags } from '../path/SkillTag';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { Route } from '../route/Route';
+import { SkillGroups } from '../route/SkillGroups';
 
 /*
  * A job's skills, as its page draws them (`path` on GET /api/jobs/:id).
@@ -180,96 +178,19 @@ interface PartProps {
 }
 
 /**
- * A job from a company's careers site: the skills its posting names, then the
- * rest of its career's range behind one closed line. Nothing here says the
- * career's whole path is what the job takes, and no row says "named in the
- * posting": everything in the list is.
+ * A job from a company's careers site: the skills its posting names, as the
+ * same tree a career's page draws (skill groups, then their skills), and under
+ * it one link to the rest of its career's range. Nothing here says the
+ * career's whole path is what the job takes.
  */
 function PostingSkills({ job, path, marks }: PartProps) {
   // The job's own skills, and the rest of the career's range (`jobSkillParts` in lib/jobSkills.ts is the rule).
-  const { own, rest, counted } = jobSkillParts(path);
+  const { own } = jobSkillParts(path);
+  // A posting that names no skill has no Skills section: the career's tag leads to the career's own.
+  if (own.length === 0) return null;
   return (
-    <DetailSection id="skills" title="Skills" className={jobSectionClass}>
-      <div data-job-path={path.of}>
-        {/* How many of the job's own skills a seeker holds. Of one skill there is nothing to count. */}
-        {counted && marks && <Overlap share={shareOf(own, marks)} />}
-        {own.length > 0 && (
-          <RecordList data-job-own="">
-            {own.map((skill) => {
-              const status = marks?.statusOf(skill.id);
-              return (
-                <RecordRow
-                  key={skill.id}
-                  to={`/skills/${skill.id}`}
-                  lead={
-                    status && (
-                      <>
-                        <SkillMark status={status} />
-                        <span className="sr-only">{SAID[status]}</span>
-                      </>
-                    )
-                  }
-                  title={skill.name}
-                  // Among a seeker's own, a skill they do not hold steps back.
-                  quiet={status === 'none'}
-                  data-skill-tag={skill.id}
-                  data-status={status}
-                />
-              );
-            })}
-          </RecordList>
-        )}
-        {rest.length > 0 && path.of !== 'job' && <CareerRange job={job} of={path.of} skills={rest} some={own.length > 0} marks={marks} />}
-      </div>
-    </DetailSection>
-  );
-}
-
-/**
- * The rest of the career's range, behind one line that arrives closed for
- * everyone: the career's name (the company's version of it, where the job's
- * path is that) and how many more skills its path holds. Open, it is those
- * skills by skill group, as the career's page draws them, and the way to that
- * page. A seeker's held skills carry their tick inside it.
- */
-function CareerRange({ job, of, skills, some, marks }: { job: JobDetail; of: 'version' | 'career'; skills: JobPathSkill[]; some: boolean; marks: SkillMarks | null }) {
-  const [open, setOpen] = useState(false);
-  const id = useId();
-  // "Welder career · 19 more" for the standard path; "Boeing CNC Operator · 12 more" for a company's version of it.
-  const { name, count, said, to } = careerRangeLine(job, of, skills.length, some);
-  return (
-    // Under the job's own rows it is the list's last line, parted from them like any row.
-    <div className={cn(some && 'border-t border-line')} data-job-range={of} data-open={open || undefined}>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={() => setOpen((value) => !value)}
-        // As wide as a row of the list above it, so its words and its chevron stand under theirs.
-        className={cn('flex min-h-[52px] w-[calc(100%+1.5rem)] min-w-0 items-center gap-3 py-2.5 text-left', rowHoverClass, focusRing)}
-        data-job-range-button=""
-      >
-        <span className="min-w-0 flex-1 break-words text-sm leading-snug">
-          <span className={cn('text-text-1', open && 'font-medium')}>{name}</span>{' '}
-          <span className="whitespace-nowrap text-[13px] tabular-nums text-text-3" data-job-range-count="">
-            <span aria-hidden="true">· {count}</span>
-            <span className="sr-only">{said}</span>
-          </span>
-        </span>
-        <ChevronDown aria-hidden="true" className={cn('h-4 w-4 shrink-0 text-text-3 transition-transform motion-reduce:transition-none', open && 'rotate-180')} />
-      </button>
-      <div id={id} hidden={!open} role="region" aria-label={name} data-job-range-panel="">
-        {open && (
-          // The route keeps the list's width here, so its chevrons stand under the rows' own.
-          <div className="pb-2 [&_.route-main]:max-w-none">
-            {/* The line above has said whose skills these are and how many: the route's first line is "Open all" alone. */}
-            <Route grouped skills={skills} marks={marks} heading={<span aria-hidden="true" />} />
-            <Link to={to} className={cn(detailActionClass, 'mt-4')} data-job-range-page="">
-              Career page
-            </Link>
-          </div>
-        )}
-      </div>
+    <div className="border-t border-line [&>section]:mt-8" data-job-path={path.of} data-job-own="">
+      <SkillGroups skills={own} marks={marks} keepAs={`job ${job.id}`} />
     </div>
   );
 }

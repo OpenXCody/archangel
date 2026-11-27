@@ -6,7 +6,6 @@ import { titleSaysCareer } from '../../shared/jobs.ts';
 import { cityState, titleCase } from '../../shared/places.ts';
 import { jobRow, jobRowText, type JobListSays, type JobRowJob } from '../../client/src/lib/jobRow.ts';
 import { jobPageTitle, jobTabTitle } from '../../client/src/lib/jobTitle.ts';
-import { jobOwnName, type JobAbout } from '../../shared/jobOwnName.ts';
 import { jobAsGiven, ownNameOf } from '../../server/lib/jobRows.ts';
 import { readTitle } from '../../scripts/ingest/postings/read/title.mjs';
 import { MIGRATIONS } from '../../scripts/migrate.mjs';
@@ -192,121 +191,21 @@ const OWN_WORDS: JobRowJob = { ...SENIOR, title: 'Weld Shop, Nights' };
 /** Every kind of heading a list of jobs stands under. */
 const HEADINGS: JobListSays[] = [{}, { career: true }, { company: true }, { factory: true }, { career: true, company: true }, { career: true, factory: true }, { state: true }, { career: true, state: true }];
 
-test("a row of jobs: the first line is the job's name, the opening's own name beside it, then what the heading has not said", () => {
-  // The Jobs list, a skill's page, an industry's page, a region's panel: nothing is said above the list.
-  assert.deepEqual(row(WELDER), ['name: Welder', 'Production Welder', 'John Deere · East Moline, IL']);
-  assert.deepEqual(row(PLAIN), ['name: Welder', '', 'SpaceX · Bastrop, TX']);
-  // A career's page, the Jobs list narrowed to one career: the opening's own name is the first line; the career's
-  // title where it has none. Never the company, which is said in the line under it.
-  assert.deepEqual(row(WELDER, { career: true }), ['own: Production Welder', '', 'John Deere · East Moline, IL']);
-  assert.deepEqual(row(PLAIN, { career: true }), ['name: Welder', '', 'SpaceX · Bastrop, TX']);
-  // A company's page: the standard name, the own name, then the factory by its own name and the place.
-  assert.deepEqual(row(WELDER, { company: true }), ['name: Welder', 'Production Welder', 'Harvester Works · East Moline, IL']);
-  assert.deepEqual(row(PLAIN, { company: true }), ['name: Welder', '', 'Bastrop, TX'], 'a factory named for its company and town is said by its place');
-  // "More Welder jobs at John Deere", a company's version of a career: the own name leads, where the job is follows.
-  assert.deepEqual(row(WELDER, { career: true, company: true }), ['own: Production Welder', '', 'Harvester Works · East Moline, IL']);
-  assert.deepEqual(row(PLAIN, { career: true, company: true }), ['name: Welder', '', 'Bastrop, TX'], 'never headed by its place: the career is still its name');
-  // A factory's page, "Other jobs at this factory": the names alone. The factory says its company and its place.
-  assert.deepEqual(row(WELDER, { factory: true }), ['name: Welder', 'Production Welder', '']);
-  assert.deepEqual(row(PLAIN, { factory: true }), ['name: Welder', '', '']);
-  // One career at one factory: all of it is said above, and a row is still a job's name.
-  assert.deepEqual(row(WELDER, { career: true, factory: true }), ['own: Production Welder', '', '']);
-  assert.deepEqual(row(PLAIN, { career: true, factory: true }), ['name: Welder', '', '']);
-  // A state's or a focus area's page or panel: the city alone.
-  assert.deepEqual(row(WELDER, { state: true }), ['name: Welder', 'Production Welder', 'John Deere · East Moline']);
-});
-
-test('under every kind of heading the first line is a job\'s name and never a place or a company, and no line is empty', () => {
-  for (const job of [WELDER, PLAIN, SENIOR, OWN_WORDS, { ...WELDER, city: null }, { ...PLAIN, city: null, state: null }, { ...WELDER, shift: 'Night shift', employmentType: 'full-time', payMin: 2900, payMax: 3400, payPeriod: 'hour' as const, postedAt: '2026-10-30T12:00:00Z', undated: true }]) {
-    for (const said of HEADINGS) {
-      const { head, second, facts } = jobRow(job, said);
-      const where = `${job.title} / ${job.ownName ?? 'no own name'} ${JSON.stringify(said)}`;
-      // The first line is the standard name, or under a heading that names the career the opening's own name.
-      assert.ok(head.kind === 'name' || head.kind === 'own', `${where}: headed by ${head.kind}`);
-      assert.equal(head.text, said.career && job.ownName ? job.ownName : job.title, where);
-      assert.notEqual(head.text, cityState(job.city, job.state), `${where}: a place`);
-      assert.notEqual(head.text.toLowerCase(), String(job.companyName).toLowerCase(), `${where}: a company`);
-      // The own name is said once: as the first line, or as the line under the standard name.
-      assert.equal(second, head.kind === 'own' ? null : (job.ownName ?? null), where);
-      // No line of a row is empty, and no part of a line.
-      const lines = printed(job, said);
-      assert.ok(lines.length >= 1 && lines.every((line) => line.trim() !== ''), `${where}: ${JSON.stringify(lines)}`);
-      assert.ok(facts.every((part) => part.text.trim() !== ''), `${where}: no empty part`);
-      // Nothing is said twice in a row, and nothing its heading has said.
-      const texts = [head.text, ...(second ? [second] : []), ...facts.map((part) => part.text)];
-      assert.equal(new Set(texts.map((text) => text.toLowerCase())).size, texts.length, `${where}: ${texts.join(' / ')}`);
-      const kinds = facts.map((part) => part.kind);
-      assert.ok(!kinds.includes('name') && !kinds.includes('own'), `${where}: a name is a line of its own, never a fact`);
-      if (said.company || said.factory) assert.ok(!kinds.includes('company'), `${where}: the company is not said again`);
-      if (said.factory) assert.ok(!kinds.includes('site') && !kinds.includes('place'), `${where}: nor where the factory is`);
-      if (said.career) assert.ok(!kinds.includes('career'), `${where}: the career is not said again`);
-      // The day ends a row only where every row of the list is one career at one company.
-      assert.equal(kinds.includes('day'), Boolean(job.postedAt && said.career && (said.company || said.factory)), `${where}: the day`);
-      if (kinds.includes('day')) assert.equal(kinds[kinds.length - 1], 'day', where);
-    }
-  }
-});
-
-test("the owner's five openings: under \"More Welder jobs at SpaceX\" each row leads with its own name, and no two read alike", () => {
-  const about: JobAbout = { career: 'Welder', company: 'SpaceX', factory: 'Starbase', city: 'Starbase', state: 'TX' };
-  // As the copy of production has them: the posted title, the shift the reader took from it, the day.
-  const openings: [posted: string, shift: string | null, day: string][] = [
-    ['Pipe Welder, Stage 0 Ground Fabriciation (Starship) - Night Shift', 'Night shift', '2025-09-22'],
-    ['Structural Welder, Ground Support Equipment (Starship) - Night Shift', 'Night shift', '2025-10-30'],
-    ['Lead Welder, Pipe (Starship Launch Fabrication)', null, '2025-11-04'],
-    ['Welder (Starship)', null, '2025-10-30'],
-    ['Welder (Starship) - Night Shift', 'Night shift', '2025-10-30'],
-  ];
-  const jobs: JobRowJob[] = openings.map(([posted, shift, day]) => ({
-    title: 'Welder',
-    ownName: jobOwnName(posted, about),
-    occupationTitle: 'Welder',
-    companyName: 'SpaceX',
-    factoryName: 'Starbase',
-    city: 'Starbase',
-    state: 'TX',
-    shift,
-    postedAt: `${day}T12:00:00Z`,
-    undated: false,
-  }));
-  const said = { career: true, company: true };
-  assert.deepEqual(jobs.map((job) => printed(job, said)), [
-    ['Pipe Welder, Stage 0 Ground Fabriciation (Starship)', 'Starbase, TX · Night shift · Posted Sep 22, 2025'],
-    ['Structural Welder, Ground Support Equipment (Starship)', 'Starbase, TX · Night shift · Posted Oct 30, 2025'],
-    ['Lead Welder, Pipe (Starship Launch Fabrication)', 'Starbase, TX · Posted Nov 4, 2025'],
-    ['Welder (Starship)', 'Starbase, TX · Posted Oct 30, 2025'],
-    ['Welder (Starship)', 'Starbase, TX · Night shift · Posted Oct 30, 2025'],
-  ]);
-  // Before the own name every one of them printed "Starbase, TX" and nothing else.
-  assert.equal(new Set(jobs.map((job) => printed(job, said).join('\n'))).size, 5);
-  for (const job of jobs) assert.notEqual(printed(job, said)[0], 'Starbase, TX');
-  // On the factory's own page, and in the Jobs list, the standard name leads and the own name is the next line.
-  assert.deepEqual(printed(jobs[0], { factory: true }), ['Welder', 'Pipe Welder, Stage 0 Ground Fabriciation (Starship)', 'Night shift']);
-  assert.deepEqual(printed(jobs[3], {}), ['Welder', 'Welder (Starship)', 'SpaceX · Starbase, TX']);
-  // A posting with no day given says "Listed".
-  assert.equal(jobRowText(jobRow({ ...jobs[3], undated: true }, said).facts, 'day'), 'Listed Oct 30, 2025');
-});
-
-test('over the postings chosen for the own name: every row is headed by a name, whatever its heading', () => {
-  const cases = JSON.parse(readFileSync(new URL('../fixtures/jobs/own-names.json', import.meta.url), 'utf8')) as { posted: string; about: JobAbout; want: string | null }[];
-  assert.ok(cases.length >= 220);
-  let named = 0;
-  for (const each of cases) {
-    const ownName = jobOwnName(each.posted, each.about);
-    const career = each.about.career || 'Welder';
-    const job: JobRowJob = { title: career, ownName, occupationTitle: career, companyName: each.about.company, factoryName: each.about.factory, city: each.about.city, state: each.about.state };
-    if (ownName) named += 1;
-    const place = cityState(job.city, job.state);
-    for (const said of HEADINGS) {
-      const { head, second } = jobRow(job, said);
-      const where = `${each.about.company} | ${each.posted} ${JSON.stringify(said)}`;
-      // Under a heading that names the career, the opening's own name; the career's title where it has none.
-      assert.equal(head.text, said.career ? (ownName ?? career) : career, where);
-      assert.equal(second, said.career ? null : ownName, where);
-      assert.ok(head.text.trim() !== '' && head.text !== place, `${where}: a place or nothing`);
-    }
-  }
-  assert.ok(named >= 150, `${named} of the chosen postings have a name of their own`);
+test("a row of jobs is its standard name, and says the posted title under it only where another row would read the same", () => {
+  const welder = (ownName: string | null, city = 'Starbase'): JobRowJob => ({ title: 'Welder', ownName, occupationTitle: 'Welder', companyName: 'SpaceX', factoryName: 'Starbase', city, state: 'TX' });
+  const a = welder('Pipe Welder (Starship)');
+  const b = welder('Welder (Starship) - Night Shift');
+  const c = welder('Welder, Bastrop', 'Bastrop');
+  // Alone, or beside jobs elsewhere, a row is the standard name and nothing under it.
+  assert.equal(jobRow(a).head.text, 'Welder');
+  assert.equal(jobRow(a).second, null);
+  assert.equal(jobRow(c, { among: [a, b, c] }).second, null);
+  // Two of one career, company and town are told apart by what the company called each.
+  assert.equal(jobRow(a, { among: [a, b, c] }).second, 'Pipe Welder (Starship)');
+  assert.equal(jobRow(b, { among: [a, b, c] }).second, 'Welder (Starship) - Night Shift');
+  // Under a heading that names the career the posted title leads, or the career where there is none: never a place.
+  assert.deepEqual(jobRow(a, { career: true, company: true }).head, { kind: 'own', text: 'Pipe Welder (Starship)' });
+  assert.deepEqual(jobRow(welder(null), { career: true, company: true }).head, { kind: 'name', text: 'Welder' });
 });
 
 test('a job a company titled its own way keeps its title as its first line, and says its career only where the title does not', () => {
@@ -322,7 +221,7 @@ test('a job a company titled its own way keeps its title as its first line, and 
 
 test('after the names a row says what the job states: its shift, the kind of employment, its pay', () => {
   const stated: JobRowJob = { ...WELDER, shift: 'Night shift', employmentType: 'full-time', payMin: 2900, payMax: 3400, payPeriod: 'hour', postedAt: '2025-10-30T12:00:00Z', undated: true };
-  assert.deepEqual(row(stated), ['name: Welder', 'Production Welder', 'John Deere · East Moline, IL · Night shift · Full-time · $29–$34 an hour']);
+  assert.deepEqual(row(stated), ['name: Welder', '', 'John Deere · East Moline, IL · Night shift · Full-time · $29–$34 an hour']);
   assert.deepEqual(row(stated, { career: true, company: true }), ['own: Production Welder', '', 'Harvester Works · East Moline, IL · Night shift · Full-time · $29–$34 an hour · Listed Oct 30, 2025']);
   // What a job does not state is not said: no pay, no kind of employment, no shift.
   assert.deepEqual(jobRow(WELDER).facts.map((part) => part.kind), ['company', 'place']);
@@ -335,8 +234,8 @@ test('after the names a row says what the job states: its shift, the kind of emp
 
 test('a factory with no city on record is placed by its name, where the row does not say it already', () => {
   const nowhere = { ...WELDER, city: null };
-  assert.deepEqual(row(nowhere), ['name: Welder', 'Production Welder', 'John Deere · John Deere Harvester Works, IL']);
-  assert.deepEqual(row(nowhere, { company: true }), ['name: Welder', 'Production Welder', 'Harvester Works · IL']);
+  assert.deepEqual(row(nowhere), ['name: Welder', '', 'John Deere · John Deere Harvester Works, IL']);
+  assert.deepEqual(row(nowhere, { company: true }), ['name: Welder', '', 'Harvester Works · IL']);
   assert.deepEqual(row(nowhere, { career: true, company: true }), ['own: Production Welder', '', 'Harvester Works · IL']);
   assert.deepEqual(row({ ...nowhere, state: null }, { career: true, company: true }), ['own: Production Welder', '', 'Harvester Works']);
 });
@@ -346,7 +245,7 @@ test('every list of jobs is drawn by the one rule: no screen writes a job\'s row
   // The three shapes a job row has (a record row, a panel row, the Jobs list's) each read the rule, and each draws
   // the first line and the own name under it where the rule gives them.
   for (const file of ['components/jobs/JobRow.tsx', 'components/map/panel/parts.tsx', 'pages/Jobs.tsx']) {
-    assert.match(read(file), /const \{ head, second, facts \} = jobRow\(job, said\)/, file);
+    assert.match(read(file), /const \{ head, second, facts \} = jobRow\(job, /, file);
     assert.match(read(file), /data-job-head=\{head\.kind\}/, file);
   }
   assert.match(read('components/jobs/JobRow.tsx'), /title=\{head\.kind === 'own' \? <span className="line-clamp-2">\{head\.text\}<\/span> : head\.text\}\s+second=\{second \?\? undefined\}/);
@@ -393,7 +292,7 @@ test("a job from a careers site is titled as its company's variant of the career
   const page = readFileSync(new URL('../../client/src/pages/JobDetail.tsx', import.meta.url), 'utf8');
   assert.match(page, /title=\{jobPageTitle\(data\.job\)\}/);
   assert.match(page, /data\.job\.ownName \? \(\s*<p [^>]*data-job-own-name>\s*\{data\.job\.ownName\}/);
-  assert.match(page, /<CareerTag career=\{\{ id: career\.id, title: `Standard \$\{career\.title\}` \}\} data-job-standard="" \/>/);
+  assert.match(page, /<CareerTag career=\{\{ id: career\.id, title: career\.title \}\} data-job-standard="" \/>/);
   assert.match(page, /jobTabTitle\(job\.data\.job\)/);
   // Nothing on the page says "Posted as": the own name is a name, not a label.
   assert.doesNotMatch(page.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''), /Posted as|posted as/);
@@ -401,21 +300,14 @@ test("a job from a careers site is titled as its company's variant of the career
 
 // --- The server gives the own name and never the posted title -----------------------------------------------
 
-test("the server reads a job's own name from the title it was posted under, on every row it gives", () => {
-  const starbase = { postedAs: 'Pipe Welder, Stage 0 Ground Fabriciation (Starship) - Night Shift', occupationTitle: 'Welder', companyName: 'SpaceX', factoryName: 'Starbase', city: 'Starbase', state: 'TX' };
-  assert.equal(ownNameOf(starbase), 'Pipe Welder, Stage 0 Ground Fabriciation (Starship)');
-  assert.equal(ownNameOf(starbase), jobOwnName(starbase.postedAs, { career: 'Welder', company: 'SpaceX', factory: 'Starbase', city: 'Starbase', state: 'TX' }));
-  // The company, the factory and the place are the job's own: what a page states of them is cut from the name.
-  assert.equal(ownNameOf({ postedAs: 'John Deere Dubuque Works - Production Welder', occupationTitle: 'Welder', companyName: 'John Deere', factoryName: 'John Deere Dubuque Works', city: 'Dubuque', state: 'IA' }), 'Production Welder');
-  // Nothing beyond the career: none.
-  assert.equal(ownNameOf({ ...starbase, postedAs: 'Welder - Night Shift' }), null);
-  // A job posted here by hand has no posted title, and so no own name.
+test("the server gives the posted title as a job's own name, and nothing where it says no more than the career", () => {
+  const starbase = { postedAs: 'Pipe Welder  (Starship) ', occupationTitle: 'Welder', companyName: 'SpaceX', factoryName: 'Starbase', city: 'Starbase', state: 'TX' };
+  assert.equal(ownNameOf(starbase), 'Pipe Welder (Starship)');
+  assert.equal(ownNameOf({ ...starbase, postedAs: 'WELDER' }), null);
   assert.equal(ownNameOf({ ...starbase, postedAs: null }), null);
-  // The row as given: the own name in, the posted title out, the rest as selected.
   const given = jobAsGiven({ id: 'j1', title: 'Welder', ...starbase });
-  assert.deepEqual(given, { id: 'j1', title: 'Welder', occupationTitle: 'Welder', companyName: 'SpaceX', factoryName: 'Starbase', city: 'Starbase', state: 'TX', ownName: 'Pipe Welder, Stage 0 Ground Fabriciation (Starship)' });
+  assert.equal(given.ownName, 'Pipe Welder (Starship)');
   assert.ok(!('postedAs' in given));
-  assert.deepEqual(jobAsGiven({ title: 'Line Lead II', postedAs: null, occupationTitle: 'Production Supervisor', companyName: 'Acme', factoryName: 'Acme Tulsa', city: 'Tulsa', state: 'OK' }).ownName, null);
 });
 
 test('every statement that gives job rows goes through the one helper, and none gives the posted title', () => {

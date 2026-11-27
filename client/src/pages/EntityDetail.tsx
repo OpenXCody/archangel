@@ -14,6 +14,8 @@ import {
 } from '../lib/api';
 import { formatFactoryName, formatCompanyName } from '@shared/displayName';
 import { EmptyState, BackLink, PageContainer } from '../components/layout/Page';
+import { secondaryActionClass } from '../components/layout/Panel';
+import { cn } from '@/lib/utils';
 import { recordQuery } from '../lib/queries';
 import type { Head } from '../components/entity/parts';
 import CompanyDetailView from '../components/entity/CompanyDetailView';
@@ -174,7 +176,7 @@ export default function EntityDetail() {
     edit: canEdit ? (
       <Link
         to={editPath(RECORD_KIND[entityType], data.id)}
-        className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
+        className={cn(secondaryActionClass, 'px-3 sm:h-9')}
         data-admin-edit
       >
         Edit
@@ -183,15 +185,18 @@ export default function EntityDetail() {
   };
 
   return (
-    <PageContainer size="narrow">
+    // A career's page is wider from a laptop up (1120 px at most), every panel on it together, so its tree
+    // of skills stands across with room for a skill opened at a reading measure; its sentences keep theirs.
+    <PageContainer size="narrow" className={entityType === 'occupations' ? 'lg:max-w-[73rem]' : undefined}>
       {/* The address says which kind of record this is; the shape checks only
           narrow the type. A response that gains a field can then never draw
           another kind's page. `data-entity-view` names the view for tests. */}
       <div className="contents" data-entity-view={entityType} data-entity-kind={KIND_LABEL[entityType]}>
         {entityType === 'companies' && isCompanyDetail(data) && <CompanyDetailView data={data} head={head} />}
         {entityType === 'factories' && isFactoryDetail(data) && <FactoryDetailView data={data} head={head} />}
-        {entityType === 'occupations' && isOccupationDetail(data) && !at && <OccupationDetailView data={data} head={head} />}
-        {entityType === 'occupations' && isOccupationDetail(data) && at && <CareerVersionView key={at} data={data} at={at} head={head} />}
+        {/* One career's view is one career's: keyed by it, so nothing a person opened on one career is drawn on the next. */}
+        {entityType === 'occupations' && isOccupationDetail(data) && !at && <OccupationDetailView key={data.id} data={data} head={head} />}
+        {entityType === 'occupations' && isOccupationDetail(data) && at && <CareerVersionView key={`${data.id}@${at}`} data={data} at={at} head={head} />}
         {entityType === 'skills' && isSkillDetail(data) && <SkillDetailView data={data} head={head} />}
       </div>
     </PageContainer>

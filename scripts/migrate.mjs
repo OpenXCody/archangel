@@ -57,6 +57,8 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   '0081_posting_places_2.sql',
   // The Texas factories texas-hubs.json left waiting for a location, placed (data/employers/texas-hubs-2.json).
   '0082_texas_hubs_2.sql',
+  // The skill groups re-cut to the Atlas's: seven new groups of skills already placed, 27 skills moved, 127 groups renamed.
+  '0083_skill_taxonomy_6.sql',
   // Cleaning a plant and preparing food by hand leave the catalogue (Sanitation Technician, Meat Cutter, Slaughterer,
   // Baker), with their jobs and what the postings pipeline kept of them; then the lists and the paths without them.
   '0084_careers_catalogue_3.sql', '0085_career_lists_4.sql', '0086_career_paths_3.sql',

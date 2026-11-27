@@ -194,7 +194,7 @@ export function JobRows({ jobs, limit, said }: { jobs: CareerJob[]; limit: numbe
   return (
     <RowList>
       {jobs.slice(0, limit).map((job) => {
-        const { head, second, facts } = jobRow(job, said);
+        const { head, second, facts } = jobRow(job, { ...said, among: jobs });
         // What is left to say, then the pay where the posting states it: what is not said is not said.
         const line = jobRowLine(facts);
         return (

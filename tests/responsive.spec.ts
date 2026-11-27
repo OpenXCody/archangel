@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect, type Locator, type Page, type APIRequestContext } from '@playwright/test';
 
 // Through the app's own address (the dev server proxies /api), so the suite
@@ -34,28 +35,137 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
   // readable text, or — for canvas-first pages like the map — live controls.
   expect(metrics.bodyText > 20 || metrics.interactive >= 3, `${label}: page rendered nothing`).toBe(true);
   await expect(page.getByText('This page could not be shown'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
+  // More of a list is the last row of the list's own frame, or a framed button by itself: never a bare row under a frame.
+  const bare = await page.evaluate(() => {
+    const framed = (element: Element | null) => Boolean(element) && parseFloat(getComputedStyle(element as Element).borderLeftWidth) > 0;
+    return [...document.querySelectorAll('[data-show-all]')].filter((button) => !framed(button) && !framed(button.parentElement)).length;
+  });
+  expect(bare, `${label}: "Show all" stands outside its list's frame`).toBe(0);
   // Evidence, not an assertion: a slow tile or font server must not fail a layout check.
   const file = `test-results/screens/${test.info().project.name}${label.replace(/[^A-Za-z0-9._-]/g, '_')}.png`;
   await page.screenshot({ path: file, fullPage: false, timeout: 10_000 }).catch(() => undefined);
 }
 
 /**
- * A path is one route down the page at every width: every row that is drawn
- * stands on one left edge, each under the one before it, and no level is
- * named. (The flow before it stood in three level columns from a tablet up.)
+ * A connector tree (`components/layout/Tree.tsx`: a career's skills, its
+ * ladder, a military career's civilian careers within reach), held to its
+ * rules as it is drawn, at whatever width and with whatever open:
+ * - one root, and everything else a node on a branch or inside a node's card;
+ * - a node's row is a full finger tall, inside the frame, and is a disclosure
+ *   (a button that says whether it is open), a link, or a heading that names
+ *   its branch: never a bare button;
+ * - the nodes of a branch stand under one another on one upright with nothing
+ *   between them, so what a node opened pushes no sibling away from it;
+ * - open and closed are told apart by more than the chevron: an open node's
+ *   ring is in full ink and its name heavier, its line runs on down from its
+ *   mark, and what it opened (a branch or a card) is inside its own item; a
+ *   closed node is a quiet ring at body weight and holds nothing;
+ * - no node's ring is ever filled: fill is the root's dot and a seeker's held
+ *   skill, so an open skill is never taken for a held one;
+ * - no text stands loose in the frame.
  */
-async function expectOneRoute(route: Locator, label: string): Promise<void> {
-  await expect(route, `${label}: one route`).toHaveCount(1);
-  await expect(route, `${label}: no level is named on a route`).not.toContainText(/Fundamentals|Intermediate|Advanced/);
-  const rows = await route
-    .locator('[data-skill-tag], [data-route-section] > .route-head')
-    .evaluateAll((items) => items.filter((item) => (item as HTMLElement).offsetParent !== null).map((item) => item.getBoundingClientRect().toJSON() as { left: number; top: number; bottom: number; height: number }));
-  expect(rows.length, `${label}: the route draws rows`).toBeGreaterThan(0);
-  for (const [at, row] of rows.entries()) {
-    expect(Math.abs(row.left - rows[0].left), `${label}: row ${at} stands in the one column`).toBeLessThanOrEqual(1);
-    expect(row.height, `${label}: row ${at} is a full finger tall`).toBeGreaterThanOrEqual(44);
-    if (at > 0) expect(row.top, `${label}: row ${at} stands under the one before it`).toBeGreaterThanOrEqual(rows[at - 1].bottom - 1);
-  }
+async function expectTree(tree: Locator, label: string): Promise<void> {
+  await expect(tree, `${label}: one tree`).toHaveCount(1);
+  const problems = await tree.evaluate((root) => {
+    const found: string[] = [];
+    const frame = root.getBoundingClientRect();
+    const said = (element: Element | null | undefined) => (element?.textContent ?? '').trim().slice(0, 40);
+    const roots = root.querySelectorAll('[data-tree-root]');
+    if (roots.length !== 1) found.push(`${roots.length} roots`);
+    // Full ink, as the root's own dot is drawn.
+    const rootDot = roots[0]?.querySelector('.tree-dot');
+    const ink = rootDot ? getComputedStyle(rootDot).backgroundColor : '';
+    if (!rootDot || ink === 'rgba(0, 0, 0, 0)') found.push('the root has no filled dot');
+    for (const row of root.querySelectorAll('.tree-row')) {
+      const box = row.getBoundingClientRect();
+      if (box.height < 44) found.push(`${said(row)}: ${box.height}px tall`);
+      if (box.left < frame.left - 1 || box.right > frame.right + 1) found.push(`${said(row)}: runs outside the frame`);
+      const disclosure = row.tagName === 'BUTTON' && row.hasAttribute('aria-expanded');
+      const link = row.tagName === 'A' && row.hasAttribute('href');
+      if (!disclosure && !link && !row.matches('[data-tree-heading]')) found.push(`${said(row)}: a row that is no disclosure, link or heading`);
+      if (!row.querySelector('.tree-mark')) found.push(`${said(row)}: no mark on its line`);
+    }
+    for (const branch of root.querySelectorAll('.tree-branch')) {
+      const items = [...branch.children];
+      items.forEach((item, at) => {
+        if (!item.matches('li.tree-item')) found.push(`${said(item)}: on a branch and no node`);
+        if (at === 0) return;
+        const [box, first, before] = [item.getBoundingClientRect(), items[0].getBoundingClientRect(), items[at - 1].getBoundingClientRect()];
+        if (Math.abs(box.top - before.bottom) > 1) found.push(`${said(item)}: ${Math.round(box.top - before.bottom)}px from the node before it`);
+        if (Math.abs(box.left - first.left) > 1) found.push(`${said(item)}: off its branch's upright`);
+      });
+    }
+    for (const item of root.querySelectorAll('li.tree-item')) {
+      const node = item.querySelector(':scope > .tree-node');
+      const name = said(node);
+      const open = item.hasAttribute('data-open');
+      const toggle = node?.querySelector('button[aria-expanded]');
+      if (toggle && (toggle.getAttribute('aria-expanded') === 'true') !== open) found.push(`${name}: says ${toggle.getAttribute('aria-expanded')} and is ${open ? 'open' : 'closed'}`);
+      // A node's ring says open by its ink (the root's own, full ink), never by a fill; a node that only names its
+      // branch opens nothing and keeps the quiet ring. A seeker's own mark on a skill has no ring: it stays the
+      // product's mark, open or closed.
+      const ring = node?.querySelector('.tree-dot');
+      if (ring) {
+        const drawn = getComputedStyle(ring);
+        if (drawn.backgroundColor !== 'rgba(0, 0, 0, 0)') found.push(`${name}: a node's ring is filled`);
+        const inked = drawn.borderTopColor === ink;
+        if (toggle && inked !== open) found.push(`${name}: its mark does not say it is ${open ? 'open' : 'closed'}`);
+        if (!toggle && inked) found.push(`${name}: a ring in full ink on a node that opens nothing`);
+      }
+      const words = node?.querySelector('.tree-name');
+      if (words && (Number(getComputedStyle(words).fontWeight) >= 600) !== open) found.push(`${name}: its name does not say it is ${open ? 'open' : 'closed'}`);
+      const opened = item.querySelector(':scope > .tree-branch, :scope > .tree-card');
+      if (Boolean(opened) !== open) found.push(`${name}: ${open ? 'open with nothing under it' : 'closed with something under it'}`);
+      if (node && open && getComputedStyle(node, '::after').borderLeftStyle !== 'solid') found.push(`${name}: no line runs on from its mark`);
+      if (node && !open && getComputedStyle(node, '::after').content !== 'none') found.push(`${name}: a line runs on from a closed node`);
+    }
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode;
+      if (text.textContent?.trim() && !text.parentElement?.closest('.tree-row, .tree-root, .tree-card, .tree-label')) found.push(`loose text: ${said(text.parentElement)}`);
+    }
+    return found;
+  });
+  expect(problems, `${label}: the tree keeps its rules`).toEqual([]);
+}
+
+/** The parts of a career's tree of skills (`components/route/SkillGroups.tsx`), on a career's page and a company's version of it. */
+function skillsTree(page: Page) {
+  const section = page.locator('#skills');
+  const tree = section.locator('[data-skill-tree]');
+  return {
+    section,
+    tree,
+    /** The skill groups, each a node off the root. */
+    groups: tree.locator('[data-route-section]'),
+    /** A skill's node, drawn only while its group is open. */
+    skill: (skill: { id: string }) => tree.locator(`[data-skill-tag="${skill.id}"]`),
+    openAll: section.locator('[data-route-open-all]'),
+    /** A seeker's figure beside the heading. */
+    held: section.locator('[data-held-count]'),
+  };
+}
+
+/** A node's own row: the button that opens it (never one of a node under it). */
+const head = (node: Locator) => node.locator(':scope > .tree-node button');
+/** A node's name, as its row says it. */
+const nodeName = (node: Locator) => node.locator(':scope > .tree-node .tree-name');
+
+/**
+ * What stands in a detail page's heading block, in order: a career's is the
+ * way back, the kind, the name and the paragraph, and nothing else.
+ */
+async function headingParts(page: Page): Promise<string[]> {
+  return page.locator('[data-detail-header]').evaluate((header) =>
+    [...header.children].map((part, at) => {
+      if (at === 0) return 'back';
+      if (part.matches('[data-detail-kind]')) return 'kind';
+      if (part.querySelector('h1')) return 'name';
+      if (part.matches('[data-record-tags]')) return 'tags';
+      if (part.matches('[data-detail-action]')) return 'action';
+      return part.tagName === 'P' ? 'paragraph' : part.tagName.toLowerCase();
+    })
+  );
 }
 
 for (const route of STATIC_ROUTES) {
@@ -86,72 +196,174 @@ test('entity detail pages render without overflow', async ({ page, request }) =>
   }
 });
 
-test('a career page shows its path, a company page its factories', async ({ page, request }) => {
+test('a career page shows its skills as one tree, every group closed; a company page its factories', async ({ page, request }) => {
   const career = await firstId(request, '/occupations');
   expect(career, 'the API returned a career to open').toBeTruthy();
-  await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-entity-view="occupations"]')).toHaveCount(1);
-  await expect(page.locator('#skills')).toBeVisible();
-  // What it is and then its skills: the heading block holds the kind, the name and the sentences, and nothing else.
-  await expect(page.locator('[data-detail-header] [data-held-count], [data-detail-header] [data-career-home], [data-detail-action]')).toHaveCount(0);
-  expect(await page.locator('[data-entity-view] section').first().getAttribute('id'), 'the skills come first').toBe('skills');
-  await expect(page.locator('#skills h2')).toHaveText('Skills');
-  // The skills are one route, by group: each group one closed line, a full finger tall, at every width.
-  const flow = page.locator('[data-route]');
-  await expectOneRoute(flow, 'a career');
-  const record = (await (await request.get(`${API}/occupations/${career}`)).json()) as { skills: { id: string; name: string; group: { slug: string; name: string } | null }[] };
+  const record = (await (await request.get(`${API}/occupations/${career}`)).json()) as {
+    title: string;
+    description: string | null;
+    skills: { id: string; name: string; description: string | null; howLearned: string | null; group: { slug: string; name: string } | null }[];
+  };
   const groups = groupsOf(record.skills);
-  const tags = flow.locator('[data-skill-tag]');
-  await expect(tags).toHaveCount(record.skills.length);
-  const sections = flow.locator('[data-route-section]');
-  await expect(sections).toHaveCount(groups.length);
-  // A line is "Measurement tools · 4", sentence case at body size, and under it its skills' names: the path reads without a tap.
+  expect(groups.length, 'the career has several skill groups').toBeGreaterThan(1);
+  const sized = (count: number) => `${count} ${count === 1 ? 'skill' : 'skills'}`;
+
+  await page.goto(`/occupations/${career}`, { waitUntil: 'domcontentloaded' });
+  const view = page.locator('[data-entity-view="occupations"]');
+  await expect(view).toHaveCount(1);
+  const { section, tree, groups: nodes, skill: skillNode, openAll, held } = skillsTree(page);
+  await expect(section).toBeVisible();
+  // What it is and then its skills: the heading block holds the kind, the name and the sentences, and nothing else.
+  expect(await headingParts(page), 'the heading block').toEqual(record.description ? ['back', 'kind', 'name', 'paragraph'] : ['back', 'kind', 'name']);
+  expect(await view.locator('section').first().getAttribute('id'), 'the skills come first').toBe('skills');
+  await expect(section.locator('h2')).toHaveText('Skills');
+  // A heading, then what it heads: no sentence under any heading of the page, and nothing anywhere that asks a visitor to sign in.
+  await expect(view.locator('[data-section-heading] p')).toHaveCount(0);
+  await expect(view.locator('a[href*="sign-in"]')).toHaveCount(0);
+  await expect(view.getByText(/sign in/i)).toHaveCount(0);
+
+  // One frame holds the tree. Its root is the career, said as what hangs off it: the page's name is not said again.
+  await expectTree(tree, 'a career');
+  await expect(tree.locator('[data-tree-root]')).toHaveText(sized(record.skills.length));
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(record.title);
+  await expect(view.locator('[data-tree]').getByText(record.title, { exact: true }), "no tree says the career's name again").toHaveCount(0);
+  // Every group is a node off the root, a closed disclosure with its name and its size; no skill and no card is drawn yet.
+  await expect(nodes).toHaveCount(groups.length);
   for (const [at, group] of groups.entries()) {
-    const line = sections.nth(at);
-    const head = line.getByRole('button').first();
-    await expect(head).toHaveAttribute('aria-expanded', groups.length > 1 ? 'false' : 'true');
-    if (groups.length === 1) break;
-    await expect(line.locator('.route-head-group')).toHaveText(group.name);
-    await expect(line.locator('[data-section-count]')).toHaveText(`· ${group.skills.length} ${group.skills.length === 1 ? 'skill' : 'skills'}`);
-    const names = line.locator('[data-section-names] [data-name]:not([data-names-more])');
-    const listed = await names.count();
-    expect(listed, `${group.name}: names its first skills`).toBeGreaterThan(0);
-    await expect(names.first()).toContainText(group.skills[0].name);
-    if (listed < group.skills.length) await expect(line.locator('[data-names-more]')).toHaveText(`and ${group.skills.length - listed} more`);
-    else await expect(line.locator('[data-names-more]')).toHaveCount(0);
-    // Two lines at most.
-    const box = await line.locator('[data-section-names]').boundingBox();
-    expect(box?.height ?? 0, `${group.name}: the names take two lines at most`).toBeLessThanOrEqual(2 * 18 + 2);
+    await expect(head(nodes.nth(at)), `${group.name}: closed on arrival`).toHaveAttribute('aria-expanded', 'false');
+    await expect(nodeName(nodes.nth(at))).toHaveText(group.name);
+    await expect(nodes.nth(at).locator('[data-group-figure]')).toHaveText(sized(group.skills.length));
   }
-  expect(await page.locator('.route-head-group').first().evaluate((name) => [getComputedStyle(name).textTransform, getComputedStyle(name.parentElement!).fontSize])).toEqual(['none', '15px']);
-  // Closed, a group's rows are hidden; "Open all" opens every one, and they read as rows.
-  if (groups.length > 1) await expect(tags.first()).toBeHidden();
-  const all = flow.locator('[data-route-open-all]');
-  await expect(all).toHaveText('Open all');
-  await all.click();
-  await expect(flow.locator('[data-route-section]:not([data-open])')).toHaveCount(0);
-  await expect(flow.locator('[data-section-names]')).toHaveCount(0);
-  // To a visitor a row is the skill's name, which opens its page: no mark, ring, Next or figure but a group's size.
-  await expect(tags.first().locator('a')).toHaveAttribute('href', /^\/skills\/[0-9a-f-]{36}$/);
-  await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
-  await expect(flow.locator('[data-status], [data-route-state], [data-next], [data-share-ring], [data-skill-mark]')).toHaveCount(0);
-  await expect(page.locator('[data-next-up], [data-route-aside], [data-held-count]')).toHaveCount(0);
-  expect(await tags.evaluateAll((items) => items.every((item) => (item as HTMLElement).offsetParent !== null))).toBe(true);
-  await expectOneRoute(flow, 'a career, all open');
-  // Every row stays inside the route, however long its name, and from a tablet up the route is one narrow column.
-  const diagram = await flow.boundingBox();
-  for (const box of await tags.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().toJSON() as { left: number; right: number; height: number }))) {
-    expect(box.left, 'a row starts inside the route').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 13);
-    expect(box.right, 'a row ends inside the route').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
-    expect(box.right - box.left, 'the route is one column, never wider than 560px and its marks').toBeLessThanOrEqual(573);
+  await expect(tree.locator('[data-skill-tag], .tree-card')).toHaveCount(0);
+  await expect(tree).not.toContainText(/Fundamentals|Intermediate|Advanced/);
+  // To a visitor: no mark, no figure but a group's size, nothing held.
+  await expect(held).toHaveCount(0);
+
+  // A group opens its own branch: its skills as nodes under it, in the route's order, each closed, and the next group follows its last skill directly.
+  const first = nodes.first();
+  await head(first).click();
+  await expect(head(first)).toHaveAttribute('aria-expanded', 'true');
+  const inside = first.locator('[data-skill-tag]');
+  await expect(inside).toHaveCount(groups[0].skills.length);
+  expect(await inside.evaluateAll((items) => items.map((item) => item.querySelector('.tree-name')?.textContent))).toEqual(groups[0].skills.map((each) => each.name));
+  for (const at of groups[0].skills.keys()) await expect(head(inside.nth(at))).toHaveAttribute('aria-expanded', 'false');
+  const box = async (locator: Locator) => (await locator.boundingBox()) ?? { x: 0, y: 0, width: 0, height: 0 };
+  const [group, last, next] = [await box(head(first)), await box(inside.last()), await box(nodes.nth(1))];
+  expect((await box(inside.first())).x, 'a skill stands in from its group').toBeGreaterThan(group.x);
+  expect((await box(inside.first())).y, 'and under it').toBeGreaterThanOrEqual(group.y + group.height - 1);
+  expect(Math.abs(next.y - (last.y + last.height)), 'the next group follows the last skill directly').toBeLessThanOrEqual(1);
+  await expect(tree.locator('[data-skill-tag]')).toHaveCount(groups[0].skills.length);
+  await expectTree(tree, 'a career, a group open');
+
+  // A skill opens what it is, as its card on its own line under it: its level, what it is, how it is learned and the way to its page.
+  const one = groups[0].skills[0];
+  await head(skillNode(one)).click();
+  await expect(head(skillNode(one))).toHaveAttribute('aria-expanded', 'true');
+  const card = skillNode(one).locator('[data-skill-preview]');
+  await expect(card).toBeVisible();
+  await expect(card.locator('[data-preview-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  if (one.description) await expect(card.locator('[data-preview-description]')).toHaveText(`What it is${one.description}`);
+  if (one.howLearned) await expect(card.locator('[data-preview-learned]')).toHaveText(`How it is learned${one.howLearned}`);
+  await expect(card.getByRole('link')).toHaveCount(1);
+  await expect(card.locator('[data-preview-open]')).toHaveAttribute('href', `/skills/${one.id}`);
+  await expect(card.locator('[data-preview-open]')).toHaveText(new RegExp('Skill page$'));
+  await expect(card.locator('button')).toHaveCount(0);
+  const [row, drawn, frame] = [await box(head(skillNode(one))), await box(card), await box(tree)];
+  expect(drawn.y, 'the card stands under its skill').toBeGreaterThanOrEqual(row.y + row.height - 1);
+  expect(drawn.x, 'inside the frame').toBeGreaterThanOrEqual(frame.x);
+  expect(drawn.x + drawn.width, 'inside the frame').toBeLessThanOrEqual(frame.x + frame.width + 1);
+  // A full finger tall wherever a finger is used, at any width (a tablet too); smaller only under a mouse.
+  const finger = await page.evaluate(() => window.matchMedia('(pointer: coarse)').matches);
+  expect((await box(card.locator('[data-preview-open]'))).height, 'the way to the skill is a full finger tall where a finger is used').toBeGreaterThanOrEqual(finger ? 44 : 32);
+  await expectTree(tree, 'a career, a card open');
+  await assertHealthyLayout(page, '/occupations/:id a skill open');
+  // Opening another skill of the group closes nothing: the first card stays, so the skill pressed does not move from under the finger.
+  let cards = 1;
+  if (groups[0].skills.length > 1) {
+    const other = groups[0].skills[1];
+    const follows = await box(skillNode(other));
+    expect(follows.y, 'the next skill follows under the card').toBeGreaterThanOrEqual(drawn.y + drawn.height);
+    const placeOf = (locator: Locator) => locator.evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+    const was = await placeOf(head(skillNode(other)));
+    await head(skillNode(other)).click();
+    await expect(skillNode(other).locator('[data-skill-preview]')).toBeVisible();
+    await expect(head(skillNode(one)), 'the first card stays open').toHaveAttribute('aria-expanded', 'true');
+    await expect(first.locator('[data-skill-preview]')).toHaveCount(2);
+    expect(Math.abs((await placeOf(head(skillNode(other)))) - was), 'the skill pressed stays where it was').toBeLessThanOrEqual(1);
+    await expectTree(tree, 'a career, two cards in one group');
+    cards = 2;
   }
-  // The skills are the route alone: no switch to another view of them, and no plate on the page.
+  await head(nodes.nth(1)).click();
+  await head(skillNode(groups[1].skills[0])).click();
+  await expect(tree.locator('[data-skill-preview]')).toHaveCount(cards + 1);
+  await expect(first.locator('[data-skill-preview]')).toHaveCount(cards);
+  await expectTree(tree, 'a career, a card in each of two groups');
+  // Pressing an open skill closes its card; closing a group closes what was open inside it.
+  await head(skillNode(groups[1].skills[0])).click();
+  await expect(nodes.nth(1).locator('[data-skill-preview]')).toHaveCount(0);
+  await head(first).click();
+  await expect(head(first)).toHaveAttribute('aria-expanded', 'false');
+  await expect(first.locator('[data-skill-tag], [data-skill-preview]')).toHaveCount(0);
+  await head(first).click();
+  await expect(first.locator('[data-skill-preview]')).toHaveCount(0);
+
+  // "Open all" opens every group, and its word and state follow; to a visitor a skill is a ring and its name.
+  await head(first).click();
+  await head(nodes.nth(1)).click();
+  await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
+  await expect(openAll).toHaveText('Open all');
+  await expect(openAll).toHaveAttribute('aria-expanded', 'false');
+  expect((await box(openAll)).height, '"Open all" is a full finger tall where a finger is used').toBeGreaterThanOrEqual(finger ? 44 : 36);
+  await openAll.click();
+  await expect(openAll).toHaveText('Close all');
+  await expect(openAll).toHaveAttribute('aria-expanded', 'true');
+  await expect(tree.locator('[data-route-section]:not([data-open])')).toHaveCount(0);
+  await expect(tree.locator('[data-skill-tag]')).toHaveCount(record.skills.length);
+  await expect(tree.locator('[data-skill-preview]')).toHaveCount(0);
+  await expect(tree.locator('[data-status], [data-skill-mark], [data-next], [aria-pressed], [role="checkbox"]')).toHaveCount(0);
+  await expect(held).toHaveCount(0);
+  await expectTree(tree, 'a career, all open');
+  await assertHealthyLayout(page, '/occupations/:id all open');
+  // The keyboard reaches every node in the order they are drawn, and Enter and Space work each one.
+  const stops = tree.locator('button, a[href]');
+  await openAll.focus();
+  for (let at = 0; at < groups.length + record.skills.length; at += 1) {
+    await page.keyboard.press('Tab');
+    await expect(stops.nth(at), `Tab reaches node ${at + 1}`).toBeFocused();
+  }
+  await head(first).focus();
+  await page.keyboard.press('Space');
+  await expect(head(first)).toHaveAttribute('aria-expanded', 'false');
+  // Closed, its skills are gone from the tab order: the next stop is the next group.
+  await page.keyboard.press('Tab');
+  await expect(head(nodes.nth(1))).toBeFocused();
+  await head(first).focus();
+  await page.keyboard.press('Enter');
+  await expect(head(first)).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('Tab');
+  await expect(head(skillNode(one))).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(skillNode(one).locator('[data-skill-preview]')).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(skillNode(one).locator('[data-preview-open]')).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Enter');
+  await expect(skillNode(one).locator('[data-skill-preview]')).toHaveCount(0);
+  // "Close all" closes every group and every card with it.
+  await head(skillNode(one)).click();
+  await openAll.click();
+  await expect(openAll).toHaveText('Open all');
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]')).toHaveCount(0);
+  await head(first).click();
+  await expect(first.locator('[data-skill-preview]')).toHaveCount(0);
+
+  // The skills are the tree alone: no switch to another view of them, no wheel, no column beside them and nothing above them.
   await expect(page.getByRole('navigation', { name: 'Path as' })).toHaveCount(0);
-  await expect(page.locator('#skills [data-path-view], #skills .atlas-plate, #skills [data-atlas-link]')).toHaveCount(0);
+  await expect(page.locator('#skills [data-path-view], #skills canvas, [data-atlas], #skills [data-atlas-link], [data-route], [data-next-up], [data-route-aside]')).toHaveCount(0);
   // A career's page names no industries: what it is, its skills, and what it leads to.
   await expect(page.locator('#where')).toHaveCount(0);
   await expect(page.getByText('Where this work is done')).toHaveCount(0);
-  await assertHealthyLayout(page, '/occupations/:id path');
+  await assertHealthyLayout(page, '/occupations/:id skills');
 
   // A skill's page says where the skill sits: its domain and group, each a link into the Skills list, and its level.
   const skill = await firstId(request, '/skills');
@@ -181,6 +393,75 @@ test('a career page shows its path, a company page its factories', async ({ page
   await page.goto(`/companies/${company}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-entity-view="companies"]')).toHaveCount(1);
   await expect(page.locator('#skills')).toHaveCount(0);
+
+  // A company's factories past twelve wait behind "Show all": the last row of the list's own frame, never a row under it.
+  const companies = (await (await request.get(`${API}/companies?limit=50`)).json()) as { data: { id: string; factoryCount: number }[] };
+  const large = companies.data.find((each) => each.factoryCount > 12);
+  expect(large, 'a company with more than twelve factories').toBeTruthy();
+  await page.goto(`/companies/${large!.id}`, { waitUntil: 'domcontentloaded' });
+  const listed = page.locator('#factories [data-record-list]');
+  await expect(listed.locator('li')).toHaveCount(12);
+  const rest = page.locator('#factories [data-show-all]');
+  await expect(rest).toHaveText(/^Show all \d/);
+  await expect(rest).toHaveAttribute('aria-expanded', 'false');
+  expect(await listed.evaluate((frame) => frame.lastElementChild?.hasAttribute('data-show-all')), '"Show all" is the last row of the list\'s frame').toBe(true);
+  await page.locator('#factories').scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/companies/:id factories');
+  await rest.click();
+  await expect(rest).toHaveText('Show fewer');
+  expect(await listed.locator('li').count(), 'every factory is listed').toBeGreaterThan(12);
+});
+
+test("what a person opened on a career's page is that career's: a link arrives closed, and the way back returns the page as it was left", async ({ page, request }) => {
+  // Two careers on one ladder, which share skill groups: what is open on one must never be drawn on the other.
+  const here = await careerByTitle(request, 'Maintenance Technician');
+  expect(here.leadsTo.length, 'it leads somewhere').toBeGreaterThan(0);
+  const next = await careerByTitle(request, here.leadsTo[0].title);
+  const shared = groupsOf(here.skills).filter((group) => groupsOf(next.skills).some((other) => other.name === group.name));
+  expect(groupsOf(next.skills).length, 'the next career has several skill groups').toBeGreaterThan(1);
+  const { tree, groups, skill } = skillsTree(page);
+  const title = page.getByRole('heading', { level: 1 });
+  const openGroups = () => tree.locator('[data-route-section][data-open] > .tree-node .tree-name').allInnerTexts();
+  const groupNamed = (group: { skills: { group: { slug: string } | null }[] }) => tree.locator(`[data-route-section="${group.skills[0].group?.slug}"]`);
+
+  await page.goto(`/occupations/${here.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(title).toHaveText(here.title);
+  await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
+  // Open a group both careers have (else its first), and a skill's card in it.
+  const mine = shared[0] ?? groupsOf(here.skills)[0];
+  await head(groupNamed(mine)).click();
+  await head(skill(mine.skills[0])).click();
+  await expect(skill(mine.skills[0]).locator('[data-skill-preview]')).toBeVisible();
+  expect(await openGroups()).toEqual([mine.name]);
+
+  // On by the ladder: the next career arrives closed, whatever groups the two share.
+  await page.locator(`#ladder a[href="/occupations/${next.id}"]`).click();
+  await expect(title).toHaveText(next.title);
+  await expect(groups.first()).toBeVisible();
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]'), 'a career reached by a link arrives closed').toHaveCount(0);
+  const theirs = groupsOf(next.skills).find((group) => group.name !== mine.name)!;
+  await head(groupNamed(theirs)).click();
+  expect(await openGroups()).toEqual([theirs.name]);
+
+  // Back: the first career as it was left, its group and its card open, and nothing of the second's.
+  await page.goBack();
+  await expect(title).toHaveText(here.title);
+  await expect(skill(mine.skills[0]).locator('[data-skill-preview]'), 'the way back returns the card left open').toBeVisible();
+  expect(await openGroups(), 'the way back returns the page as it was left').toEqual([mine.name]);
+  await expectTree(tree, 'a career come back to');
+  // Forward: the second as it was left.
+  await page.goForward();
+  await expect(title).toHaveText(next.title);
+  await expect(head(groupNamed(theirs))).toHaveAttribute('aria-expanded', 'true');
+  expect(await openGroups()).toEqual([theirs.name]);
+
+  // The first career again, by a link this time: another visit, so it arrives closed.
+  const back = page.locator(`#ladder a[href="/occupations/${here.id}"]`);
+  if ((await back.count()) === 0) await page.locator('#ladder [data-ladder-more]').click();
+  await back.click();
+  await expect(title).toHaveText(here.title);
+  await expect(groups.first()).toBeVisible();
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]'), 'a career reached by a link arrives closed').toHaveCount(0);
 });
 
 /**
@@ -214,59 +495,114 @@ async function careerByTitle(request: APIRequestContext, title: string) {
   };
 }
 
-test('a career stands on its ladder at its skills\' two ends, and the Careers list narrows to a home', async ({ page, request }) => {
+test('a career stands on its ladder, a tree of its own after its skills; the Careers list narrows to a home', async ({ page, request }) => {
   // Seven careers lead to this one and it leads to three: the widest ladder in the catalogue.
   const wide = await careerByTitle(request, 'Maintenance Technician');
   expect(wide.comesFrom.length, 'several careers lead to it').toBeGreaterThan(4);
   await page.goto(`/occupations/${wide.id}`, { waitUntil: 'domcontentloaded' });
-  const flow = page.locator('[data-route]');
-  const before = flow.locator('[data-path-ladder="before"]');
-  const after = flow.locator('[data-path-ladder="after"]');
-  await expect(before).toContainText('Comes from');
-  // Three are named and the rest wait behind one word, so the path itself is not pushed off the screen.
+  const view = page.locator('[data-entity-view="occupations"]');
+  const ladder = page.locator('#ladder');
+  const frame = ladder.locator('[data-career-ladder]');
+  const tree = frame.locator('[data-tree]');
+  const before = frame.locator('[data-path-ladder="before"]');
+  const after = frame.locator('[data-path-ladder="after"]');
+  // Where it leads stands straight after the skills, under its heading and no sentence.
+  await expect(frame).toBeVisible();
+  expect((await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).slice(0, 2)).toEqual(['skills', 'ladder']);
+  await expect(ladder.locator('h2')).toHaveText('Where it leads');
+  await expect(ladder.locator('[data-section-heading] p')).toHaveCount(0);
+  // The career is the root, said as "This career": its name is the page's heading and is not said again.
+  await expect(frame.locator('[data-ladder-this]')).toHaveText('This career');
+  await expect(frame.getByText(wide.title, { exact: true })).toHaveCount(0);
+  // Which side is which: a label over each column from 640px; under it the ladder stands down the page and each side is a node that names its branch.
+  const across = (page.viewportSize()?.width ?? 0) >= 640;
+  await expect(tree).toHaveAttribute('data-layout', across ? 'wide' : 'stacked');
+  await expect(tree.locator(across ? '.tree-label' : '[data-tree-heading]')).toHaveText(['Comes from', 'Leads to']);
+  await expect(tree.locator(across ? '[data-tree-heading]' : '.tree-label')).toHaveCount(0);
+  // Three are named and the rest wait behind one button, the frame's last row under the tree: more of a list is never a node.
   await expect(before.locator('a')).toHaveText(wide.comesFrom.slice(0, 3).map((career) => career.title));
-  await expect(before.locator('[data-ladder-more]')).toHaveText(`${wide.comesFrom.length - 3} more`);
+  const more = frame.locator('[data-ladder-more]');
+  await expect(more).toHaveText(`Show all ${wide.comesFrom.length} it comes from`);
+  await expect(more).toHaveAttribute('aria-expanded', 'false');
+  await expect(tree.locator('[data-ladder-more]')).toHaveCount(0);
+  expect(await frame.evaluate((box) => box.lastElementChild?.hasAttribute('data-ladder-more')), '"Show all" is the frame\'s last row').toBe(true);
+  await expectTree(tree, 'a ladder');
+  await ladder.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/occupations/:id ladder');
-  await before.locator('[data-ladder-more]').click();
+  await more.click();
   await expect(before.locator('a')).toHaveText(wide.comesFrom.map((career) => career.title));
-  await expect(before.locator('[data-ladder-more]')).toHaveCount(0);
-  // Where it leads, in the order the catalogue keeps, each to that career's page.
-  await expect(after).toContainText('Leads to');
+  await expect(more).toHaveText('Show fewer');
+  await expect(more).toHaveAttribute('aria-expanded', 'true');
+  // Where it leads, in the order the catalogue keeps, each a node that opens that career's page.
   await expect(after.locator('a')).toHaveText(wide.leadsTo.map((career) => career.title));
   await expect(after.locator('a').first()).toHaveAttribute('href', `/occupations/${wide.leadsTo[0].id}`);
-  // Every rung is a full finger's height and stays inside the route, however long its title.
-  const diagram = await flow.boundingBox();
-  for (const box of await flow.locator('[data-path-ladder] a').evaluateAll((items) => items.map((item) => item.getBoundingClientRect().toJSON() as { left: number; right: number; height: number }))) {
-    expect(box.height, 'a rung is at least 44px tall').toBeGreaterThanOrEqual(44);
-    expect(box.left, 'a rung starts inside the diagram').toBeGreaterThanOrEqual((diagram?.x ?? 0) - 1);
-    expect(box.right, 'a rung ends inside the diagram').toBeLessThanOrEqual((diagram?.x ?? 0) + (diagram?.width ?? 0) + 1);
+  // Every rung is a full finger tall and stays inside the frame, however long its title (the tree's own rules).
+  await expectTree(tree, 'a ladder, every career');
+  // Across, the careers it comes from stand left of the career and the ones it leads to right of it; down, the career first, then each side.
+  const place = async (locator: Locator) => (await locator.boundingBox()) ?? { x: 0, y: 0, width: 0, height: 0 };
+  const [from, self, to] = [await place(before), await place(frame.locator('[data-ladder-this]')), await place(after)];
+  if (across) {
+    expect(from.x + from.width, 'what it comes from is left of the career').toBeLessThanOrEqual(self.x + 1);
+    expect(to.x, 'what it leads to is right of it').toBeGreaterThanOrEqual(self.x + self.width - 1);
+  } else {
+    expect(self.y + self.height, 'the career stands first').toBeLessThanOrEqual(from.y + 1);
+    expect(from.y + from.height, 'then what it comes from, then what it leads to').toBeLessThanOrEqual(to.y + 1);
   }
   await assertHealthyLayout(page, '/occupations/:id ladder open');
+  await more.click();
+  await expect(before.locator('a')).toHaveCount(3);
 
-  // A first rung with three after it: nothing stands before the first stop.
+  // A first rung with three after it: nothing stands before the career.
   const first = await careerByTitle(request, 'Production Operator');
   expect([first.comesFrom.length, first.leadsTo.length]).toEqual([0, 3]);
   await page.goto(`/occupations/${first.id}`, { waitUntil: 'domcontentloaded' });
-  await expectOneRoute(flow, 'a first rung');
-  await expect(flow.locator('[data-path-ladder="before"]')).toHaveCount(0);
-  await expect(flow.locator('[data-path-ladder="after"] a')).toHaveText(first.leadsTo.map((career) => career.title));
+  await expect(ladder.locator('h2')).toHaveText('Where it leads');
+  await expectTree(tree, 'a first rung');
+  await expect(before).toHaveCount(0);
+  await expect(after.locator('a')).toHaveText(first.leadsTo.map((career) => career.title));
+  await expect(frame.locator('[data-ladder-more]')).toHaveCount(0);
+  // One side only: the heading has said which, so nothing in the frame names it again.
+  await expect(tree.locator('.tree-label, [data-tree-heading]')).toHaveCount(0);
+  await expect(frame).not.toContainText(/Leads to|Comes from/i);
+  await expect(after).toHaveAttribute('aria-label', 'Leads to');
   await assertHealthyLayout(page, '/occupations/:id first rung');
 
-  // A career on no ladder: the path alone.
+  // A last rung with one before it: the section says where it comes from, and that career stands before this one
+  // (left of it across; above it down a phone, its line running down into the career).
+  const last = await careerByTitle(request, 'Tire Builder');
+  expect([last.comesFrom.length, last.leadsTo.length]).toEqual([1, 0]);
+  await page.goto(`/occupations/${last.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(ladder.locator('h2')).toHaveText('Where it comes from');
+  await expectTree(tree, 'a last rung');
+  await expect(after).toHaveCount(0);
+  await expect(before.locator('a')).toHaveText(last.comesFrom.map((career) => career.title));
+  await expect(tree.locator('.tree-label, [data-tree-heading]')).toHaveCount(0);
+  await expect(frame).not.toContainText(/Leads to|Comes from/i);
+  const [came, here] = [await place(before.locator('a')), await place(frame.locator('[data-ladder-this]'))];
+  if (across) {
+    expect(came.x + came.width, 'what it comes from is left of the career').toBeLessThanOrEqual(here.x + 1);
+    // One career on a side stands on the career's own line: the stroke between them is straight.
+    expect(Math.abs(came.y - here.y), 'level with the career').toBeLessThanOrEqual(1);
+  } else {
+    expect(came.y + came.height, 'what it comes from is above the career').toBeLessThanOrEqual(here.y + 1);
+  }
+  await assertHealthyLayout(page, '/occupations/:id last rung');
+
+  // A career on no ladder: its skills alone, and no section for a ladder.
   const alone = await careerByTitle(request, 'Hydraulics Technician');
   expect(alone.comesFrom.length + alone.leadsTo.length).toBe(0);
   await page.goto(`/occupations/${alone.id}`, { waitUntil: 'domcontentloaded' });
-  await expectOneRoute(flow, 'a career on no ladder');
-  await expect(flow.locator('[data-path-ladder]')).toHaveCount(0);
+  await expectTree(skillsTree(page).tree, 'a career on no ladder');
+  await expect(page.locator('#ladder, [data-career-ladder], [data-path-ladder]')).toHaveCount(0);
 
-  // A career whose path is not written yet still stands between the careers around it.
+  // A career whose path is not written yet says so under Skills, and still stands between the careers around it.
   const unwritten = await careerByTitle(request, 'Aircraft Engine Mechanic');
   if (unwritten.skills.length === 0) {
     await page.goto(`/occupations/${unwritten.id}`, { waitUntil: 'domcontentloaded' });
-    const bare = page.locator('[data-path-unwritten]');
-    await expect(bare).toContainText('None yet.');
-    await expect(bare.locator('[data-path-ladder="before"] a')).toHaveText(unwritten.comesFrom.map((career) => career.title));
-    await expect(bare.locator('[data-path-ladder="after"] a')).toHaveText(unwritten.leadsTo.map((career) => career.title));
+    await expect(page.locator('#skills')).toContainText('None yet.');
+    await expect(page.locator('#skills [data-tree]')).toHaveCount(0);
+    await expect(before.locator('a')).toHaveText(unwritten.comesFrom.map((career) => career.title));
+    await expect(after.locator('a')).toHaveText(unwritten.leadsTo.map((career) => career.title));
     await assertHealthyLayout(page, '/occupations/:id unwritten');
   }
 
@@ -412,7 +748,64 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   expect(seen, 'the current tab is in sight').toBe(true);
   await assertHealthyLayout(page, '/explore?tab=skills');
 
-  // The Skills list narrows by domain, then by one of its groups; a row's grey line is its group and level.
+  // The Skills list in the taxonomy's order is an index of the domains: each a bar that opens, closed on arrival, saying how
+  // many skills and groups it holds (the skills some career uses, or none yet: the list's own count).
+  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as {
+    domains: { slug: string; name: string; groups: { slug: string; name: string; skills: { id: string; name: string; careers: number; militaryCareers: number }[] }[] }[];
+  };
+  const listed = taxonomy.domains
+    .map((each) => ({ ...each, groups: each.groups.map((group) => ({ ...group, skills: group.skills.filter((skill) => skill.careers > 0 || !skill.militaryCareers) })).filter((group) => group.skills.length > 0) }))
+    .filter((each) => each.groups.length > 0);
+  const count = (n: number, one: string, many: string) => `${n.toLocaleString('en-US')} ${n === 1 ? one : many}`;
+  await expect(page.getByRole('button', { name: 'Sort: By domain' })).toBeVisible();
+  const bands = page.locator('[data-skill-tree] [data-skill-domain]');
+  await expect(bands).toHaveCount(listed.length);
+  expect(await bands.evaluateAll((all) => all.map((band) => band.getAttribute('data-skill-domain'))), "the domains stand in the taxonomy's order").toEqual(listed.map((each) => each.slug));
+  await expect(page.locator('[data-skill-tree] [data-band-toggle][aria-expanded="true"], [data-skill-tree] [data-skill-group]'), 'every domain arrives closed').toHaveCount(0);
+  const opened = listed[0];
+  const band = page.locator(`[data-skill-domain="${opened.slug}"]`);
+  const bar = band.locator('[data-band-toggle]');
+  const skillsIn = opened.groups.reduce((sum, each) => sum + each.skills.length, 0);
+  await expect(bar).toHaveText(`${opened.name}${count(skillsIn, 'skill', 'skills')}${count(opened.groups.length, 'group', 'groups')}`);
+  expect((await bar.boundingBox())?.height ?? 0, 'a domain\'s bar is a full finger tall').toBeGreaterThanOrEqual(44);
+  // A domain opens from the keyboard: its groups, each one frame with its name and size over its skills, each skill a link to its page.
+  await bar.focus();
+  await page.keyboard.press('Enter');
+  await expect(bar).toHaveAttribute('aria-expanded', 'true');
+  await expect(band.locator('[data-skill-group]')).toHaveCount(opened.groups.length);
+  const frame = band.locator(`[data-skill-group="${opened.groups[0].slug}"]`);
+  await expect(frame.locator('h3')).toHaveText(opened.groups[0].name);
+  await expect(frame).toContainText(count(opened.groups[0].skills.length, 'skill', 'skills'));
+  await expect(frame.locator('a[href^="/skills/"]')).toHaveText(opened.groups[0].skills.map((skill) => skill.name));
+  await expect(frame.locator('a[href^="/skills/"]').first()).toHaveAttribute('href', `/skills/${opened.groups[0].skills[0].id}`);
+  for (const height of await frame.locator('a[href^="/skills/"]').evaluateAll((links) => links.map((link) => link.getBoundingClientRect().height))) {
+    expect(height, 'a skill\'s row is a full finger tall').toBeGreaterThanOrEqual(44);
+  }
+  // A skill is its name alone here: its level is said on its page and in a career's tree.
+  await expect(page.locator('[data-skill-tree] [data-skill-level]')).toHaveCount(0);
+  await expect(page.locator('[data-skill-tree]')).not.toContainText(/Fundamentals|Intermediate|Advanced/);
+  // The other domains stay closed, and the open one's bar holds under the header while its skills scroll.
+  await expect(page.locator('[data-skill-tree] [data-band-toggle][aria-expanded="true"]')).toHaveCount(1);
+  await assertHealthyLayout(page, '/explore?tab=skills, a domain open');
+  // A skill opened from the list, and the way back: the list as it was left, its domain still open. Loaded again
+  // it is the index, every domain closed: what a person opened is kept for the way back and nowhere else.
+  await frame.locator('a[href^="/skills/"]').first().click();
+  await expect(page).toHaveURL(new RegExp(`/skills/${opened.groups[0].skills[0].id}$`));
+  await page.goBack();
+  await expect(bar, 'the way back returns the list as it was left').toHaveAttribute('aria-expanded', 'true');
+  await expect(band.locator('[data-skill-group]')).toHaveCount(opened.groups.length);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(bands).toHaveCount(listed.length);
+  await expect(page.locator('[data-skill-tree] [data-band-toggle][aria-expanded="true"], [data-skill-tree] [data-skill-group]'), 'loaded again, every domain is closed').toHaveCount(0);
+  await bar.click();
+  await expect(bar).toHaveAttribute('aria-expanded', 'true');
+  // Space closes it again.
+  await bar.focus();
+  await page.keyboard.press('Space');
+  await expect(bar).toHaveAttribute('aria-expanded', 'false');
+  await expect(band.locator('[data-skill-group]')).toHaveCount(0);
+
+  // The Skills list narrows by domain, then by one of its groups.
   await expect(page.getByRole('button', { name: 'Domain: All domains' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Group:/ })).toHaveCount(0);
   const facets = (await (await request.get(`${API}/explore/facets`)).json()) as {
@@ -424,15 +817,18 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   await page.goto(narrowed, { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('button', { name: `Domain: ${domain.name}` })).toBeVisible();
   await expect(page.getByRole('button', { name: `Group: ${group.name}` })).toBeVisible();
-  // The list opens in the taxonomy's order: the domain's heading, the group's over its skills, each skill with its level.
+  // Narrowed to one domain the list is that domain, open: its bar, then the group's frame over its skills.
   await expect(page.getByRole('button', { name: 'Sort: By domain' })).toBeVisible();
-  await expect(page.locator(`[data-skill-domain="${domain.slug}"] h2`)).toHaveText(domain.name);
+  await expect(page.locator('[data-skill-tree] [data-skill-domain]')).toHaveCount(1);
+  await expect(page.locator(`[data-skill-domain="${domain.slug}"] h2`)).toContainText(domain.name);
+  await expect(page.locator(`[data-skill-domain="${domain.slug}"] [data-band-toggle]`)).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('[data-skill-group]')).toHaveCount(1);
   await expect(page.locator(`[data-skill-group="${group.slug}"] h3`)).toHaveText(group.name);
   const rows = page.locator(`[data-skill-group="${group.slug}"] a[href^="/skills/"]`);
-  await expect(rows.first().locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await expect(rows.first()).toBeVisible();
   await expect(page.locator('[data-explore-count]')).toHaveText(new RegExp(`^${await rows.count()} skills?$`));
-  // One switch leads to the same group on the Atlas, and the domain's heading to the domain there.
+  // One switch leads to the same group on the Atlas, and the domain ends in the way to the Atlas by the domain's name,
+  // a button, which opens there as the field that holds most of that domain's groups (held with the Atlas, below).
   const views = page.getByRole('navigation', { name: 'Skills as' });
   await expect(views.locator('[aria-current="page"]')).toHaveText('List');
   await expect(views.getByRole('link', { name: 'Atlas' })).toHaveAttribute('href', `/atlas?group=${group.slug}`);
@@ -456,204 +852,610 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   if (await wordmark.isVisible()) await expect(wordmark).toHaveAttribute('href', '/map');
 });
 
+// ---------------------------------------------------------------------------
+// The Atlas of Manufacturing: one screen. The wheel (a canvas) is a display;
+// the list beside it, under it on a phone, is the control, and whatever is
+// chosen there is named on the wheel in the same words.
+// ---------------------------------------------------------------------------
+
 interface AtlasTaxonomy {
   domains: { slug: string; name: string; groups: { slug: string; name: string; skills: { id: string; name: string; level: number }[] }[] }[];
 }
 
-test('the Atlas draws every skill, opens a domain and a group, and takes a career laid over it', async ({ page, request }) => {
-  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as AtlasTaxonomy;
-  const skills = taxonomy.domains.flatMap((domain) => domain.groups.flatMap((group) => group.skills));
-  expect(skills.length, 'the API returned the taxonomy').toBeGreaterThan(0);
-  const placed = new Set(skills.map((skill) => skill.id));
+/**
+ * The Atlas's own structure (data/skills/atlas.json): the twelve core groups
+ * (Fundamentals, the centre ring), the fields in the order the wheel reaches
+ * them, and for every group the ring it stands on, the group it is built on
+ * and its field. A group's name and skills are the taxonomy's, by its slug.
+ */
+const WHEEL = JSON.parse(readFileSync(new URL('../data/skills/atlas.json', import.meta.url), 'utf8')) as {
+  core: string[];
+  fields: { slug: string; name: string }[];
+  groups: { slug: string; ring: number; on: string | null; field: string | null }[];
+};
+const PLACE = new Map(WHEEL.groups.map((group) => [group.slug, group]));
 
-  // The whole atlas: one leaf per skill, every domain named, the plate as wide as the page lets it be and square.
-  await page.goto('/atlas', { waitUntil: 'domcontentloaded' });
-  const plate = page.locator('.atlas-plate');
-  await expect(plate).toHaveAttribute('data-atlas-view', 'whole');
-  await expect(plate.locator('.atlas-leaf')).toHaveCount(skills.length);
-  await expect(plate.locator('.atlas-name')).toHaveText(taxonomy.domains.map((domain) => domain.name));
-  await expect(plate.locator('.atlas-name').first()).toBeVisible();
-  const box = await plate.boundingBox();
-  const width = page.viewportSize()?.width ?? 0;
-  // The rim, read from the drawing itself: where each domain's name is set, in the drawing's own units, and its colour.
-  await page.evaluate(() => document.fonts.ready);
-  const rim = await plate.locator('.atlas-name').evaluateAll((names) =>
-    names.map((name) => {
-      const text = name as SVGTextElement;
-      const count = text.getNumberOfChars();
-      const start = text.getStartPositionOfChar(0);
-      const end = text.getEndPositionOfChar(count - 1);
-      const middle = text.getStartPositionOfChar(Math.floor(count / 2));
-      const clock = (point: DOMPoint) => (Math.atan2(point.x, -point.y) + Math.PI * 2) % (Math.PI * 2);
-      const view = (text.ownerSVGElement as SVGSVGElement).viewBox.baseVal;
-      return {
-        slug: text.getAttribute('data-atlas-domain'),
-        row: text.getAttribute('data-row'),
-        // Whichever way the text runs, its two ends as angles clockwise from the top.
-        ends: [clock(start), clock(end)],
-        x: middle.x,
-        y: middle.y,
-        reach: Math.max(Math.hypot(start.x, start.y), Math.hypot(end.x, end.y)),
-        half: view.width / 2,
-        fill: getComputedStyle(text).fill,
-        size: parseFloat(getComputedStyle(text).fontSize) * (text.ownerSVGElement as SVGSVGElement).getBoundingClientRect().width / view.width,
-      };
-    })
-  );
-  expect(rim.length).toBe(taxonomy.domains.length);
-  // The last domain (Safety) is never at the top: its name is in the lower left of the plate, and the name at the top is another's.
-  const lastName = rim[rim.length - 1];
-  expect(lastName.x < 0 && lastName.y > 0, `the last domain, ${lastName.slug}, is at the lower left`).toBe(true);
-  const topName = [...rim].sort((a, b) => a.y - b.y)[0];
-  expect(topName.slug, 'the name at the top of the plate').not.toBe(lastName.slug);
-  expect(rim.every((name) => name.y >= topName.y), 'nothing is above the top name').toBe(true);
-  // Every name is whole and inside the frame, large enough to read, and none runs into another on its row.
-  for (const name of rim) {
-    expect(name.reach, `${name.slug} is inside the frame`).toBeLessThan(name.half);
-    expect(name.size, `${name.slug} is set at a readable size`).toBeGreaterThanOrEqual(9.5);
+/** The core group a group stands on (a core group stands on itself). */
+function coreUnder(slug: string): string {
+  let at = slug;
+  for (let hops = 0; hops < WHEEL.groups.length; hops++) {
+    const on = PLACE.get(at)?.on;
+    if (!on) break;
+    at = on;
   }
-  const span = (ends: number[]) => {
-    // The short way between the two ends: a name never takes half the rim.
-    const [a, b] = ends;
-    const gap = (b - a + Math.PI * 2) % (Math.PI * 2);
-    return gap <= Math.PI ? { from: a, size: gap } : { from: b, size: Math.PI * 2 - gap };
+  return at;
+}
+
+/** An open field's rows in the list: its groups and the core groups they stand on, in the wheel's order. */
+function rowsOfField(field: string): string[] {
+  const roots = new Set(WHEEL.groups.filter((group) => group.field === field).map((group) => coreUnder(group.slug)));
+  return WHEEL.groups.filter((group) => group.field === field || roots.has(group.slug)).map((group) => group.slug);
+}
+
+/** The fields some skills reach, in the wheel's order, each with how many of them it holds: a career's chips. */
+function fieldsReached(skills: { group: { slug: string } | null }[]): { slug: string; name: string; n: number }[] {
+  const per = new Map<string, number>();
+  for (const skill of skills) {
+    const field = skill.group ? PLACE.get(skill.group.slug)?.field : null;
+    if (field) per.set(field, (per.get(field) ?? 0) + 1);
+  }
+  return WHEEL.fields.filter((field) => per.has(field.slug)).map((field) => ({ ...field, n: per.get(field.slug) as number }));
+}
+
+/** The field that holds most of them: the first round the wheel, of equals. */
+function leadingField<F extends { n: number }>(fields: F[]): F | null {
+  let best: F | null = null;
+  for (const field of fields) if (!best || field.n > best.n) best = field;
+  return best;
+}
+
+type WheelMode = 'rest' | 'core' | 'coreGroup' | 'field';
+
+/** A name as the wheel last drew it, in the stage's own units: `lead` is the line from the end of its line to the name. */
+interface WheelName {
+  kind: 'head' | 'group' | 'skill' | 'field';
+  text: string;
+  full: string;
+  on: boolean;
+  x: number;
+  y: number;
+  h: number;
+  lead: [number, number, number, number] | null;
+  /** The skill it names, as its place among the wheel's skills; -1 for any other name. */
+  s: number;
+}
+
+/** What the Atlas's page lets a script ask of its wheel (window.__atlas). */
+interface AtlasHook {
+  model: {
+    S: { id: string; name: string }[];
+    G: { slug: string; skills: number[] }[];
+    F: { slug: string }[];
+    order: number[];
+    fields: { a0: number; a1: number }[];
+    groupBySlug: Map<string, number>;
+    skillById: Map<string, number>;
   };
-  for (const a of rim) {
-    for (const b of rim) {
-      if (a === b || a.row !== b.row) continue;
-      const one = span(a.ends);
-      const other = span(b.ends);
-      const offset = (other.from - one.from + Math.PI * 2) % (Math.PI * 2);
-      expect(offset >= one.size - 1e-6 && Math.PI * 2 - offset >= other.size - 1e-6, `${a.slug} and ${b.slug} do not overlap on the rim`).toBe(true);
+  shown(): WheelName[];
+  line(skill: number): [number, number, number, number];
+  size(): { W: number; H: number; dpr: number };
+  mode(): string;
+  cam(): { cx: number; cy: number; R: number; core: number };
+  geom: { RR: number[]; RIM: number; HEAD: number; EDGE: number };
+}
+type AtlasWindow = Window & { __atlas?: AtlasHook };
+
+/** What the page throws, and what it writes to the console as an error, from here on. */
+function pageErrors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  return errors;
+}
+
+/** The wheel is drawn, stands in `mode`, and has stopped turning: nothing it draws moved between two frames. */
+async function wheelStands(page: Page, mode: WheelMode): Promise<void> {
+  await expect(page.locator('[data-atlas]')).toHaveAttribute('data-atlas-mode', mode);
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          (wanted) =>
+            new Promise<boolean>((done) => {
+              const atlas = (window as AtlasWindow).__atlas;
+              if (!atlas || !atlas.size().W || atlas.mode() !== wanted) return done(false);
+              const stand = () => JSON.stringify([atlas.cam(), atlas.line(0), atlas.line(atlas.model.S.length >> 1)]);
+              const was = stand();
+              requestAnimationFrame(() => requestAnimationFrame(() => done(stand() === was)));
+            }),
+          mode
+        ),
+      { message: `the wheel comes to rest in its ${mode} view` }
+    )
+    .toBe(true);
+}
+
+/** What the wheel says it has drawn: its stage, where it stands, every name on it, and for a skill's name the skill and its line. */
+async function readWheel(page: Page) {
+  return page.evaluate(() => {
+    const atlas = (window as AtlasWindow).__atlas!;
+    const shown = atlas.shown();
+    return {
+      size: atlas.size(),
+      cam: atlas.cam(),
+      geom: atlas.geom,
+      shown,
+      skills: shown.map((name) => (name.s >= 0 ? { id: atlas.model.S[name.s].id, line: atlas.line(name.s) } : null)),
+    };
+  });
+}
+
+/** What the canvas holds, read back from its pixels: the share that is painted, and the box the paint lies in (the stage's units). */
+async function paintedOn(page: Page): Promise<{ share: number; left: number; top: number; right: number; bottom: number }> {
+  return page.locator('[data-atlas-stage] canvas').evaluate((node) => {
+    const canvas = node as HTMLCanvasElement;
+    const context = canvas.getContext('2d');
+    if (!context || !canvas.width || !canvas.height) return { share: 0, left: 0, top: 0, right: 0, bottom: 0 };
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    const scale = canvas.width / canvas.getBoundingClientRect().width;
+    let count = 0;
+    let [left, top, right, bottom] = [canvas.width, canvas.height, -1, -1];
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        // The wheel is ink at a strength on a clear canvas: a pixel is painted where it is not clear.
+        if (data[(y * canvas.width + x) * 4 + 3] < 32) continue;
+        count++;
+        if (x < left) left = x;
+        if (x > right) right = x;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+      }
+    }
+    return { share: count / (canvas.width * canvas.height), left: left / scale, top: top / scale, right: right / scale, bottom: bottom / scale };
+  });
+}
+
+/** One screen: the document is as wide and as tall as the window, and nothing has scrolled it (the list scrolls inside itself). */
+async function expectOneScreen(page: Page, label: string): Promise<void> {
+  const doc = await page.evaluate(() => {
+    const root = document.documentElement;
+    return { wide: root.scrollWidth, width: root.clientWidth, tall: root.scrollHeight, height: root.clientHeight, at: [window.scrollX, window.scrollY, document.body.scrollTop] };
+  });
+  expect(doc.wide, `${label}: the page scrolls sideways`).toBeLessThanOrEqual(doc.width + 1);
+  expect(doc.tall, `${label}: the document is taller than the screen`).toBeLessThanOrEqual(doc.height + 1);
+  expect(doc.at, `${label}: the document has been scrolled`).toEqual([0, 0, 0]);
+}
+
+/**
+ * A column of names beside the wheel: every name inside the stage, one under
+ * another, and none under the way back to the whole wheel. (A name is set
+ * from its `x` rightwards, so one that starts right of the control is clear.)
+ */
+async function expectColumn(page: Page, wheel: Awaited<ReturnType<typeof readWheel>>, label: string): Promise<void> {
+  const stage = await page.locator('[data-atlas-stage]').boundingBox();
+  const whole = await page.locator('[data-atlas-whole]').boundingBox();
+  const { W, H } = wheel.size;
+  for (const [at, name] of wheel.shown.entries()) {
+    expect(name.x >= 0 && name.x < W && name.y - name.h / 2 >= -1 && name.y + name.h / 2 <= H + 1, `${label}: "${name.full}" is inside the stage`).toBe(true);
+    if (at > 0) expect(name.y, `${label}: "${name.full}" stands under the name before it`).toBeGreaterThanOrEqual(wheel.shown[at - 1].y + 10);
+    if (stage && whole) {
+      const clear = name.x > whole.x + whole.width - stage.x || name.y - name.h / 2 > whole.y + whole.height - stage.y || name.y + name.h / 2 < whole.y - stage.y;
+      expect(clear, `${label}: "${name.full}" is clear of "Whole atlas"`).toBe(true);
     }
   }
-  // Each domain has its hue, on the rim: no arc is its neighbour's colour, a domain's leaves are tinted with its arc's
-  // colour, and the swatch beside its word in the panel is the same. The names are ink, all one colour and none a hue.
-  const arcs = await plate.locator('.atlas-base .atlas-ring').evaluateAll((rings) => rings.map((ring) => getComputedStyle(ring).stroke));
-  expect(arcs.length).toBe(taxonomy.domains.length);
-  arcs.forEach((arc, i) => expect(arc, `${taxonomy.domains[i].slug} and the next domain differ in colour`).not.toBe(arcs[(i + 1) % arcs.length]));
-  const firstDomain = plate.locator(`.atlas-base [data-domain="${taxonomy.domains[0].slug}"]`);
-  expect(await firstDomain.locator('.atlas-leaf').first().evaluate((leaf) => getComputedStyle(leaf).fill)).toBe(arcs[0]);
-  expect(await page.locator(`[data-atlas-row="${taxonomy.domains[0].slug}"] .domain-swatch`).evaluate((swatch) => getComputedStyle(swatch).backgroundColor)).toBe(arcs[0]);
-  expect(new Set(rim.map((name) => name.fill)).size, 'the names are one ink').toBe(1);
-  expect(arcs, 'no name is set in a hue').not.toContain(rim[0].fill);
-  expect(box && Math.abs(box.width - box.height) <= 1, 'the plate is square').toBe(true);
-  expect(box && box.x >= 0 && box.x + box.width <= width + 1, 'the plate is inside the page').toBe(true);
-  if (width < 600) expect(box && box.width >= width - 40, 'on a phone the plate is the full width').toBe(true);
-  await assertHealthyLayout(page, '/atlas');
-  // It lives under Explore's heading and the Skills tab, with the one switch back to the list.
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Explore');
-  await expect(page.getByRole('navigation', { name: 'Explore' }).locator('[aria-current="page"]')).toHaveAccessibleName('Skills');
-  await expect(page.getByRole('navigation', { name: 'Main' }).locator('[aria-current="page"]')).toHaveText('Explore');
+}
+
+/**
+ * A group chosen in the list: its skills are rows under it, and the wheel
+ * names the same skills in the same order, each joined to its own line: the
+ * leader to a name starts exactly where that skill's line ends.
+ */
+async function expectSkillsNamed(page: Page, group: { slug: string; name: string; skills: { id: string; name: string }[] }, label: string) {
+  const rows = page.locator(`[data-atlas-list] [data-atlas-skills="${group.slug}"] [data-atlas-skill]`);
+  await expect(rows, `${label}: one row a skill`).toHaveCount(group.skills.length);
+  const listed = await rows.evaluateAll((all) => all.map((row) => ({ id: row.getAttribute('data-atlas-skill'), name: (row.textContent ?? '').trim() })));
+  expect([...listed].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? '')), `${label}: the group's own skills, by their names`).toEqual(
+    group.skills.map((skill) => ({ id: skill.id, name: skill.name })).sort((a, b) => a.id.localeCompare(b.id))
+  );
+  const wheel = await readWheel(page);
+  const named = wheel.shown.flatMap((name, at) => (wheel.skills[at] ? [{ name, ...wheel.skills[at]! }] : []));
+  expect(named.map((each) => ({ id: each.id, name: each.name.full })), `${label}: the wheel names the list's skills, in the list's order`).toEqual(listed);
+  for (const each of named) {
+    expect(each.name.kind).toBe('skill');
+    expect(each.name.lead, `${label}: "${each.name.full}" is joined to its line`).not.toBeNull();
+    const [x, y] = each.name.lead!;
+    expect(Math.hypot(x - each.line[2], y - each.line[3]), `${label}: the leader to "${each.name.full}" starts where its line ends`).toBeLessThan(0.75);
+    // The line has a length: it runs from its ring to its mark.
+    expect(Math.hypot(each.line[2] - each.line[0], each.line[3] - each.line[1]), `${label}: "${each.name.full}" has a line`).toBeGreaterThan(8);
+  }
+  await expectColumn(page, wheel, label);
+  return wheel;
+}
+
+/** A point of the screen on one group's lines as the wheel draws them now, between its ring and the rim. */
+async function pointOnGroup(page: Page, slug: string): Promise<{ x: number; y: number }> {
+  const at = await page.evaluate((group) => {
+    const atlas = (window as AtlasWindow).__atlas!;
+    const skills = atlas.model.G[atlas.model.groupBySlug.get(group) as number].skills;
+    const [x0, y0, x1, y1] = atlas.line(skills[skills.length >> 1]);
+    return { x: x0 + (x1 - x0) * 0.6, y: y0 + (y1 - y0) * 0.6 };
+  }, slug);
+  const stage = await page.locator('[data-atlas-stage]').boundingBox();
+  return { x: (stage?.x ?? 0) + at.x, y: (stage?.y ?? 0) + at.y };
+}
+
+/** The wheel's centre on the screen, where it is drawn now. */
+async function wheelCentre(page: Page): Promise<{ x: number; y: number }> {
+  const cam = await page.evaluate(() => (window as AtlasWindow).__atlas!.cam());
+  const stage = await page.locator('[data-atlas-stage]').boundingBox();
+  return { x: (stage?.x ?? 0) + cam.cx, y: (stage?.y ?? 0) + cam.cy };
+}
+
+test('the Atlas is one screen: the wheel is painted, the list is its control, and what is chosen there is named on the wheel', async ({ page, request }) => {
+  const errors = pageErrors(page);
+  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as AtlasTaxonomy;
+  const groups = new Map(taxonomy.domains.flatMap((domain) => domain.groups.map((group) => [group.slug, { ...group, domain: domain.slug }] as const)));
+  expect(groups.size, 'the API returned the taxonomy').toBeGreaterThan(0);
+  // The wheel as the data draws it: twelve core groups, which are Fundamentals, and 33 fields round them.
+  expect(WHEEL.core, 'the core groups').toHaveLength(12);
+  expect(WHEEL.fields, 'the fields').toHaveLength(33);
+  const nameOf = (slug: string) => groups.get(slug)?.name ?? slug;
+  const width = page.viewportSize()?.width ?? 0;
+
+  // It is the Skills tab's other view: the list's one switch leads to it, and Explore's tab row and the bar under
+  // it stand on the two edges they stand on over the list.
+  await page.goto('/explore?tab=skills', { waitUntil: 'domcontentloaded' });
+  const tabs = page.getByRole('navigation', { name: 'Explore' });
   const views = page.getByRole('navigation', { name: 'Skills as' });
+  await expect(views.locator('[aria-current="page"]')).toHaveText('List');
+  const edges = async () => {
+    const row = await tabs.evaluate((nav) => (nav.parentElement as HTMLElement).getBoundingClientRect().toJSON() as { left: number; right: number });
+    return { left: row.left, right: row.right, switch: (await views.boundingBox())?.x ?? -1 };
+  };
+  const overList = await edges();
+  await views.getByRole('link', { name: 'Atlas' }).click();
+  await expect(page).toHaveURL(/\/atlas$/);
+  await wheelStands(page, 'rest');
+  const overAtlas = await edges();
+  expect(Math.abs(overAtlas.left - overList.left), "the tab row's left edge is the list's").toBeLessThanOrEqual(1);
+  expect(Math.abs(overAtlas.right - overList.right), "the tab row's right edge is the list's").toBeLessThanOrEqual(1);
+  expect(Math.abs(overAtlas.switch - overList.switch), 'the switch stands where it stood over the list').toBeLessThanOrEqual(1);
+  const lay = page.locator('[data-atlas-lay]');
+  await expect(lay).toHaveText('Lay a career over');
+  const layBox = await lay.boundingBox();
+  expect(Math.abs((layBox?.x ?? 0) + (layBox?.width ?? 0) - overList.right), "the bar's button ends on the tab row's right edge").toBeLessThanOrEqual(1);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Atlas of Manufacturing');
+  await expect(tabs.locator('[aria-current="page"]')).toHaveAccessibleName('Skills');
+  await expect(page.getByRole('navigation', { name: 'Main' }).locator('[aria-current="page"]')).toHaveText('Explore');
   await expect(views.locator('[aria-current="page"]')).toHaveText('Atlas');
   await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', '/explore?tab=skills');
-  // The same tree as a list of links: every domain.
-  const panel = page.locator('[data-atlas-panel]');
-  await expect(panel.locator('[data-atlas-row]')).toHaveCount(taxonomy.domains.length);
+  await expectOneScreen(page, '/atlas');
+  await assertHealthyLayout(page, '/atlas');
 
-  // Pressing the drawing opens the domain under the finger; Back returns to the whole.
-  if (box) await page.mouse.click(box.x + box.width * 0.24, box.y + box.height * 0.5);
-  await expect(page).toHaveURL(/\/atlas\?domain=[a-z0-9-]+$/);
-  await expect(plate).toHaveAttribute('data-atlas-view', 'domain');
-  await page.goBack();
-  await expect(page).toHaveURL(/\/atlas$/);
-  await expect(plate).toHaveAttribute('data-atlas-view', 'whole');
-
-  // Choosing a domain in the list turns to it and names its groups, in the drawing and in the list.
-  const domain = taxonomy.domains[Math.min(4, taxonomy.domains.length - 1)];
-  await panel.locator(`[data-atlas-row="${domain.slug}"]`).click();
-  await expect(page).toHaveURL(new RegExp(`/atlas\\?domain=${domain.slug}$`));
-  await expect(plate).toHaveAttribute('data-atlas-view', 'domain');
-  await expect(plate.locator('[data-atlas-label="group"]')).toHaveCount(domain.groups.length);
-  // Its groups are named level, in one column inside the frame, none on another, and clear of the way back to the whole.
-  await page.waitForTimeout(900);
-  const frameBox = await plate.boundingBox();
-  const whole = await page.locator('[data-atlas-whole]').boundingBox();
-  const named = await plate.locator('[data-atlas-label]').evaluateAll((labels) =>
-    labels.map((label) => {
-      const box = label.getBoundingClientRect();
-      return { x: box.x, y: box.y, right: box.right, bottom: box.bottom, level: !label.hasAttribute('transform') };
-    })
-  );
-  for (const [i, label] of named.entries()) {
-    expect(label.level, 'a name beside the open domain is level').toBe(true);
-    if (frameBox) expect(label.x >= frameBox.x && label.right <= frameBox.x + frameBox.width + 1 && label.y >= frameBox.y && label.bottom <= frameBox.y + frameBox.height + 1, 'inside the frame').toBe(true);
-    if (i > 0) expect(label.y, 'one under another').toBeGreaterThanOrEqual(named[i - 1].bottom - 2);
-    if (whole) expect(label.x > whole.x + whole.width || label.bottom < whole.y || label.y > whole.y + whole.height, 'clear of "Whole atlas"').toBe(true);
+  // The stage over the list on a phone and a tablet held upright, beside it from 900 px. On a phone the wheel takes
+  // all the list's first rows can spare, as tall as the screen is wide at most; the first rows are in sight.
+  const stage = page.locator('[data-atlas-stage]');
+  const list = page.locator('[data-atlas-list]');
+  const [stageBox, listBox] = [await stage.boundingBox(), await list.boundingBox()];
+  expect(stageBox && listBox, 'the stage and the list are drawn').toBeTruthy();
+  if (stageBox && listBox) {
+    if (width >= 900) {
+      expect(Math.abs(listBox.x - (stageBox.x + stageBox.width)), 'the list stands beside the stage').toBeLessThanOrEqual(1);
+      expect(Math.abs(listBox.width - 420), 'the list is 420px wide').toBeLessThanOrEqual(1);
+      expect(stageBox.height, 'the stage has the height of the screen under the bar').toBeGreaterThanOrEqual(560);
+    } else {
+      expect(Math.abs(listBox.y - (stageBox.y + stageBox.height)), 'the list stands under the stage').toBeLessThanOrEqual(1);
+      expect(Math.abs(stageBox.width - width), 'the stage is the width of the screen').toBeLessThanOrEqual(1);
+      const both = stageBox.height + listBox.height;
+      const least = width < 560 ? Math.min(width, Math.max(both / 2, both - 190)) : both / 2;
+      expect(stageBox.height, 'the stage takes what the list can spare').toBeGreaterThanOrEqual(least - 1);
+    }
+    for (const row of [list.locator('[data-atlas-fundamentals]'), list.locator('[data-atlas-field]').nth(0), list.locator('[data-atlas-field]').nth(1)]) {
+      const box = await row.boundingBox();
+      expect(box && box.y >= listBox.y - 1 && box.y + box.height <= listBox.y + listBox.height + 1, "the list's first rows are in sight").toBe(true);
+    }
+    // The canvas is painted, and the wheel fills its stage: what is painted spans most of the stage's smaller side.
+    const paint = await paintedOn(page);
+    expect(paint.share, 'the canvas is painted').toBeGreaterThan(0.02);
+    expect(Math.max(paint.right - paint.left, paint.bottom - paint.top), 'the wheel fills its stage').toBeGreaterThan(Math.min(stageBox.width, stageBox.height) * 0.7);
+    expect(paint.left >= 0 && paint.top >= 0 && paint.right <= stageBox.width + 1 && paint.bottom <= stageBox.height + 1, 'the paint is on the stage').toBe(true);
   }
-  expect(new Set(named.map((label) => Math.round(label.x))).size, 'one column').toBe(1);
-  await expect(panel.locator('[data-atlas-heading]')).toHaveText(domain.name);
-  await expect(panel.locator('[data-atlas-row]')).toHaveCount(domain.groups.length);
-  await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', `/explore?tab=skills&domain=${domain.slug}`);
-  await assertHealthyLayout(page, '/atlas?domain');
 
-  // A group: its skills are named on the drawing and are tags in the list, under their levels.
-  const group = domain.groups[0];
-  await panel.locator(`[data-atlas-row="${group.slug}"]`).click();
+  // The list: Fundamentals, then one row a field, in the order the wheel reaches them. Names and nothing else.
+  const fundamentals = list.locator('[data-atlas-fundamentals]');
+  await expect(fundamentals.locator('[data-atlas-name]')).toHaveText('Fundamentals');
+  await expect(fundamentals).toHaveAttribute('aria-expanded', 'false');
+  const fieldRows = list.locator('[data-atlas-field]');
+  await expect(fieldRows).toHaveCount(WHEEL.fields.length);
+  expect(await fieldRows.evaluateAll((rows) => rows.map((row) => row.getAttribute('data-atlas-field')))).toEqual(WHEEL.fields.map((field) => field.slug));
+  await expect(fieldRows.locator('[data-atlas-name]')).toHaveText(WHEEL.fields.map((field) => field.name));
+  expect(await fieldRows.evaluateAll((rows) => rows.filter((row) => row.getAttribute('aria-expanded') !== 'false').length), 'no field is open').toBe(0);
+  const round = await page.evaluate(() => {
+    const { model } = (window as AtlasWindow).__atlas!;
+    return model.order.map((f) => ({ slug: model.F[f].slug, from: model.fields[f].a0 }));
+  });
+  expect(round.map((field) => field.slug), "the list's order is the wheel's").toEqual(WHEEL.fields.map((field) => field.slug));
+  for (const [at, field] of round.entries()) if (at > 0) expect(field.from, `${field.slug} lies after the field before it, round the wheel`).toBeGreaterThan(round[at - 1].from);
+  const words = (await list.innerText()).split('\n').map((line) => line.trim().toLowerCase()).filter(Boolean);
+  expect(words, 'the list says names and nothing else').toEqual(['fundamentals', 'fields', ...WHEEL.fields.map((field) => field.name.toLowerCase())]);
+
+  // Fundamentals, the centre: opening it lists the twelve core groups, and the wheel shows the core alone with
+  // the twelve named round it, each name on a leader that starts on the ring where that group's lines end.
+  await fundamentals.click();
+  await expect(page).toHaveURL(/\/atlas\?fundamentals=1$/);
+  await expect(fundamentals).toHaveAttribute('aria-expanded', 'true');
+  await wheelStands(page, 'core');
+  await expect(page).toHaveTitle('Fundamentals · Atlas · Archangel');
+  const twelve = list.locator('[data-atlas-open="fundamentals"] [data-atlas-group]');
+  expect(await twelve.evaluateAll((rows) => rows.map((row) => row.getAttribute('data-atlas-group')))).toEqual(WHEEL.core);
+  await expect(twelve.locator('[data-atlas-name]')).toHaveText(WHEEL.core.map(nameOf));
+  const core = await readWheel(page);
+  expect(core.shown.map((name) => name.kind), 'the wheel names the twelve').toEqual(WHEEL.core.map(() => 'group'));
+  expect(core.shown.map((name) => name.full).sort()).toEqual(WHEEL.core.map(nameOf).sort());
+  for (const name of core.shown) {
+    expect(name.lead, `"${name.full}" is joined to the core`).not.toBeNull();
+    const [x, y] = name.lead!;
+    expect(Math.abs(Math.hypot(x - core.cam.cx, y - core.cam.cy) - core.geom.RR[2] * core.cam.R), `the leader to "${name.full}" starts on the second ring`).toBeLessThan(0.75);
+    expect(name.x >= 0 && name.x <= core.size.W && name.y >= 0 && name.y <= core.size.H, `"${name.full}" is inside the stage`).toBe(true);
+  }
+  const whole = page.locator('[data-atlas-whole]');
+  await expect(whole).toHaveText('Whole atlas');
+  await expectOneScreen(page, '/atlas?fundamentals');
+  await assertHealthyLayout(page, '/atlas?fundamentals');
+  // One of the twelve: the core turns to it and its skills are named, each on its own line.
+  const coreGroup = groups.get(WHEEL.core[0])!;
+  await twelve.first().click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?group=${coreGroup.slug}$`));
+  await wheelStands(page, 'coreGroup');
+  const turned = await expectSkillsNamed(page, coreGroup, 'a core group');
+  expect(turned.shown[0], 'the core group heads its skills').toMatchObject({ kind: 'head', full: coreGroup.name.toUpperCase() });
+  await assertHealthyLayout(page, '/atlas?group, core');
+  await whole.click();
+  await expect(page).toHaveURL(/\/atlas$/);
+  await wheelStands(page, 'rest');
+  await expect(whole).toHaveCount(0);
+
+  // A field, the one with the most groups: its row opens to its tree, the address says so, and the wheel turns it
+  // to three o'clock and names its groups in one column, as many as the stage has room for.
+  const field = [...WHEEL.fields].sort((a, b) => WHEEL.groups.filter((group) => group.field === b.slug).length - WHEEL.groups.filter((group) => group.field === a.slug).length)[0];
+  const own = WHEEL.groups.filter((group) => group.field === field.slug).map((group) => group.slug);
+  const fieldRow = list.locator(`[data-atlas-field="${field.slug}"]`);
+  await fieldRow.click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${field.slug}$`));
+  await expect(fieldRow).toHaveAttribute('aria-expanded', 'true');
+  await wheelStands(page, 'field');
+  await expect(page).toHaveTitle(`${field.name} · Atlas · Archangel`);
+  const tree = list.locator(`[data-atlas-open="${field.slug}"] [data-atlas-group]`);
+  expect(await tree.evaluateAll((rows) => rows.map((row) => row.getAttribute('data-atlas-group')))).toEqual(rowsOfField(field.slug));
+  await expect(tree.locator('[data-atlas-name]')).toHaveText(rowsOfField(field.slug).map(nameOf));
+  // A row is its name, its ring and how many skills it holds, and no word more.
+  const said = await tree.evaluateAll((rows) => rows.map((row) => ({ all: row.textContent ?? '', figure: row.querySelector('[data-atlas-name]')?.nextElementSibling?.textContent ?? '' })));
+  for (const [at, slug] of rowsOfField(field.slug).entries()) {
+    const place = PLACE.get(slug)!;
+    const count = groups.get(slug)!.skills.length;
+    expect(said[at].figure, `the figure on the row of ${slug}`).toBe(place.on ? `Ring ${place.ring} · ${count}` : `${count}`);
+    expect(said[at].all, `the row of ${slug} says its name and its figure`).toBe(nameOf(slug) + said[at].figure);
+  }
+  await expect.poll(async () => {
+    const [row, box] = [await fieldRow.boundingBox(), await list.boundingBox()];
+    return Boolean(row && box && row.y >= box.y - 1 && row.y + row.height <= box.y + box.height + 1);
+  }, { message: 'the open field is in sight in the list' }).toBe(true);
+  const opened = await readWheel(page);
+  expect(opened.shown[0], 'the open field heads the column').toMatchObject({ kind: 'head', full: field.name.toUpperCase() });
+  const namedGroups = opened.shown.slice(1);
+  expect(namedGroups.every((name) => name.kind === 'group'), 'under it, its groups').toBe(true);
+  expect(new Set(namedGroups.map((name) => name.full)).size, 'no group is named twice').toBe(namedGroups.length);
+  for (const name of namedGroups) {
+    expect(own.map(nameOf), `"${name.full}" is a group of ${field.name}`).toContain(name.full);
+    // A group's leader starts at the rim, where its skills' lines end.
+    expect(name.lead, `"${name.full}" is joined to the wheel`).not.toBeNull();
+    const [x, y] = name.lead!;
+    expect(Math.abs(Math.hypot(x - opened.cam.cx, y - opened.cam.cy) - (opened.geom.RIM + opened.geom.HEAD) * opened.cam.R), `the leader to "${name.full}" starts at the rim`).toBeLessThan(0.75);
+  }
+  // Every group of the field is named, unless the column is full: one more line would not fit the stage's height.
+  const line = Math.max(...opened.shown.map((name) => name.h));
+  expect(namedGroups.length === own.length || (opened.shown.length + 1) * line > opened.size.H - 18, `${namedGroups.length} of ${own.length} groups named on a stage ${Math.round(opened.size.H)}px tall`).toBe(true);
+  expect(namedGroups.length, 'a field names groups').toBeGreaterThan(0);
+  await expectColumn(page, opened, 'an open field');
+  await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', '/explore?tab=skills');
+  await expectOneScreen(page, '/atlas?field');
+  await assertHealthyLayout(page, '/atlas?field');
+
+  // A group of it: its skills are rows in the list and names on the wheel, each on its own line, and the one
+  // switch leads to the Skills list narrowed to that group.
+  const group = groups.get(own[0])!;
+  const groupRow = list.locator(`[data-atlas-group="${group.slug}"]`);
+  await groupRow.click();
   await expect(page).toHaveURL(new RegExp(`/atlas\\?group=${group.slug}$`));
-  await expect(plate.locator('[data-atlas-label="skill"]')).toHaveCount(group.skills.length);
-  await expect(panel.locator('[data-atlas-tag]')).toHaveCount(group.skills.length);
-  await expect(panel.locator('[data-atlas-level-block] h4').first()).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await expect(groupRow).toHaveAttribute('aria-expanded', 'true');
+  await wheelStands(page, 'field');
+  await expect(page).toHaveTitle(`${group.name} · Atlas · Archangel`);
+  const chosen = await expectSkillsNamed(page, group, 'a group');
+  expect(chosen.shown[0], 'its field still heads the column').toMatchObject({ kind: 'head', full: field.name.toUpperCase() });
+  expect(chosen.shown.filter((name) => name.on).map((name) => name.full), 'the chosen group is the one lit').toEqual([group.name]);
+  await expect(views.getByRole('link', { name: 'List' })).toHaveAttribute('href', `/explore?tab=skills&domain=${group.domain}&group=${group.slug}`);
+  await expectOneScreen(page, '/atlas?group');
   await assertHealthyLayout(page, '/atlas?group');
 
-  // A skill: its level, how many careers use it, and the way to its page. The crumbs lead back up.
-  const skill = group.skills[0];
-  await panel.locator(`[data-atlas-tag="${skill.id}"]`).click();
-  await expect(page).toHaveURL(new RegExp(`/atlas\\?skill=${skill.id}$`));
-  await expect(plate.locator('[data-atlas-chosen]')).toHaveAttribute('data-atlas-chosen', skill.id);
-  await expect(panel.locator('[data-atlas-skill] [data-atlas-heading]')).toHaveText(skill.name);
-  await expect(panel.locator('[data-atlas-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
-  await expect(panel.locator('[data-atlas-open]')).toHaveAttribute('href', `/skills/${skill.id}`);
-  await expect(page.locator('[data-atlas-crumbs] a')).toHaveText(['Atlas', domain.name, group.name]);
+  // A skill: it is marked in the list and on the wheel, and the list offers its page. Choosing it is no step:
+  // Back returns to the field.
+  const skillRow = list.locator(`[data-atlas-skills="${group.slug}"] [data-atlas-skill]`).first();
+  const skillId = (await skillRow.getAttribute('data-atlas-skill')) as string;
+  const skill = group.skills.find((each) => each.id === skillId)!;
+  await expect(list.locator('[data-atlas-skill-page]')).toHaveCount(0);
+  await skillRow.click();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?skill=${skillId}$`));
+  await expect(skillRow).toHaveAttribute('aria-pressed', 'true');
+  await expect(list.locator('[data-atlas-skill][aria-pressed="true"]')).toHaveCount(1);
+  await expect(list.locator('[data-atlas-skill-page]')).toHaveText('Skill page');
+  await expect(list.locator('[data-atlas-skill-page]')).toHaveAttribute('href', `/skills/${skillId}`);
+  await expect(page).toHaveTitle(`${skill.name} · Atlas · Archangel`);
+  await wheelStands(page, 'field');
+  const marked = await expectSkillsNamed(page, group, 'a skill');
+  expect(marked.shown.filter((name) => name.on).map((name) => name.full), 'the chosen skill is the one lit on the wheel').toEqual([skill.name]);
+  await expectOneScreen(page, '/atlas?skill');
   await assertHealthyLayout(page, '/atlas?skill');
-  await page.locator('[data-atlas-whole]').click();
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${field.slug}$`));
+  await wheelStands(page, 'field');
+  await whole.click();
   await expect(page).toHaveURL(/\/atlas$/);
+  await wheelStands(page, 'rest');
 
-  // A career laid over the atlas lights its skills, and one line says what is shown.
-  const list = (await (await request.get(`${API}/occupations?limit=2`)).json()) as { data: { id: string; title: string }[] };
-  expect(list.data.length, 'the API returned two careers').toBe(2);
-  const paths = await Promise.all(
-    list.data.map(async (career) => {
-      const detail = (await (await request.get(`${API}/occupations/${career.id}`)).json()) as { skills: { id: string; domain: { slug: string } | null }[] };
-      return detail.skills.filter((s) => placed.has(s.id));
-    })
-  );
-  const [first, second] = paths;
-  expect(first.length, 'the first career in the list has a path').toBeGreaterThan(0);
-  const domains = new Set(first.map((s) => s.domain?.slug)).size;
-  await page.goto(`/atlas?career=${list.data[0].id}`, { waitUntil: 'domcontentloaded' });
-  await expect(plate.locator('[data-atlas-lit]')).toHaveCount(first.length);
-  await expect(page.locator(`[data-atlas-career="${list.data[0].id}"]`)).toContainText(
-    `${list.data[0].title} · ${first.length} ${first.length === 1 ? 'skill' : 'skills'} across ${domains} ${domains === 1 ? 'domain' : 'domains'}`
-  );
-  await expect(plate.locator('.atlas-base')).toHaveAttribute('data-dim', 'true');
-  // Under a career the plate is ink again, so the accent reads alone: every leaf one colour, and only the domains
-  // the career reaches keep their hue, on the rim.
-  const inks = await plate.locator('.atlas-base .atlas-leaf').evaluateAll((leaves) => [...new Set(leaves.map((leaf) => getComputedStyle(leaf).fill))]);
-  expect(inks.length, 'the leaves under a career are one ink').toBe(1);
-  await expect(plate.locator('[data-atlas-reached]')).toHaveCount(domains);
-  // Every domain the career reaches is named; the others in a quieter ink, or, where the rim has no room for all sixteen, not at all.
-  await expect(plate.locator('.atlas-name:not([data-off])')).toHaveCount(domains);
-  const off = await plate.locator('.atlas-name[data-off]').count();
-  expect([0, taxonomy.domains.length - domains], 'the domains it does not reach').toContain(off);
-  await assertHealthyLayout(page, '/atlas?career');
+  // An address from the Atlas before this one named a domain, and could lay a second career over the first: the
+  // domain opens the field that holds most of its groups, and the words that mean nothing now leave the address.
+  const lands = leadingField(fieldsReached(taxonomy.domains.find((domain) => domain.slug === group.domain)!.groups.map((each) => ({ group: each }))));
+  expect(lands, `${group.domain} has groups in a field`).toBeTruthy();
+  await page.goto(`/atlas?domain=${group.domain}&with=00000000-0000-4000-8000-000000000000`, { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${lands!.slug}$`));
+  await wheelStands(page, 'field');
+  await expect(list.locator(`[data-atlas-field="${lands!.slug}"]`)).toHaveAttribute('aria-expanded', 'true');
+  expect((await readWheel(page)).shown[0]).toMatchObject({ kind: 'head', full: lands!.name.toUpperCase() });
+  await expectOneScreen(page, '/atlas?domain');
+  await page.goto('/atlas?group=no-such-group&field=nor-this', { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(/\/atlas$/);
+  await wheelStands(page, 'rest');
 
-  // A second career over the first: what they share is told apart from what is each one's own.
-  const shared = second.filter((s) => first.some((f) => f.id === s.id)).length;
-  await page.goto(`/atlas?career=${list.data[0].id}&with=${list.data[1].id}`, { waitUntil: 'domcontentloaded' });
-  await expect(plate.locator('[data-atlas-lit]')).toHaveCount(first.length + second.length - shared);
-  await expect(plate.locator('[data-atlas-lit="shared"]')).toHaveCount(shared);
-  await expect(plate.locator('[data-atlas-lit="second"]')).toHaveCount(second.length - shared);
-  await expect(page.locator('[data-atlas-shared]')).toContainText(`${first.length - shared} and ${second.length - shared} of their own`);
-  await assertHealthyLayout(page, '/atlas?career&with');
-  // Taking the first off leaves the second, alone.
-  await page.locator(`[data-atlas-career="${list.data[0].id}"] a[aria-label^="Take"]`).click();
-  await expect(page).toHaveURL(new RegExp(`/atlas\\?career=${list.data[1].id}$`));
+  expect(errors, 'nothing was thrown and nothing written to the console as an error').toEqual([]);
 
   // The Explore overview leads here from its Skills section.
   await page.goto('/explore', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('main a[href="/atlas"]')).toHaveText('Atlas');
+});
+
+test('the Atlas takes a press on the wheel, one made while it turns too, and a career laid over it lights its fields', async ({ page, request }) => {
+  const errors = pageErrors(page);
+  const touch = test.info().project.use.hasTouch === true;
+  const press = (at: { x: number; y: number }) => (touch ? page.touchscreen.tap(at.x, at.y) : page.mouse.click(at.x, at.y));
+  const list = page.locator('[data-atlas-list]');
+  const whole = page.locator('[data-atlas-whole]');
+  await page.goto('/atlas', { waitUntil: 'domcontentloaded' });
+  await wheelStands(page, 'rest');
+
+  // The centre is Fundamentals: a finger on it opens the core (a mouse, finer, may take the one of the twelve it is on).
+  await press(await wheelCentre(page));
+  if (touch) {
+    await expect(page).toHaveURL(/\/atlas\?fundamentals=1$/);
+    await wheelStands(page, 'core');
+  } else {
+    await expect(page).toHaveURL(/\/atlas\?(fundamentals=1|group=[a-z0-9-]+)$/);
+    await expect(page.locator('[data-atlas]')).toHaveAttribute('data-atlas-mode', /^core/);
+  }
+  await expect(list.locator('[data-atlas-fundamentals]')).toHaveAttribute('aria-expanded', 'true');
+  await whole.click();
+  await expect(page).toHaveURL(/\/atlas$/);
+  await wheelStands(page, 'rest');
+
+  // A press on the wheel opens the field under it: a finger takes the whole field, a mouse the group and the line it is on.
+  const far = WHEEL.fields[Math.min(10, WHEEL.fields.length - 1)];
+  const farGroup = WHEEL.groups.find((group) => group.field === far.slug)!;
+  await press(await pointOnGroup(page, farGroup.slug));
+  await expect(page).toHaveURL(touch ? new RegExp(`/atlas\\?field=${far.slug}$`) : /\/atlas\?skill=[0-9a-f-]{36}$/);
+  await wheelStands(page, 'field');
+  await expect(list.locator(`[data-atlas-field="${far.slug}"]`)).toHaveAttribute('aria-expanded', 'true');
+  if (!touch) await expect(list.locator(`[data-atlas-group="${farGroup.slug}"]`)).toHaveAttribute('aria-expanded', 'true');
+  expect((await readWheel(page)).shown[0]).toMatchObject({ kind: 'head', full: far.name.toUpperCase() });
+  await expectOneScreen(page, 'a press on the wheel');
+
+  // A press is never lost: one made while the wheel turns takes effect. The page is watched from inside: each frame
+  // notes whether the wheel moved, and the press notes what the last frame saw. Another field is opened from the
+  // list, and while the wheel turns to it the centre is pressed: the turn heads for Fundamentals instead.
+  await page.evaluate(() => {
+    const atlas = (window as AtlasWindow).__atlas!;
+    const watch = window as unknown as { turning: boolean; pressedTurning: boolean[] };
+    watch.turning = false;
+    watch.pressedTurning = [];
+    let was = '';
+    const frame = () => {
+      const now = JSON.stringify([atlas.cam(), atlas.line(0)]);
+      watch.turning = was !== '' && now !== was;
+      was = now;
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+    document.querySelector('[data-atlas-stage]')?.addEventListener('click', () => watch.pressedTurning.push(watch.turning), true);
+  });
+  const others = WHEEL.fields.filter((field) => field.slug !== far.slug);
+  let midTurn = false;
+  for (let attempt = 0; attempt < 4 && !midTurn; attempt++) {
+    // (A slow machine can let the turn end before the press lands: then it is made again, on the way to another field.)
+    const next = others[(attempt * 7 + 3) % others.length];
+    await list.locator(`[data-atlas-field="${next.slug}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${next.slug}$`));
+    await page.waitForFunction(() => (window as unknown as { turning: boolean }).turning, null, { timeout: 2_000 }).catch(() => undefined);
+    await press(await wheelCentre(page));
+    await expect.poll(() => page.evaluate(() => (window as unknown as { pressedTurning: boolean[] }).pressedTurning.length), { message: 'the press reached the stage' }).toBe(attempt + 1);
+    midTurn = await page.evaluate(() => (window as unknown as { pressedTurning: boolean[] }).pressedTurning.at(-1) === true);
+    if (touch) await expect(page, 'the press took effect').toHaveURL(/\/atlas\?fundamentals=1$/);
+    else await expect(page, 'the press took effect').toHaveURL(/\/atlas\?(fundamentals=1|group=[a-z0-9-]+)$/);
+    await expect(page.locator('[data-atlas]')).toHaveAttribute('data-atlas-mode', /^core/);
+    await expect(list.locator('[data-atlas-fundamentals]')).toHaveAttribute('aria-expanded', 'true');
+  }
+  expect(midTurn, 'a press was made while the wheel was turning').toBe(true);
+  await wheelStands(page, touch ? 'core' : ((await page.locator('[data-atlas]').getAttribute('data-atlas-mode')) as WheelMode));
+  await expectOneScreen(page, 'a press while the wheel turns');
+  await whole.click();
+  await wheelStands(page, 'rest');
+
+  // A career is laid over the wheel from the bar: a dialog of careers, and the one chosen opens the field that
+  // holds most of its skills. Its fields are chips over the list, each with how many of its skills it holds; the
+  // open one is the chip that is lit, and the same fields carry the count on their rows.
+  const lay = page.locator('[data-atlas-lay]');
+  await lay.click();
+  const sheet = page.getByRole('dialog', { name: 'Lay a career over' });
+  await expect(sheet).toBeVisible();
+  const pick = sheet.locator('[data-atlas-pick]').first();
+  await expect(pick).toBeVisible();
+  const careerId = (await pick.getAttribute('data-atlas-pick')) as string;
+  const career = (await (await request.get(`${API}/occupations/${careerId}`)).json()) as { title: string; skills: { id: string; group: { slug: string } | null }[] };
+  const chips = fieldsReached(career.skills);
+  const lead = leadingField(chips);
+  expect(lead, 'the career reaches a field').toBeTruthy();
+  await assertHealthyLayout(page, '/atlas, the careers');
+  await pick.click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${lead!.slug}&career=${careerId}$`));
+  await wheelStands(page, 'field');
+  await expect(lay).toHaveText(career.title);
+  const block = list.locator('[data-atlas-career]');
+  await expect(block.locator('[data-atlas-career-eyebrow]')).toHaveText('Career');
+  await expect(block.locator('[data-atlas-career-link]')).toHaveText(career.title);
+  await expect(block.locator('[data-atlas-career-link]')).toHaveAttribute('href', `/occupations/${careerId}`);
+  const chip = block.locator('[data-atlas-chip]');
+  expect(
+    await chip.evaluateAll((all) => all.map((each) => ({ slug: each.getAttribute('data-atlas-chip'), name: each.firstChild?.textContent ?? '', n: Number(each.querySelector('span')?.textContent) }))),
+    "the career's fields, in the wheel's order, each with how many of its skills it holds"
+  ).toEqual(chips);
+  await expect(block.locator('[data-atlas-chip][aria-current="true"]')).toHaveAttribute('data-atlas-chip', lead!.slug);
+  const reachedRows = list.locator('[data-atlas-field][data-atlas-reached]');
+  expect(await reachedRows.evaluateAll((rows) => rows.map((row) => `${row.getAttribute('data-atlas-field')} ${row.getAttribute('data-atlas-reached')}`))).toEqual(chips.map((each) => `${each.slug} ${each.n}`));
+  // In the open field the career's groups are on its route, and say how many of their skills it takes.
+  const way = list.locator(`[data-atlas-open="${lead!.slug}"] [data-atlas-group][data-atlas-way]`);
+  expect(await way.count(), "the career's route runs through the open field").toBeGreaterThan(0);
+  // A visitor marks nothing here.
+  await expect(list.locator('[data-skill-mark]')).toHaveCount(0);
+  await expectOneScreen(page, '/atlas?career');
+  await assertHealthyLayout(page, '/atlas?field&career');
+  // Another chip opens its field, and is then the one lit.
+  const other = chips.find((each) => each.slug !== lead!.slug);
+  if (other) {
+    await block.locator(`[data-atlas-chip="${other.slug}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${other.slug}&career=${careerId}$`));
+    await expect(block.locator('[data-atlas-chip][aria-current="true"]')).toHaveAttribute('data-atlas-chip', other.slug);
+    await wheelStands(page, 'field');
+    expect((await readWheel(page)).shown[0]).toMatchObject({ kind: 'head', full: other.name.toUpperCase() });
+  }
+  // None takes the career off and leaves what is open.
+  await lay.click();
+  await sheet.locator('[data-atlas-sheet-none]').click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page).not.toHaveURL(/career=/);
+  await expect(block).toHaveCount(0);
+  await expect(lay).toHaveText('Lay a career over');
+
+  expect(errors, 'nothing was thrown and nothing written to the console as an error').toEqual([]);
 });
 
 test('a seeker and an employer are given different tools', async ({ page, baseURL }) => {
@@ -680,12 +1482,17 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
       const menu = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.trim());
       await page.keyboard.press('Escape');
       tools[purpose] = { menu, jobs, word };
-      // On the Atlas a seeker's own skills carry the product's mark; someone here to hire has none drawn.
-      const skill = ((await (await page.request.get(`${API}/skills?limit=1`)).json()) as { data: { id: string }[] }).data[0];
+      // On the Atlas a career laid over the wheel is a seeker's to fill in: its skills carry the product's mark and
+      // the block counts what is held. Someone here to hire is shown the career's shape, with no mark and no count.
+      const career = await careerOnWheel(page.request);
+      const skill = career.skills[0];
       expect((await page.request.put(`${API}/me/skills/${skill.id}`, { data: { status: 'held' } })).ok(), `${purpose}: a skill marked held`).toBe(true);
-      await page.goto('/atlas', { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('.atlas-plate .atlas-leaf').first()).toBeAttached();
-      await expect(page.locator('.atlas-plate [data-atlas-mark="held"]'), `${purpose}: marks on the atlas`).toHaveCount(purpose === 'work' ? 1 : 0);
+      await page.goto(`/atlas?career=${career.id}&skill=${skill.id}`, { waitUntil: 'domcontentloaded' });
+      const listed = page.locator(`[data-atlas-list] [data-atlas-skills="${skill.group.slug}"]`);
+      await expect(listed.locator(`[data-atlas-skill="${skill.id}"]`)).toBeVisible();
+      await expect(listed.locator('[data-skill-mark="held"]'), `${purpose}: marks on the atlas`).toHaveCount(purpose === 'work' ? 1 : 0);
+      await expect(page.locator('[data-atlas-list] [data-skill-mark]'), `${purpose}: marks on the atlas`).toHaveCount(purpose === 'work' ? career.skills.filter((each) => each.group.slug === skill.group.slug).length : 0);
+      await expect(page.locator('[data-atlas-career-eyebrow]')).toHaveText(purpose === 'work' ? `1 of ${career.skills.length} held` : 'Career');
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
@@ -701,7 +1508,7 @@ test('a seeker and an employer are given different tools', async ({ page, baseUR
   expect(tools.hire.word).toBe('Your jobs');
 });
 
-test("a seeker's route says what is held and what is next, and marks nothing; an employer sees no marks", async ({ page, baseURL, request }) => {
+test("a seeker's tree of skills says what is held and marks nothing; an employer sees no marks", async ({ page, baseURL, request }) => {
   // Writes: it makes two accounts, marks skills through the API and deletes them. Never against a deployed copy.
   test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
   test.setTimeout(90_000);
@@ -710,17 +1517,10 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
   // The order is the API's (the route's, read from the taxonomy as it stands): nothing here assumes which domain comes first.
   const career = await careerByTitle(request, 'CNC Machinist');
   const path = career.skills;
-  // By group: each group one section, where the route first reaches it.
+  // By group: each group one node, where the route first reaches it.
   const sections = groupsOf(path);
   expect(sections.length, 'the path has groups').toBeGreaterThan(2);
-  /** The first skills not held, in the route's order (the page names none of them next). */
-  const nextOf = (held: Set<string>) => path.filter((skill) => !held.has(skill.id)).slice(0, 3);
-  /** "2 of 6" (with or without the words around it) as [2, 6]. */
-  const figure = async (locator: Locator): Promise<[number, number]> => {
-    const match = /(\d+) of (\d+)/.exec((await locator.textContent()) ?? '');
-    expect(match, 'the figure reads "N of M"').toBeTruthy();
-    return [Number(match?.[1]), Number(match?.[2])];
-  };
+  const sized = (count: number) => `${count} ${count === 1 ? 'skill' : 'skills'}`;
 
   for (const purpose of ['work', 'hire'] as const) {
     const made = await page.request.post(`${API}/auth/sign-up`, {
@@ -729,123 +1529,144 @@ test("a seeker's route says what is held and what is next, and marks nothing; an
     expect(made.status(), `${purpose}: account made`).toBe(201);
     try {
       await page.goto(`/occupations/${career.id}`, { waitUntil: 'domcontentloaded' });
-      const flow = page.locator('[data-route]');
-      const row = (skill: { id: string }) => flow.locator(`[data-skill-tag="${skill.id}"]`);
-      const openSections = () => flow.locator('[data-route-section][data-open] .route-head-group').allInnerTexts().then((all) => all.map((each) => each.toLowerCase()));
-      await expect(flow.locator('[data-route-section]').first()).toBeVisible();
-      // Nobody marks a skill or sets a goal on a career's page: there is no toggle on a row and no action in the heading.
+      const { section: skills, tree, groups, skill, openAll, held: whole } = skillsTree(page);
+      await expect(groups.first()).toBeVisible();
+      const groupOf = (each: { id: string }) => groups.nth(sections.findIndex((group) => group.skills.some((one) => one.id === each.id)));
+      // Nobody marks a skill or sets a goal on a career's page: a node's row only opens it, and the heading has no action.
       const noControls = async () => {
-        await expect(flow.locator('[data-skill-tag] button, [data-skill-tag] [aria-pressed], [data-skill-tag] [role="checkbox"]')).toHaveCount(0);
+        await expect(tree.locator('[aria-pressed], [role="checkbox"], [role="switch"], input')).toHaveCount(0);
         await expect(page.locator('[data-detail-action] button, [data-detail-action] a')).toHaveCount(0);
         await expect(page.getByText(/Set as goal|I have done this/)).toHaveCount(0);
       };
       await noControls();
       if (purpose === 'hire') {
-        // Someone here to hire reads the same groups, closed, their skills named: no mark, ring, Next or figure but a group's size.
-        await expectOneRoute(flow, 'here to hire');
-        await expect(flow.locator('[data-status], [data-next], [data-share-ring], [data-skill-mark], [data-held]')).toHaveCount(0);
+        // Someone here to hire reads the same tree, closed: no mark, no figure but a group's size, nothing held.
+        await expectTree(tree, 'here to hire');
+        await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
+        expect(await tree.locator('[data-group-figure]').allInnerTexts()).toEqual(sections.map((group) => sized(group.skills.length)));
+        await openAll.click();
+        await expect(tree.locator('[data-skill-tag]')).toHaveCount(path.length);
+        await expect(tree.locator('[data-status], [data-skill-mark], [data-next]')).toHaveCount(0);
         await expect(page.locator('[data-held-count], [data-next-up], [data-route-aside]')).toHaveCount(0);
-        await expect(flow.locator('[data-route-section][data-open]')).toHaveCount(0);
-        await expect(flow.locator('[data-section-names]')).toHaveCount(sections.length);
         continue;
       }
-      const hold = async (skill: { id: string }, status: 'held' | 'learning' = 'held') =>
-        expect((await page.request.put(`${API}/me/skills/${skill.id}`, { data: { status } })).ok(), 'the skill was marked through the API').toBe(true);
+      const hold = async (each: { id: string }, status: 'held' | 'learning' = 'held') =>
+        expect((await page.request.put(`${API}/me/skills/${each.id}`, { data: { status } })).ok(), 'the skill was marked through the API').toBe(true);
 
       // A seeker with nothing held: no "0 of" anywhere. The page names no skill next: no NEXT or THEN, no column
-      // beside the route and nothing above it, and every group arrives closed (the owner's call).
-      const whole = page.locator('[data-held-count]');
+      // beside the skills and no line above them, and every group arrives closed (the owner's call).
       await expect(whole).toHaveCount(0);
       let held = new Set<string>();
       const check = async (label: string) => {
-        await expect(flow.locator('[data-next], .route-row-word'), `${label}: no skill is called next`).toHaveCount(0);
-        await expect(page.locator('[data-next-up], [data-route-aside]'), `${label}: nothing beside or above the route`).toHaveCount(0);
-        expect(await openSections(), `${label}: every group arrives closed`).toEqual([]);
+        await expect(tree.locator('[data-next]'), `${label}: no skill is called next`).toHaveCount(0);
+        await expect(skills.getByText(/^(Next|Then)$/i), `${label}: no skill is called next`).toHaveCount(0);
+        await expect(page.locator('[data-next-up], [data-route-aside]'), `${label}: nothing beside or above the skills`).toHaveCount(0);
+        await expect(skills.locator('[data-section-heading] p'), `${label}: no sentence under the heading`).toHaveCount(0);
+        await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], .tree-card'), `${label}: every group arrives closed`).toHaveCount(0);
         // The heading's line says how many are held, once one is; never "0 of".
-        if (held.size > 0) expect(await figure(whole), `${label}: the figure`).toEqual([held.size, path.length]);
+        if (held.size > 0) await expect(whole, `${label}: the figure`).toHaveText(`${held.size} of ${path.length} held`);
         else await expect(whole).toHaveCount(0);
-        for (const id of held) await expect(row({ id })).toHaveAttribute('data-status', 'held');
-        await expectOneRoute(flow, label);
+        await expect(skills, `${label}: never "0 of"`).not.toContainText(/\b0 of \d/);
+        // A group says how much of it is held once some is, and its size until then.
+        expect(await tree.locator('[data-group-figure]').allInnerTexts(), `${label}: each group's figure`).toEqual(
+          sections.map((group) => {
+            const mine = group.skills.filter((each) => held.has(each.id)).length;
+            return mine > 0 ? `${mine} of ${group.skills.length} held` : sized(group.skills.length);
+          })
+        );
+        await expectTree(tree, label);
         await noControls();
       };
       await check('nothing held');
-      const first = nextOf(held)[0];
-      await expect(row(first).locator('[data-row-said]')).toHaveText('Not held');
-      await expect(row(first).locator('a')).toHaveAttribute('href', `/skills/${first.id}`);
-      // Inside its group a row does not say its group again.
-      await flow.locator('[data-route-open-all]').click();
-      await expect(flow.locator('[data-skill-tag] [data-tag-note]')).toHaveCount(0);
-      await flow.locator('[data-route-open-all]').click();
-      // What a person opened and closed holds for the visit: forgotten here, so the next reads are a fresh visit's.
-      await page.evaluate(() => sessionStorage.clear());
+      // Open, a skill a seeker does not hold is the ring and its name, and says so to someone who hears it.
+      await openAll.click();
+      await expect(tree.locator('[data-skill-tag]')).toHaveCount(path.length);
+      await expect(tree.locator('[data-skill-tag][data-status="none"]')).toHaveCount(path.length);
+      await expect(tree.locator('[data-skill-mark]')).toHaveCount(0);
+      await expect(head(skill(path[0]))).toContainText(`${path[0].name}, not held`);
+      // Inside its group a skill does not say its group again.
+      await expect(tree.locator('[data-skill-tag] [data-tag-note]')).toHaveCount(0);
+      await openAll.click();
 
-      // Skills marked elsewhere (Profile; here, the API): the first skill, then the whole of the first section, and one being learned.
+      // Skills marked elsewhere (Profile; here, the API): the first skill, then the whole of the first group, and one being learned.
       const section = sections[0];
-      const sectionOf = (skill: { id: string }) => flow.locator('[data-route-section]').filter({ has: page.locator(`[data-skill-tag="${skill.id}"]`) });
-      const place = sectionOf(section.skills[0]);
-      const head = place.getByRole('button').first();
+      const place = groupOf(section.skills[0]);
       await hold(path[0]);
       await hold(section.skills[0]);
       held = new Set([path[0].id, section.skills[0].id]);
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(whole).toContainText(`${held.size} of ${path.length} held`);
-      await check('two held');
-      // A group's figure: "· 1 of N" part done, its size untouched, nothing when it is whole.
-      expect(await figure(place.locator('[data-section-count]'))).toEqual([section.skills.filter((skill) => held.has(skill.id)).length, section.skills.length]);
-      const untouched = sections[sections.length - 1];
-      await expect(sectionOf(untouched.skills[0]).locator('[data-section-count]')).toHaveText(`· ${untouched.skills.length} ${untouched.skills.length === 1 ? 'skill' : 'skills'}`);
-      // In a closed group's line of names a held skill is in full ink, the rest in secondary ink, and nothing else marks them.
-      const closedWithHeld = sectionOf(section.skills[0]);
-      if ((await closedWithHeld.getAttribute('data-open')) === null) {
-        await expect(closedWithHeld.locator('[data-section-names] [data-held]').first()).toContainText(section.skills[0].name);
-      }
-      for (const skill of section.skills) await hold(skill);
-      const learning = path.find((skill) => !held.has(skill.id) && !section.skills.includes(skill))!;
-      await hold(learning, 'learning');
-      held = new Set([path[0].id, ...section.skills.map((skill) => skill.id)]);
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(whole).toContainText(`${held.size} of ${path.length} held`);
-      await check('a section whole');
-      await expect(place).toHaveAttribute('data-complete', 'true');
-      await expect(place.locator('[data-section-count]')).toHaveCount(0);
-      // A skill being learned is not held: it keeps its half mark and is not in the figure.
-      await expect(row(learning)).toHaveAttribute('data-status', 'learning');
-      await expect(row(learning).locator('[data-row-said]')).toContainText('Learning');
+      await expect(whole).toHaveText(`${held.size} of ${path.length} held`);
+      await check('one held');
+      // The figure stands on the heading's own line, quietly, beside the word.
+      const [word, figure] = [await skills.locator('h2').boundingBox(), await whole.boundingBox()];
+      expect(figure && word && figure.y < word.y + word.height && figure.y + figure.height > word.y, 'the figure is on the heading\'s line').toBe(true);
+      // Open, a held skill carries the product's mark in place of the ring, and the rest stay rings; the card says nothing the mark already says.
+      await head(place).click();
+      await expect(skill(section.skills[0])).toHaveAttribute('data-status', 'held');
+      await expect(skill(section.skills[0]).locator('[data-skill-mark="held"]')).toBeVisible();
+      await expect(head(skill(section.skills[0]))).toContainText(`${section.skills[0].name}, held`);
+      await expect(place.locator('[data-skill-mark]')).toHaveCount(1);
+      await head(skill(section.skills[0])).click();
+      await expect(skill(section.skills[0]).locator('[data-skill-preview]')).not.toContainText(/You hold|held/i);
+      await expect(skill(section.skills[0]).locator('[data-skill-mark="held"]'), 'a held skill keeps its mark while it is open').toBeVisible();
+      await expectTree(tree, 'a held skill open');
+      // Left open: the page loaded again arrives closed all the same (the next check holds it).
 
-      // A section opens and closes by keyboard, and closed its rows are out of the tab order.
+      for (const each of section.skills) await hold(each);
+      const learning = path.find((each) => !held.has(each.id) && !section.skills.includes(each))!;
+      await hold(learning, 'learning');
+      held = new Set([path[0].id, ...section.skills.map((each) => each.id)]);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await expect(whole).toHaveText(`${held.size} of ${path.length} held`);
+      await check('a group whole');
+      // A skill being learned is not held: it carries the half mark and is not in any figure.
+      await head(groupOf(learning)).click();
+      await expect(skill(learning)).toHaveAttribute('data-status', 'learning');
+      await expect(skill(learning).locator('[data-skill-mark="learning"]')).toBeVisible();
+      await expect(head(skill(learning))).toContainText(`${learning.name}, learning`);
+      await head(groupOf(learning)).click();
+
+      // A group opens and closes by keyboard, and closed its skills are out of the tab order.
       const inside = place.locator('[data-skill-tag]');
-      if ((await head.getAttribute('aria-expanded')) === 'true') await head.click();
-      await expect(head).toHaveAttribute('aria-expanded', 'false');
-      await expect(inside.first()).toBeHidden();
-      const size = await head.boundingBox();
-      expect(size?.height ?? 0, 'a section\'s line is a full finger tall').toBeGreaterThanOrEqual(44);
-      await head.focus();
+      await expect(head(place)).toHaveAttribute('aria-expanded', 'false');
+      await expect(inside).toHaveCount(0);
+      const size = await head(place).boundingBox();
+      expect(size?.height ?? 0, 'a group\'s row is a full finger tall').toBeGreaterThanOrEqual(44);
+      await head(place).focus();
       await page.keyboard.press('Enter');
-      await expect(head).toHaveAttribute('aria-expanded', 'true');
+      await expect(head(place)).toHaveAttribute('aria-expanded', 'true');
       await expect(inside).toHaveCount(section.skills.length);
       await expect(inside.first()).toBeVisible();
       await page.keyboard.press('Tab');
-      await expect(inside.first().locator('a')).toBeFocused();
-      await head.focus();
+      await expect(head(inside.first())).toBeFocused();
       await page.keyboard.press('Space');
-      await expect(head).toHaveAttribute('aria-expanded', 'false');
-      await expect(inside.first()).toBeHidden();
+      await expect(inside.first().locator('[data-skill-preview]')).toBeVisible();
       await page.keyboard.press('Tab');
-      expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[data-route-section]:not([data-open]) ul'))), 'Tab passes a closed section by').toBe(false);
-      // What a person opened themselves holds for the visit; Open all opens every section, and then closes them.
-      await head.click();
+      await expect(inside.first().locator('[data-preview-open]')).toBeFocused();
+      await head(place).focus();
+      await page.keyboard.press('Space');
+      await expect(head(place)).toHaveAttribute('aria-expanded', 'false');
+      await expect(inside).toHaveCount(0);
+      await page.keyboard.press('Tab');
+      await expect(head(groups.nth(1)), 'Tab passes a closed group by').toBeFocused();
+      // A page loaded again arrives closed, whatever was open on it; Open all opens every group, and then closes them.
+      await head(place).click();
+      await expect(head(place)).toHaveAttribute('aria-expanded', 'true');
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(head).toHaveAttribute('aria-expanded', 'true');
-      const all = flow.locator('[data-route-open-all]');
-      await expect(all).toHaveText('Open all');
-      await all.click();
-      await expect(flow.locator('[data-route-section]:not([data-open])')).toHaveCount(0);
-      await expect(all).toHaveText('Close all');
-      await expectOneRoute(flow, 'a seeker, all open');
-      await all.click();
-      await expect(flow.locator('[data-route-section][data-open]')).toHaveCount(0);
-      await assertHealthyLayout(page, '/occupations/:id route');
-
+      await expect(head(place)).toHaveAttribute('aria-expanded', 'false');
+      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]')).toHaveCount(0);
+      expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => /groups|route|skillTree/.test(key))), 'nothing a person opened is put in browser storage').toEqual([]);
+      await expect(openAll).toHaveText('Open all');
+      await openAll.click();
+      await expect(tree.locator('[data-route-section]:not([data-open])')).toHaveCount(0);
+      await expect(openAll).toHaveText('Close all');
+      await expect(tree.locator('[data-skill-mark="held"]')).toHaveCount(held.size);
+      await expect(tree.locator('[data-skill-mark="learning"]')).toHaveCount(1);
+      await expectTree(tree, 'a seeker, all open');
+      await assertHealthyLayout(page, '/occupations/:id a seeker, all open');
+      await openAll.click();
+      await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
+      await assertHealthyLayout(page, '/occupations/:id a seeker');
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
@@ -1317,6 +2138,7 @@ test('the data quality table fits the screen, and says what it counts', async ({
 interface DeviceVersionSkill {
   id: string;
   name: string;
+  group: { slug: string; name: string } | null;
   added: boolean;
   makes: { id: string; name: string; runs: boolean }[];
 }
@@ -1352,36 +2174,82 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(version!.title);
   await expect(page).toHaveTitle(`${version!.title} · Archangel`);
   await expect(page.locator('[data-detail-kind]')).toHaveText('Career');
-  // The path is drawn with the same parts: one route, the version's skills as its rows, no marks for a visitor.
-  const flow = page.locator('[data-route]');
-  await expectOneRoute(flow, "a company's version");
-  await expect(flow.locator('[data-skill-tag]')).toHaveCount(skills.length);
+  // The same page as the standard's: the heading block with the company and the standard as tags, then the same tree of skills.
+  expect(await headingParts(page), 'the heading block').toContain('tags');
+  expect(await headingParts(page), 'no action in the heading').not.toContain('action');
+  const { section, tree, groups, skill, openAll, held } = skillsTree(page);
+  const sized = (count: number) => `${count} ${count === 1 ? 'skill' : 'skills'}`;
+  await expectTree(tree, "a company's version");
+  // The root counts the version's skills, and says neither the version's name nor the company's again.
+  await expect(tree.locator('[data-tree-root]')).toHaveText(sized(skills.length));
+  await expect(tree.getByText(version!.title, { exact: true })).toHaveCount(0);
+  // Every group arrives closed; no sentence, and nothing asks a visitor to sign in.
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], .tree-card')).toHaveCount(0);
+  await expect(section.locator('[data-section-heading] p, [data-version-same]')).toHaveCount(0);
+  await expect(page.locator('[data-entity-view] a[href*="sign-in"]')).toHaveCount(0);
+  await openAll.click();
+  await expect(tree.locator('[data-skill-tag]')).toHaveCount(skills.length);
   await expect(page.getByText('Set as goal')).toHaveCount(0);
-  await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
-  await expect(page.locator('[data-held-count]')).toHaveCount(0);
-  // A skill the company adds says so on its tag, and only those do.
-  const added = skills.filter((skill) => skill.added);
-  await expect(flow.locator('[data-skill-tag][data-added]')).toHaveCount(added.length);
-  for (const skill of added.slice(0, 2)) await expect(flow.locator(`[data-skill-tag="${skill.id}"] [data-tag-added]`)).toHaveText('Added');
-  // A tag names the makes the company runs on its second line; a skill it runs none of has no second line.
-  const withMakes = skills.find((skill) => skill.makes.some((make) => make.runs));
+  await expect(tree.locator('[aria-pressed], [role="checkbox"], [data-status], [data-skill-mark]')).toHaveCount(0);
+  await expect(held).toHaveCount(0);
+  // A skill the company adds says so on its node's second line, and only those do.
+  const added = skills.filter((each) => each.added);
+  await expect(tree.locator('[data-skill-tag][data-added]')).toHaveCount(added.length);
+  for (const each of added.slice(0, 2)) await expect(skill(each).locator('[data-tag-added]')).toHaveText('Added');
+  // A node names the makes the company runs on its second line; a skill it runs none of has no second line.
+  const withMakes = skills.find((each) => each.makes.some((make) => make.runs));
   if (withMakes) {
-    await expect(flow.locator(`[data-skill-tag="${withMakes.id}"] [data-tag-make]`)).toHaveText(withMakes.makes.filter((make) => make.runs).map((make) => make.name));
+    await expect(skill(withMakes).locator('[data-tag-make]')).toHaveText(withMakes.makes.filter((make) => make.runs).map((make) => make.name));
+    // The second line is the node's own: opening the skill does not say its makes again in the card.
+    await head(skill(withMakes)).click();
+    await expect(skill(withMakes).locator('[data-skill-preview] [data-tag-make]')).toHaveCount(0);
+    await head(skill(withMakes)).click();
   }
-  const plain = skills.find((skill) => !skill.added && !skill.makes.some((make) => make.runs));
-  if (plain) await expect(flow.locator(`[data-skill-tag="${plain.id}"] [data-tag-line]`)).toHaveCount(0);
-  // What it leaves out is not drawn: one line says how many, and opens them.
-  for (const skill of leftOut) await expect(flow.locator(`[data-skill-tag="${skill.id}"]`)).toHaveCount(0);
-  const line = page.locator('[data-left-out]');
+  const plain = skills.find((each) => !each.added && !each.makes.some((make) => make.runs));
+  if (plain) await expect(skill(plain).locator('[data-tag-line]')).toHaveCount(0);
+  await expectTree(tree, "a company's version, all open");
+  // What it leaves out is not among the groups: the tree's last node says how many, closed, and opens their names as its card.
+  for (const each of leftOut) await expect(skill(each)).toHaveCount(0);
+  const out = tree.locator('[data-left-out]');
   if (leftOut.length > 0) {
-    await expect(line.locator('summary')).toHaveText(`${leftOut.length} ${leftOut.length === 1 ? 'skill' : 'skills'} of the standard path left out`);
-    await expect(line.locator('[data-skill-tag]').first()).toBeHidden();
-    await line.locator('summary').click();
-    await expect(line.locator('[data-skill-tag]')).toHaveText(leftOut.map((skill) => skill.name));
+    expect(await out.evaluate((node) => node.parentElement?.lastElementChild === node && node.parentElement?.parentElement?.matches('.tree-side')), 'the last node off the root').toBe(true);
+    await expect(nodeName(out)).toHaveText('Left out of the standard');
+    await expect(out.locator('[data-tree-figure]')).toContainText(sized(leftOut.length));
+    // "Open all" opens the groups of the path, and this is no group of it.
+    await expect(head(out)).toHaveAttribute('aria-expanded', 'false');
+    await expect(out.locator('.tree-card')).toHaveCount(0);
+    await head(out).click();
+    await expect(head(out)).toHaveAttribute('aria-expanded', 'true');
+    // One quiet run of names: nothing in the card is a node, a link or a button.
+    expect((await out.locator('[data-left-out-names] [data-name]').allInnerTexts()).map((name) => name.replace(/[,.]\s*$/, '').trim())).toEqual(leftOut.map((each) => each.name));
+    await expect(out.locator('.tree-card').locator('a, button, .tree-mark')).toHaveCount(0);
+    await expectTree(tree, "a company's version, what it leaves out open");
   } else {
-    await expect(line).toHaveCount(0);
+    await expect(out).toHaveCount(0);
   }
+  await expect(groups).toHaveCount(groupsOf(skills).length);
   await assertHealthyLayout(page, '/occupations/:id?at=company');
+
+  // After the skills, where the career leads: the career's own ladder, as its standard page draws it, each career
+  // on it opening its standard page. A career on no ladder has no such section.
+  const rungs = (await (await request.get(`${API}/occupations/${occupation.id}`)).json()) as { comesFrom: { id: string; title: string }[]; leadsTo: { id: string; title: string }[] };
+  const ladder = page.locator('#ladder');
+  if (rungs.comesFrom.length + rungs.leadsTo.length > 0) {
+    expect((await page.locator('[data-entity-view] section').evaluateAll((sections) => sections.map((each) => each.id))).slice(0, 2)).toEqual(['skills', 'ladder']);
+    await expect(ladder.locator('h2')).toHaveText(rungs.leadsTo.length > 0 ? 'Where it leads' : 'Where it comes from');
+    await expect(ladder.locator('[data-ladder-this]')).toHaveText('This career');
+    await expectTree(ladder.locator('[data-tree]'), "a company's version, the career's ladder");
+    const named = (side: { id: string; title: string }[]) => (side.length > 4 ? side.slice(0, 3) : side);
+    for (const [side, careers] of [['before', rungs.comesFrom], ['after', rungs.leadsTo]] as const) {
+      const links = ladder.locator(`[data-path-ladder="${side}"] a`);
+      await expect(links).toHaveText(named(careers).map((each) => each.title));
+      if (careers.length > 0) await expect(links.first()).toHaveAttribute('href', `/occupations/${careers[0].id}`);
+    }
+    await ladder.scrollIntoViewIfNeeded();
+    await assertHealthyLayout(page, "/occupations/:id?at=company the career's ladder");
+  } else {
+    await expect(ladder).toHaveCount(0);
+  }
 
   // One tap returns to the standard, which says the company has its own version; the row opens it again.
   const standard = page.locator('[data-standard-link]');
@@ -1392,7 +2260,9 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   await standard.click();
   await expect(page).toHaveURL(new RegExp(`/occupations/${occupation.id}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(occupation.title);
-  await expect(page.locator('[data-route] [data-skill-tag][data-added]')).toHaveCount(0);
+  await skillsTree(page).openAll.click();
+  await expect(page.locator('#skills [data-skill-tag]').first()).toBeVisible();
+  await expect(page.locator('#skills [data-skill-tag][data-added], #skills [data-left-out]')).toHaveCount(0);
   const row = page.locator(`#companies [data-career-version="${company.id}"]`);
   await expect(row).toContainText(company.name);
   await row.scrollIntoViewIfNeeded();
@@ -1406,19 +2276,25 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   await expect(career).toContainText(occupation.title);
   await expect(career.locator('a')).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
 
-  // The version's path is its route alone; an old address that named the atlas view reads as it, cleaned, the company kept.
+  // The version's path is its tree alone; an old address that named the atlas view reads as it, cleaned, the company kept.
   await page.goto(`${address}&path=atlas&domain=quality`, { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(new RegExp(`/occupations/${occupation.id}\\?at=${company.id}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(version!.title);
-  await expect(page.locator('[data-route]')).toBeVisible();
-  await expect(page.locator('[data-atlas-link], [data-path-view], .atlas-plate')).toHaveCount(0);
+  await expect(page.locator('#skills [data-skill-tree]')).toBeVisible();
+  await expect(page.locator('[data-atlas-link], [data-path-view], [data-atlas], #skills canvas')).toHaveCount(0);
 
-  // The Atlas still takes the version: the company's skills laid over every skill there is, named as the version is.
+  // The Atlas still takes the version: the company's skills laid over the wheel, named as the version is. Its
+  // fields are the ones the version's skills reach, the skills the company adds among them and none it leaves out.
   await page.goto(`/atlas?career=${occupation.id}&at=${company.slug ?? company.id}`, { waitUntil: 'domcontentloaded' });
-  const laid = page.locator(`[data-atlas-career="${occupation.id}"]`);
-  await expect(laid.locator('a').first()).toHaveText(version!.title);
-  await expect(laid.locator('a').first()).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
-  await expect(laid.locator('[data-atlas-career-facts]')).toContainText(`${skills.length} ${skills.length === 1 ? 'skill' : 'skills'} across`);
+  await wheelStands(page, 'rest');
+  const laid = page.locator('[data-atlas-list] [data-atlas-career]');
+  await expect(laid.locator('[data-atlas-career-link]')).toHaveText(version!.title);
+  await expect(laid.locator('[data-atlas-career-link]')).toHaveAttribute('href', new RegExp(`/occupations/${occupation.id}\\?at=`));
+  await expect(page.locator('[data-atlas-lay]')).toHaveText(version!.title);
+  expect(
+    await laid.locator('[data-atlas-chip]').evaluateAll((all) => all.map((each) => ({ slug: each.getAttribute('data-atlas-chip'), name: each.firstChild?.textContent ?? '', n: Number(each.querySelector('span')?.textContent) }))),
+    "the version's fields, each with how many of its skills it holds"
+  ).toEqual(fieldsReached(skills));
   await assertHealthyLayout(page, '/atlas?career&at');
 
   // A company with no version of the career says so, and leads back to the standard.
@@ -1453,31 +2329,38 @@ test("a seeker's progress on a company's version counts its skills, and a make t
       expect((await page.request.put(`${API}/me/skills/${skill.id}/makes`, { data: { makes: [ran.id] } })).ok()).toBe(true);
     }
     await page.goto(`/occupations/${occupation.id}?at=${company.id}`, { waitUntil: 'domcontentloaded' });
-    const flow = page.locator('[data-route]');
-    await expect(flow.locator('[data-skill-tag]')).toHaveCount(skills.length);
-    // Progress is counted against the version's skills, not the standard's, in the skills' heading line; none held, it says nothing.
-    const whole = page.locator('#skills [data-held-count]');
-    if (skill) await expect(whole).toContainText(`1 of ${skills.length} held`);
+    const { tree, openAll, held: whole } = skillsTree(page);
+    const node = (each: { id: string }) => tree.locator(`[data-skill-tag="${each.id}"]`);
+    await expect(tree.locator('[data-route-section]').first()).toBeVisible();
+    // Every group arrives closed for a seeker too; open, the version's skills are its nodes.
+    await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
+    await openAll.click();
+    await expect(tree.locator('[data-skill-tag]')).toHaveCount(skills.length);
+    // Progress is counted against the version's skills, not the standard's, beside the skills' heading; none held, it says nothing.
+    if (skill) await expect(whole).toHaveText(`1 of ${skills.length} held`);
     else await expect(whole).toHaveCount(0);
     if (skill && ran) {
-      const tag = flow.locator(`[data-skill-tag="${skill.id}"]`);
-      await expect(tag).toHaveAttribute('data-status', 'held');
+      await expect(node(skill)).toHaveAttribute('data-status', 'held');
+      await expect(node(skill).locator('[data-skill-mark="held"]')).toBeVisible();
       // The make the person has run is lit; the company's others are not. Brightness only: the same family of colour.
-      await expect(tag.locator('[data-tag-make="lit"]')).toHaveText([ran.name]);
-      await expect(tag.locator('[data-tag-make]')).toHaveCount(skill.makes.filter((make) => make.runs).length);
+      await expect(node(skill).locator('[data-tag-make="lit"]')).toHaveText([ran.name]);
+      await expect(node(skill).locator('[data-tag-make]')).toHaveCount(skill.makes.filter((make) => make.runs).length);
     }
-    // The version's page reads a person's marks and changes none: no row is a toggle and the heading has no "Set as goal".
-    await expect(flow.locator('[data-skill-tag] button')).toHaveCount(0);
+    // The version's page reads a person's marks and changes none: no node is a toggle of a mark and the heading has no "Set as goal".
+    await expect(tree.locator('[aria-pressed], [role="checkbox"], [role="switch"], input')).toHaveCount(0);
     await expect(page.locator('[data-detail-action] button')).toHaveCount(0);
     // A skill marked elsewhere is counted here the next time the page is read, as on the standard.
     const next = skills.find((each) => each.id !== skill?.id);
     if (next) {
       expect((await page.request.put(`${API}/me/skills/${next.id}`, { data: { status: 'held' } })).ok()).toBe(true);
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(flow.locator(`[data-skill-tag="${next.id}"]`)).toHaveAttribute('data-status', 'held');
-      await expect(whole).toContainText(`${skill ? 2 : 1} of ${skills.length} held`);
+      await expect(whole).toHaveText(`${skill ? 2 : 1} of ${skills.length} held`);
+      // Loaded again the page arrives closed, whatever was open on it; open, the skill carries its mark.
+      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
+      await openAll.click();
+      await expect(node(next)).toHaveAttribute('data-status', 'held');
     }
-    await expectOneRoute(flow, "a seeker on a company's version");
+    await expectTree(tree, "a seeker on a company's version");
     await assertHealthyLayout(page, '/occupations/:id?at=company seeker');
   } finally {
     const gone = await page.request.delete(`${API}/me`, { data: { password } });
@@ -1716,60 +2599,129 @@ test('two rows that may be one factory are set side by side, and merged or kept 
 // A career's path, seen on the Atlas
 // ---------------------------------------------------------------------------
 
-interface CareerOnPlate {
+interface CareerOnWheel {
   id: string;
   title: string;
-  /** Its skills the taxonomy places, as the plate draws them. */
-  skills: { id: string; name: string; domain: { slug: string } | null }[];
+  /** Its skills that have a line on the wheel, each with the group it is in. */
+  skills: { id: string; name: string; group: { slug: string; name: string } }[];
 }
 
-/** The first career of the list, with the skills of it that have a leaf on the plate. */
-async function careerOnPlate(request: APIRequestContext): Promise<CareerOnPlate> {
-  const taxonomy = (await (await request.get(`${API}/skills/taxonomy`)).json()) as AtlasTaxonomy;
-  const placed = new Set(taxonomy.domains.flatMap((domain) => domain.groups.flatMap((group) => group.skills.map((skill) => skill.id))));
+/** The first career of the list, with the skills of it the wheel holds. */
+async function careerOnWheel(request: APIRequestContext): Promise<CareerOnWheel> {
   const id = await firstId(request, '/occupations');
   expect(id, 'the API returned a career to open').toBeTruthy();
-  const detail = (await (await request.get(`${API}/occupations/${id}`)).json()) as { title: string; skills: CareerOnPlate['skills'] };
-  const skills = detail.skills.filter((skill) => placed.has(skill.id));
-  expect(skills.length, 'the career has skills on the plate').toBeGreaterThan(0);
+  const detail = (await (await request.get(`${API}/occupations/${id}`)).json()) as { title: string; skills: { id: string; name: string; group: { slug: string; name: string } | null }[] };
+  const skills = detail.skills.flatMap((skill) => (skill.group && PLACE.has(skill.group.slug) ? [{ ...skill, group: skill.group }] : []));
+  expect(skills.length, 'the career has skills on the wheel').toBeGreaterThan(0);
   return { id: id as string, title: detail.title, skills };
 }
 
-test("a career's path is its route alone; an old address that named the atlas reads as the route, and /atlas lays the career over the plate", async ({ page, request }) => {
-  const career = await careerOnPlate(request);
+/**
+ * The wheel's paint on one skill's line, read back from the canvas a little
+ * past the middle of the line: 'accent' for a career's skill, 'bright' for one
+ * the person holds, by whichever of the two tokens the strongest pixel there
+ * is nearer.
+ */
+async function inkOnLine(page: Page, skillId: string): Promise<'accent' | 'bright' | 'clear'> {
+  return page.evaluate((id) => {
+    const atlas = (window as AtlasWindow).__atlas!;
+    const canvas = document.querySelector('[data-atlas-stage] canvas') as HTMLCanvasElement;
+    const context = canvas.getContext('2d');
+    if (!context) return 'clear';
+    const [x0, y0, x1, y1] = atlas.line(atlas.model.skillById.get(id) as number);
+    const scale = canvas.width / canvas.getBoundingClientRect().width;
+    const [x, y] = [Math.round((x0 + (x1 - x0) * 0.55) * scale), Math.round((y0 + (y1 - y0) * 0.55) * scale)];
+    const { data } = context.getImageData(x - 2, y - 2, 5, 5);
+    let best = -1;
+    for (let at = 0; at < data.length; at += 4) if (best < 0 || data[at + 3] > data[best + 3]) best = at;
+    if (data[best + 3] < 128) return 'clear';
+    const token = (name: string) => {
+      const hex = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return [1, 3, 5].map((from) => parseInt(hex.slice(from, from + 2), 16));
+    };
+    const far = (colour: number[]) => Math.hypot(colour[0] - data[best], colour[1] - data[best + 1], colour[2] - data[best + 2]);
+    return far(token('--accent')) < far(token('--text-1')) ? 'accent' : 'bright';
+  }, skillId);
+}
 
-  // No switch and no plate on the career's page: the path is the route.
+/** One skill's line is drawn in that ink. (Asked until it is so: the wheel is drawn again a frame after the list says a thing.) */
+async function expectInk(page: Page, skillId: string, ink: 'accent' | 'bright', message: string): Promise<void> {
+  await expect.poll(() => inkOnLine(page, skillId), { message }).toBe(ink);
+}
+
+test("a career's path is its tree of skills alone; an old address that named the atlas reads as it, and /atlas lays the career over the wheel", async ({ page, request }) => {
+  const career = await careerOnWheel(request);
+
+  // No switch and no wheel on the career's page: the path is its tree of skills.
   await page.goto(`/occupations/${career.id}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-route]')).toHaveCount(1);
+  await expect(page.locator('#skills [data-skill-tree]')).toHaveCount(1);
   await expect(page.getByRole('navigation', { name: 'Path as' })).toHaveCount(0);
-  await expect(page.locator('#skills .atlas-plate, [data-path-view]')).toHaveCount(0);
+  await expect(page.locator('[data-atlas], #skills canvas, [data-path-view]')).toHaveCount(0);
 
-  // An address from when the path had views reads as the route, and the old words leave it; the section it named is kept.
+  // An address from when the path had views reads as the page, and the old words leave it; the section it named is kept.
   for (const old of ['?path=atlas', '?path=atlas&domain=quality', '?path=route', '?path=flow']) {
     await page.goto(`/occupations/${career.id}${old}#skills`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(new RegExp(`/occupations/${career.id}#skills$`));
-    await expect(page.locator('[data-route]')).toHaveCount(1);
-    await expect(page.locator('#skills .atlas-plate')).toHaveCount(0);
+    await expect(page.locator('#skills [data-skill-tree]')).toHaveCount(1);
+    await expect(page.locator('[data-atlas], #skills canvas')).toHaveCount(0);
   }
   await assertHealthyLayout(page, '/occupations/:id?path=atlas, cleaned');
 
-  // The place to see a career among every skill is the Atlas itself: the career laid over the plate, nothing marked for a visitor.
+  // The place to see a career among every skill is the Atlas itself: the career laid over the wheel, by its address.
+  // It is named over the list with the fields it reaches, and a visitor is shown its shape and marks nothing.
+  const errors = pageErrors(page);
   await page.goto(`/atlas?career=${career.id}`, { waitUntil: 'domcontentloaded' });
-  const plate = page.locator('[data-atlas] .atlas-plate');
-  await expect(plate.locator('[data-atlas-lit]')).toHaveCount(career.skills.length);
-  await expect(plate.locator('.atlas-base')).toHaveAttribute('data-dim', 'true');
-  await expect(plate.locator('[data-atlas-walk], [data-atlas-mark], [data-ahead]')).toHaveCount(0);
-  await expect(page.locator(`[data-atlas-career="${career.id}"]`)).toContainText(career.title);
+  await wheelStands(page, 'rest');
+  const list = page.locator('[data-atlas-list]');
+  const block = list.locator('[data-atlas-career]');
+  await expect(block.locator('[data-atlas-career-eyebrow]')).toHaveText('Career');
+  await expect(block.locator('[data-atlas-career-link]')).toHaveText(career.title);
+  await expect(block.locator('[data-atlas-career-link]')).toHaveAttribute('href', `/occupations/${career.id}`);
+  await expect(page.locator('[data-atlas-lay]')).toHaveText(career.title);
+  const chips = fieldsReached(career.skills);
+  expect(await block.locator('[data-atlas-chip]').evaluateAll((all) => all.map((each) => each.getAttribute('data-atlas-chip')))).toEqual(chips.map((each) => each.slug));
+  await expect(block.locator('[data-atlas-chip][aria-current="true"]')).toHaveCount(0);
+  await expect(list.locator('[data-atlas-field][data-atlas-reached]')).toHaveCount(chips.length);
+  await expectOneScreen(page, '/atlas?career');
   await assertHealthyLayout(page, '/atlas?career');
+  // One of its groups, opened: the career's skills there are drawn in the accent, each on its own line, and are
+  // said in the list by a dot, never a control; the group's row counts them against its own.
+  const first = career.skills.find((skill) => PLACE.get(skill.group.slug)?.field) ?? career.skills[0];
+  const inGroup = career.skills.filter((skill) => skill.group.slug === first.group.slug);
+  await page.goto(`/atlas?career=${career.id}&group=${first.group.slug}`, { waitUntil: 'domcontentloaded' });
+  await wheelStands(page, PLACE.get(first.group.slug)?.field ? 'field' : 'coreGroup');
+  const rows = list.locator(`[data-atlas-skills="${first.group.slug}"]`);
+  await expect(rows.locator('li[data-atlas-need="have"]')).toHaveCount(inGroup.length);
+  await expect(rows.locator('li[data-atlas-need="gap"]')).toHaveCount(0);
+  await expect(list.locator('[data-skill-mark]')).toHaveCount(0);
+  const figure = (await list.locator(`[data-atlas-group="${first.group.slug}"] [data-atlas-name]`).evaluate((name) => name.nextElementSibling?.textContent ?? '')).trim();
+  expect(figure, "the group's row counts the career's skills against its own").toMatch(new RegExp(`(^|· )${inGroup.length} of \\d+$`));
+  for (const skill of inGroup) await expectInk(page, skill.id, 'accent', `${skill.name} is drawn in the accent`);
+  await assertHealthyLayout(page, '/atlas?career&group');
+  // A career that is not there leaves the address.
+  await page.goto(`/atlas?field=${WHEEL.fields[0].slug}&career=00000000-0000-4000-8000-000000000000`, { waitUntil: 'domcontentloaded' });
+  await expect(page).toHaveURL(new RegExp(`/atlas\\?field=${WHEEL.fields[0].slug}$`));
+  await expect(block).toHaveCount(0);
+  // (The one thing the console is told here is that the career's own read answered 404.)
+  expect(errors.filter((error) => !/404/.test(error)), 'nothing was thrown and nothing else written to the console as an error').toEqual([]);
 });
 
 test("a seeker's career on the Atlas: filled in on /atlas, a small plate on Profile that opens its path; an employer sees its shape", async ({ page, baseURL, request }) => {
   // Writes: it makes two accounts, marks skills, sets a goal and deletes the accounts. Never against a deployed copy.
   test.skip(!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL ?? ''), 'creates accounts: local only');
+  test.setTimeout(90_000);
   const password = 'correct horse battery';
   const stamp = `${test.info().project.name}-${Date.now().toString(36)}`;
-  const career = await careerOnPlate(request);
+  const career = await careerOnWheel(request);
   const total = career.skills.length;
+  // A skill of the career in a field, and the career's skills in that skill's group.
+  const ahead = career.skills.find((skill) => PLACE.get(skill.group.slug)?.field) ?? career.skills[0];
+  const inGroup = career.skills.filter((skill) => skill.group.slug === ahead.group.slug);
+  const opened = `/atlas?career=${career.id}&group=${ahead.group.slug}`;
+  const mode: WheelMode = PLACE.get(ahead.group.slug)?.field ? 'field' : 'coreGroup';
+  const list = page.locator('[data-atlas-list]');
+  const eyebrow = list.locator('[data-atlas-career-eyebrow]');
+  const rows = list.locator(`[data-atlas-skills="${ahead.group.slug}"]`);
 
   for (const purpose of ['hire', 'work'] as const) {
     const made = await page.request.post(`${API}/auth/sign-up`, {
@@ -1777,103 +2729,102 @@ test("a seeker's career on the Atlas: filled in on /atlas, a small plate on Prof
     });
     expect(made.status(), `${purpose}: account made`).toBe(201);
     try {
-      await page.goto(`/atlas?career=${career.id}`, { waitUntil: 'domcontentloaded' });
-      const plate = page.locator('[data-atlas] .atlas-plate');
-      // What moves while a career is filled in is a drawing of its own over the plate: the ring at the centre, a mark arriving.
-      const moving = page.locator('[data-atlas] .atlas-moving');
-      await expect(plate.locator('[data-atlas-lit]')).toHaveCount(total);
+      await page.goto(opened, { waitUntil: 'domcontentloaded' });
+      await wheelStands(page, mode);
+      await expect(list.locator('[data-atlas-career-link]')).toHaveText(career.title);
+      await expect(rows.locator('li[data-atlas-need]')).toHaveCount(inGroup.length);
       if (purpose === 'hire') {
-        // Someone here to hire sees the career's shape: no marks on the plate, no progress.
-        await expect(plate.locator('[data-atlas-walk], [data-atlas-mark], [data-ahead]')).toHaveCount(0);
-        await expect(moving).toHaveCount(0);
-        await expect(page.locator('[data-atlas-career-facts]')).not.toContainText('held');
+        // Someone here to hire sees the career's shape: no mark in the list, no progress, every line in the accent.
+        await expect(list.locator('[data-skill-mark]')).toHaveCount(0);
+        await expect(eyebrow).toHaveText('Career');
+        await expectInk(page, ahead.id, 'accent', 'the career is drawn in the accent');
         await assertHealthyLayout(page, '/atlas?career hire');
         continue;
       }
 
-      // A seeker: every skill of the career is ahead, an open mark; the ring at the centre is empty.
-      await expect(plate).toHaveAttribute('data-atlas-walking', 'true');
-      await expect(plate.locator('[data-ahead]')).toHaveCount(total);
-      await expect(moving.locator('[data-atlas-share]')).toHaveAttribute('data-atlas-share', `0/${total}`);
-      await expect(plate.locator('[data-atlas-mark]')).toHaveCount(0);
-      const leaves = await plate.locator('.atlas-leaf').count();
+      // A seeker fills the career in here: its skills carry the product's mark in the list, and only they do. With
+      // nothing held the block says what the career is, never "0 of".
+      await expect(eyebrow).toHaveText('Career');
+      await expect(rows.locator('[data-skill-mark]')).toHaveCount(inGroup.length);
+      await expect(rows.locator('[data-skill-mark="none"]')).toHaveCount(inGroup.length);
+      await expect(list.locator('[data-skill-mark]')).toHaveCount(inGroup.length);
+      await expectInk(page, ahead.id, 'accent', "a skill still ahead is the career's: the accent");
+      // One tap on a mark: the block counts it at once, and that skill's line on the wheel turns bright. Bright is
+      // the person, the accent is the career.
+      const mark = rows.getByRole('button', { name: `${ahead.name}: Not held` });
+      await mark.click();
+      await expect(eyebrow).toHaveText(`1 of ${total} held`);
+      await expect(rows.getByRole('button', { name: `${ahead.name}: Held` })).toHaveAttribute('aria-pressed', 'true');
+      await expectInk(page, ahead.id, 'bright', 'its line on the wheel is bright');
+      await expect
+        .poll(async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: unknown[] }).skills.length, { message: 'the mark was saved' })
+        .toBe(1);
+      await expectOneScreen(page, '/atlas?career&group marked');
+      await assertHealthyLayout(page, '/atlas?career&group marked');
+      // Another tap takes it off again.
+      await rows.getByRole('button', { name: `${ahead.name}: Held` }).click();
+      await expect(eyebrow).toHaveText('Career');
+      await expectInk(page, ahead.id, 'accent', "its line is the career's again");
+      await expect
+        .poll(async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: unknown[] }).skills.length, { message: 'the mark was cleared' })
+        .toBe(0);
+      // Without a career nothing is marked here either: a skill is marked on Profile, or on a career laid over the wheel.
+      await page.goto(`/atlas?group=${ahead.group.slug}`, { waitUntil: 'domcontentloaded' });
+      await wheelStands(page, mode);
+      await expect(rows.locator('[data-atlas-skill]').first()).toBeVisible();
+      await expect(list.locator('[data-skill-mark]')).toHaveCount(0);
 
-      // A skill marked elsewhere (Profile; here, the API): its leaf is filled, the way to it is drawn and the ring has moved.
-      const skill = career.skills[0].id;
-      expect((await page.request.put(`${API}/me/skills/${skill}`, { data: { status: 'held' } })).ok(), 'a skill marked held').toBe(true);
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(plate.locator('[data-atlas-mark="held"]')).toHaveCount(1);
-      await expect(plate.locator(`[data-atlas-mark-of="${skill}"]`)).toHaveCount(1);
-      await expect(plate.locator('[data-atlas-walked]')).toHaveCount(1);
-      await expect(plate.locator(`[data-atlas-walked="${skill}"]`)).toHaveCount(1);
-      await expect(moving.locator('[data-atlas-share]')).toHaveAttribute('data-atlas-share', `1/${total}`);
-      expect(await plate.locator('.atlas-leaf').count()).toBe(leaves);
-      // The moving drawing lies exactly over the plate.
-      const [under, over] = [await plate.boundingBox(), await moving.boundingBox()];
-      expect(under && over && Math.abs(under.x - over.x) <= 1 && Math.abs(under.y - over.y) <= 1 && Math.abs(under.width - over.width) <= 1, 'the two drawings are one').toBe(true);
-      await assertHealthyLayout(page, '/atlas?career marked');
-      expect((await page.request.delete(`${API}/me/skills/${skill}`)).ok(), 'the mark cleared').toBe(true);
-
-      // Every skill held: the career is whole on the plate, with nothing left ahead to say so.
+      // Every skill held: the career is whole, on the Atlas and on Profile's small plate.
       for (const each of career.skills) {
         expect((await page.request.put(`${API}/me/skills/${each.id}`, { data: { status: 'held' } })).ok(), 'a skill marked held').toBe(true);
       }
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(plate.locator('[data-atlas-walk]')).toHaveAttribute('data-atlas-whole-career', 'true');
-      await expect(plate.locator('[data-atlas-walked]')).toHaveCount(total);
-      await expect(moving.locator('[data-atlas-share]')).toHaveAttribute('data-atlas-share', `${total}/${total}`);
-      await expect(moving.locator('.atlas-share-whole')).toHaveCount(1);
+      expect((await page.request.put(`${API}/me/goals/${career.id}`)).ok(), 'the career set as a goal').toBe(true);
+      await page.goto(opened, { waitUntil: 'domcontentloaded' });
+      await wheelStands(page, mode);
+      await expect(eyebrow).toHaveText(`${total} of ${total} held`);
+      await expect(rows.locator('[data-skill-mark="held"]')).toHaveCount(inGroup.length);
+      for (const skill of inGroup) await expectInk(page, skill.id, 'bright', `${skill.name} is held: bright`);
+      await page.goto('/me', { waitUntil: 'domcontentloaded' });
+      const goal = page.locator(`[data-goal="${career.id}"]`);
+      await expect(goal.locator('[data-goal-plate]')).toHaveAttribute('data-goal-plate', `${total}/${total}`);
+      await expect(goal.locator('[data-goal-plate]')).toHaveAttribute('data-whole', 'true');
       // All but two, for what follows.
       for (const each of career.skills.slice(2)) await page.request.delete(`${API}/me/skills/${each.id}`);
       const kept = Math.min(2, total);
 
-      // The same on /atlas with the career laid over it: its line says how much is held, and a group's tags for its skills carry the mark.
-      await page.goto(`/atlas?career=${career.id}`, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('[data-atlas-career-facts]')).toHaveText(` · ${kept} of ${total} ${total === 1 ? 'skill' : 'skills'} held`);
-      const atlas = page.locator('[data-atlas] .atlas-plate');
-      await expect(atlas).toHaveAttribute('data-atlas-walking', 'true');
-      await expect(atlas.locator('[data-atlas-walked]')).toHaveCount(kept);
-      const ahead = career.skills[total - 1];
-      if (total > 2) {
-        await page.goto(`/atlas?career=${career.id}&skill=${ahead.id}`, { waitUntil: 'domcontentloaded' });
-        const markable = page.locator(`[data-atlas-panel] [data-atlas-markable="${ahead.id}"]`);
-        await expect(markable).toHaveCount(1);
-        // Only the career's skills carry the mark; the group's others stay links.
-        const inGroup = await page.locator('[data-atlas-panel] [data-atlas-tag]').count();
-        const marked = await page.locator('[data-atlas-panel] [data-atlas-markable]').count();
-        expect(marked, 'the career has skills in this group').toBeGreaterThan(0);
-        expect(marked).toBeLessThanOrEqual(inGroup);
-        await markable.locator('button').click();
-        await expect(markable).toHaveAttribute('data-status', 'held');
-        await expect(page.locator('[data-atlas-career-facts]')).toHaveText(` · ${kept + 1} of ${total} skills held`);
-        await expect(atlas.locator(`[data-atlas-walked="${ahead.id}"]`)).toHaveCount(1);
-        await assertHealthyLayout(page, '/atlas?career&skill marked');
-        await markable.locator('button').click();
-        await expect(page.locator('[data-atlas-career-facts]')).toHaveText(` · ${kept} of ${total} skills held`);
-        await expect
-          .poll(async () => ((await (await page.request.get(`${API}/me/skills`)).json()) as { skills: unknown[] }).skills.length, { message: 'the mark was cleared' })
-          .toBe(kept);
-      }
-      // Without a career the panel's tags are links, as they were.
-      await page.goto(`/atlas?skill=${ahead.id}`, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('[data-atlas-panel] [data-atlas-tag]').first()).toBeVisible();
-      await expect(page.locator('[data-atlas-panel] [data-atlas-markable]')).toHaveCount(0);
-
-      // Profile: the goal shows its career as a small plate, filled as far as it is held, and opens the career's path.
-      expect((await page.request.put(`${API}/me/goals/${career.id}`)).ok(), 'the career set as a goal').toBe(true);
-      await page.goto('/me', { waitUntil: 'domcontentloaded' });
-      const goal = page.locator(`[data-goal="${career.id}"]`);
+      // Profile: the goal shows its career as a small plate, the wheel at the size of a thumb: its five rings drawn
+      // once for the page, the career's route over them, and what is held of it bright. It opens the career's path.
+      await page.reload({ waitUntil: 'domcontentloaded' });
       await expect(goal.locator('[data-goal-plate]')).toHaveAttribute('data-goal-plate', `${kept}/${total}`);
+      await expect(goal.locator('[data-goal-plate][data-whole]')).toHaveCount(total > kept ? 0 : 1);
       await expect(page.locator('[data-goal-plate-ground]')).toHaveCount(1);
+      await expect(page.locator('[data-goal-plate-ground] .goal-plate-ring')).toHaveCount(5);
+      await expect(goal.locator('.goal-plate-career')).toHaveCount(1);
+      await expect(goal.locator('.goal-plate-held')).toHaveCount(1);
       const small = await goal.locator('[data-goal-plate]').boundingBox();
       expect(small && Math.abs(small.width - small.height) <= 1 && small.width >= 44 && small.width <= 80, 'the plate is the size of a thumb').toBe(true);
+      // The two paths are drawn: the career's in the accent, the held part over it in the brightest ink.
+      const strokes = await goal.locator('[data-goal-plate]').evaluate((plate) => {
+        const ink = (selector: string) => getComputedStyle(plate.querySelector(selector) as Element).stroke;
+        const token = (name: string) => {
+          const probe = document.createElement('i');
+          probe.style.color = `var(${name})`;
+          document.body.append(probe);
+          const colour = getComputedStyle(probe).color;
+          probe.remove();
+          return colour;
+        };
+        return { career: ink('.goal-plate-career'), held: ink('.goal-plate-held'), accent: token('--accent'), bright: token('--text-1') };
+      });
+      expect(strokes.career, "the career's route is the accent").toBe(strokes.accent);
+      expect(strokes.held, 'what is held is bright').toBe(strokes.bright);
       await expect(goal.locator('[data-goal-held]')).toContainText(`${kept} of ${total}`);
       await assertHealthyLayout(page, '/me goal plate');
       await expect(goal.locator('[data-goal-plate-link]')).toHaveAttribute('href', `/occupations/${career.id}#skills`);
       await goal.locator('[data-goal-plate-link]').click();
       await expect(page).toHaveURL(new RegExp(`/occupations/${career.id}#skills$`));
-      await expect(page.locator('#skills [data-route]')).toHaveCount(1);
-      await expect(page.locator('#skills .atlas-plate')).toHaveCount(0);
+      await expect(page.locator('#skills [data-skill-tree]')).toHaveCount(1);
+      await expect(page.locator('[data-atlas], #skills canvas')).toHaveCount(0);
     } finally {
       const gone = await page.request.delete(`${API}/me`, { data: { password } });
       expect(gone.ok(), `${purpose}: account removed`).toBe(true);
@@ -2022,11 +2973,11 @@ async function standInForPostedJobs(page: Page, options: { total?: number; canMa
       skills: [
         on(2, 'Blueprint Reading', place(1, 'Shop basics', 'Production'), { named: true }),
         on(5, 'Shop Math', place(1, 'Shop basics', 'Production')),
-        on(6, 'Micrometer Measurement', place(1, 'Measurement tools', 'Quality')),
+        on(6, 'Micrometer Measurement', place(1, 'Measuring', 'Quality')),
         on(1, 'CNC Control Operation', place(2, 'CNC setup', 'Machining'), { named: true, makes: [{ id: 'm1', name: 'Mazak' }, { id: 'm2', name: 'Okuma' }, { id: 'm3', name: 'Heidenhain' }] }),
         on(7, 'Tool and Work Offsets', place(2, 'CNC setup', 'Machining')),
         on(8, 'CNC Milling', place(2, 'CNC machining', 'Machining')),
-        on(4, 'GD&T Interpretation', place(2, 'Part inspection', 'Quality'), { named: true }),
+        on(4, 'GD&T Interpretation', place(2, 'Inspection', 'Quality'), { named: true }),
         on(9, 'Five-Axis Machining Setup and First-Article Prove-Out', place(3, 'CNC machining', 'Machining')),
       ],
       alsoNamed: [on(3, 'Coordinate Measuring Machine Operation and Programming', place(2, 'Coordinate measuring', 'Quality'), { named: true })],
@@ -2119,223 +3070,37 @@ test('the Jobs list at volume: two fields, how many match in all, and a page at 
   await assertHealthyLayout(page, '/jobs narrowed to one career');
 });
 
-test("a job from a company's careers site, as a visitor: tags, facts, one way to apply, the job's own skills and the career's range closed", async ({ page }) => {
+test("a job from a company's careers site: the company's variant as its title, its career as a tag, its own skills as a tree, no prompt to sign in", async ({ page }) => {
   await standInForPostedJobs(page);
-  // An older link, by the job's id, opens the job and is replaced by its address.
   await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
-  // Titled as its company's variant of the career, the way a company's version of a career is ("SpaceX Welder"): no level
-  // in it (the level the posting states is a fact, under Level), and the job's stored title is still the career's.
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Space Exploration Technologies CNC Machinist');
   await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
-  // Directly under it, the opening's own name: what the employer called it, as plain text in secondary ink at body
-  // size. Not a tag, not a link, no label before it.
-  const ownName = page.locator('[data-detail-header] [data-job-own-name]');
-  await expect(ownName).toHaveText(POSTED_OWN_NAME);
-  expect(await ownName.evaluate((node) => node.tagName + '|' + node.querySelectorAll('a, button').length + '|' + getComputedStyle(node).fontSize)).toBe('P|0|15px');
-  expect(await ownName.evaluate((node) => getComputedStyle(node).color), 'in secondary ink').not.toBe(await page.getByRole('heading', { level: 1 }).evaluate((node) => getComputedStyle(node).color));
-  const [titleBox, ownNameBox, tagsBox] = await Promise.all([page.getByRole('heading', { level: 1 }).boundingBox(), ownName.boundingBox(), page.locator('[data-job-tags]').boundingBox()]);
-  expect(ownNameBox?.y ?? 0, 'the own name stands under the title').toBeGreaterThanOrEqual((titleBox?.y ?? 0) + (titleBox?.height ?? 0) - 1);
-  expect(tagsBox?.y ?? 0, 'and above the tags').toBeGreaterThanOrEqual((ownNameBox?.y ?? 0) + (ownNameBox?.height ?? 0) - 1);
-  await expect(page.locator('[data-detail-header]')).not.toContainText(/Posted as/i);
-  // The tab is the page's title, then the own name, and still is once the address is replaced.
-  await expect(page).toHaveTitle(`Space Exploration Technologies CNC Machinist · ${POSTED_OWN_NAME} · Archangel`);
-  // Under them, the company, the factory and the career as tags, each opening its page.
+  await expect(page.locator('[data-detail-header] [data-job-own-name]')).toHaveText(POSTED_OWN_NAME);
+  // The company, the factory and the career as tags; the career by its own name.
   const tags = page.locator('[data-job-tags] a');
   await expect(tags).toHaveCount(3);
   await expect(tags.nth(0)).toHaveAttribute('href', /^\/companies\//);
-  await expect(tags.nth(0)).toContainText('Space Exploration Technologies');
   await expect(tags.nth(1)).toHaveAttribute('href', /^\/factories\//);
-  // The company's tag names the company: the factory's does not say it again, and its place is in ordinary capitals.
-  await expect(tags.nth(1)).toHaveText('Factory: Bastrop, TX');
-  // The title is the company's variant: the third tag is the standard career it varies, and opens that career's page.
-  await expect(tags.nth(2)).toHaveAttribute('href', /^\/occupations\/00000000-0000-4000-8000-0000000000d1$/);
-  await expect(tags.nth(2)).toHaveText('Career: Standard CNC Machinist');
-  await expect(page.locator('[data-job-standard]')).toHaveCount(1);
-  const narrow = (page.viewportSize()?.width ?? 0) < 640;
-  for (let i = 0; i < 3; i += 1) {
-    const box = await tags.nth(i).boundingBox();
-    expect(box?.height ?? 0, 'a tag is a full finger tall on a phone').toBeGreaterThanOrEqual(narrow ? 44 : 36);
-    expect(await tags.nth(i).evaluate((node) => getComputedStyle(node).borderRadius)).toBe('8px');
-  }
-  // The one action: Apply, on the company's own page, in a new tab.
-  const apply = page.locator('[data-apply-on-site]');
-  await expect(apply).toHaveCount(1);
-  await expect(apply).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
-  await expect(apply).toHaveAttribute('target', '_blank');
-  await expect(apply).toHaveAttribute('rel', /noopener/);
-  expect((await apply.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(40);
-  // Beside it, whose page that is, by the company's name: never the hiring system's host.
-  await expect(page.locator('[data-apply-where]')).toHaveText(/^On .+ careers site$/);
-  await expect(page.locator('main')).not.toContainText('boards.greenhouse.io');
-  // The facts the posting states, each under its word; nothing for what it does not say.
-  const terms = page.locator('[data-job-terms]');
-  await expect(terms).toContainText('$28–$42 an hour');
-  await expect(terms).toContainText('Senior');
-  await expect(terms.locator('[data-job-requirement="experience"]')).toHaveText('5 years or more');
-  await expect(terms.locator('[data-job-requirement="schooling"]')).toHaveText('High school diploma or equivalent');
-  await expect(terms.locator('[data-job-requirement="certificates"]')).toHaveText('NIMS Machining Level I, AWS D17.1');
-  await expect(terms.locator('[data-job-requirement="clearance"]')).toHaveText('Secret clearance');
-  await expect(terms.locator('[data-job-requirement="citizenship"]')).toHaveText('US person (ITAR)');
-  // The skills are the job's own: the four its posting names, as rows, the three of the career's path first in the
-  // route's order and the one beside the path after them. A career is a range and a job its own combination, so the
-  // path's other five are not listed as what the job takes, and no sentence says the path is.
-  const path = page.locator('[data-job-path="career"]');
-  const own = path.locator('[data-job-own] > li');
-  await expect(own).toHaveCount(4);
-  await expect(own.nth(0)).toHaveAttribute('data-skill-tag', SKILL(2));
-  await expect(own.nth(1)).toHaveAttribute('data-skill-tag', SKILL(1));
-  await expect(own.nth(2)).toHaveAttribute('data-skill-tag', SKILL(4));
-  await expect(own.nth(3)).toHaveAttribute('data-skill-tag', SKILL(3));
-  await expect(own.nth(0).locator('a')).toHaveAttribute('href', `/skills/${SKILL(2)}`);
-  await expect(page.locator('#skills')).not.toContainText(/What the career takes|The posting names|Named in the posting/i);
-  await expect(page.locator('[data-job-groups], [data-job-also-named], [data-job-named-count]')).toHaveCount(0);
-  // Then one line, closed for everyone: the career's name and how many more skills its path holds.
-  const range = page.locator('[data-job-range="career"]');
-  const opener = range.locator('[data-job-range-button]');
-  await expect(range).toHaveCount(1);
-  await expect(opener).toHaveAttribute('aria-expanded', 'false');
-  await expect(opener).toContainText('CNC Machinist career');
-  await expect(opener.locator('[data-job-range-count]')).toContainText('· 5 more');
-  await expect(opener.locator('[data-job-range-count] .sr-only')).toHaveText('5 more skills');
-  expect((await opener.boundingBox())?.height ?? 0, 'the line is a full finger tall').toBeGreaterThanOrEqual(44);
-  await expect(range.locator('[data-job-range-panel]')).toBeHidden();
-  await expect(page.locator(`[data-skill-tag="${SKILL(5)}"], [data-route-section]`)).toHaveCount(0);
-  // Open, it is the rest of the path by skill group, as the career's page draws it: each group one closed line with
-  // its skills' names under it, no level named, and the way to the career's page.
-  await opener.click();
-  await expect(opener).toHaveAttribute('aria-expanded', 'true');
-  const groups = range.locator('[data-route-section]');
-  await expect(groups).toHaveCount(4);
-  await expect(groups.locator('button[aria-expanded="false"]')).toHaveCount(4);
-  await expect(groups.nth(0)).toContainText('Shop basics');
-  await expect(groups.nth(0).locator('[data-section-names]')).toHaveText('Shop Math');
-  await expect(groups.nth(3).locator('[data-section-names]')).toContainText('CNC Milling');
-  await expect(range).not.toContainText(/Fundamentals|Intermediate|Advanced/i);
-  await expect(range).not.toContainText(/Blueprint Reading|GD&T Interpretation|Coordinate Measuring/);
-  await expect(range.locator('[data-job-range-page]')).toHaveText('Career page');
-  await expect(range.locator('[data-job-range-page]')).toHaveAttribute('href', /^\/occupations\/00000000-0000-4000-8000-0000000000d1$/);
-  await range.locator('[data-route-open-all]').click();
-  await expect(range.locator('[data-skill-tag]')).toHaveCount(5);
-  await assertHealthyLayout(page, 'a job from a posting, the career\'s range open');
-  // Closed again, its rows are gone from the page.
-  await opener.click();
-  await expect(opener).toHaveAttribute('aria-expanded', 'false');
-  await expect(range.locator('[data-job-range-panel]')).toBeHidden();
-  // The way out is one button in the facts panel; for a visitor it is Apply, and there is no second one.
-  await expect(page.locator('[data-job-panel] [data-job-action] [data-apply-on-site]')).toHaveCount(1);
-  await expect(page.locator('[data-view-on-site]')).toHaveCount(0);
-  // Read, not worked on: no mark and no control on a row. A visitor reads the skills and is asked nothing: no line
-  // about signing in stands above them or anywhere on the page, whose one action is Apply.
-  await expect(page.locator('[data-skill-tag] button, [data-skill-mark]')).toHaveCount(0);
-  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
-  await expect(page.locator('#skills')).not.toContainText(/sign in|account/i);
-  await expect(page.locator('main a[href^="/sign-in"]')).toHaveCount(0);
-  await expect(page.locator('main')).not.toContainText(/sign in/i);
-  // The equipment the posting names, each make beside its skill.
-  const equipment = page.locator('[data-job-equipment] li');
-  await expect(equipment).toHaveCount(1);
-  await expect(equipment.first()).toContainText('Mazak, Okuma, Heidenhain');
-  await expect(equipment.first()).toContainText('CNC Control Operation');
-  // Other open jobs, each at its own address.
-  await expect(page.locator('#more-for-career a[href^="/jobs/space-exploration-technologies/cnc-machinist/"]')).toHaveCount(4);
-  await expect(page.locator('#more-for-career [data-all-jobs]')).toHaveText('All 9');
-  await expect(page.locator('#more-at-factory li')).toHaveCount(1);
-  // Under "More CNC Machinist jobs at <company>" every row is another opening for the same career at the same company,
-  // and what tells them apart leads: each row's first line is the opening's own name, and the career's title where the
-  // posting says nothing more. Never where the job is: the owner saw five such rows that each said only "Starbase, TX".
-  const sameCareer = page.locator('#more-for-career li');
-  await expect(page.locator('#more-for-career h2')).toHaveText('More CNC Machinist jobs at Space Exploration Technologies');
-  await expect(sameCareer.locator('[data-row-title]')).toHaveText(['CNC Machinist, Five-Axis Cell (Starship)', 'Lead CNC Machinist, Raptor Turbopumps', 'CNC Machinist', LONG_OWN_NAME.replace('Manufacturing Engineer', 'CNC Machinist')]);
-  await expect(page.locator('#more-for-career li[data-job-head="own"]')).toHaveCount(3);
-  await expect(page.locator('#more-for-career li[data-job-head="name"]')).toHaveCount(1);
-  await expect(page.locator('#more-for-career [data-row-second]')).toHaveCount(0);
-  // Then where it is, what the job states, and its day, which tells apart openings that read alike.
-  await expect(sameCareer.first().locator('[data-row-line]')).toHaveText(/^Bastrop, TX · Full-time · \$28–\$42 an hour · Posted (today|yesterday|[A-Z][a-z]{2} \d{1,2})$/);
-  for (const row of await sameCareer.all()) {
-    await expect(row).not.toContainText(/Space Exploration|BASTROP/);
-    await expect(row.locator('[data-row-line]')).toHaveText(/Posted (today|yesterday|[A-Z][a-z]{2} \d{1,2})$/);
-  }
-  // Two postings whose own names differ never print alike.
-  const printed = await sameCareer.evaluateAll((rows) => rows.map((row) => (row as HTMLElement).innerText.trim()));
-  expect(new Set(printed).size, 'no two rows read alike').toBe(printed.length);
-  // An own name as long as employers write them: two lines at most, and the row stays inside the page.
-  await expectTwoLinesAtMost(sameCareer.nth(3).locator('[data-row-title] .line-clamp-2'), 'more jobs for the career, a long own name');
-  // Under "Other jobs at this factory" a row is the job's name, the opening's own name under it, and its pay: the
-  // company and the place stand in the tags above.
-  const sameFactory = page.locator('#more-at-factory li');
-  await expect(page.locator('#more-at-factory li[data-job-head="name"]')).toHaveCount(1);
-  await expect(sameFactory.locator('[data-row-title]')).toHaveText('Welder');
-  await expect(sameFactory.locator('[data-row-second]')).toHaveText('Structural Welder, Ground Support Equipment (Starship)');
-  await expect(sameFactory.locator('[data-row-line]')).toHaveText('$28–$42 an hour');
-  await expect(sameFactory).not.toContainText(/Space Exploration|Bastrop/i);
-  expect(await expectJobRows(page, 'the other jobs on a job\'s page')).toBe(5);
-  // Nothing of a job posted here: no description, no form, nothing to manage.
-  await expect(page.getByText('About the job')).toHaveCount(0);
-  await expect(page.locator('#apply, #applicants, #manage-job')).toHaveCount(0);
-  await expect(page.getByText(/Post another like this|Sign in to apply/)).toHaveCount(0);
-  await assertHealthyLayout(page, '/jobs/:company/:career/:number from a posting');
-  // An address whose words are wrong, with the right number, is the same job at the right address.
-  await page.goto('/jobs/some-other-company/a-renamed-career/1000', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Space Exploration Technologies CNC Machinist');
-  await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
-  await expect(page).toHaveTitle(`Space Exploration Technologies CNC Machinist · ${POSTED_OWN_NAME} · Archangel`);
-  // The jobs list writes the same address.
-  await page.goto('/jobs', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('a[href^="/jobs/"]').first()).toHaveAttribute('href', POSTED_JOB_PATH);
+  await expect(tags.nth(2)).toHaveAttribute('href', /^\/occupations\//);
+  await expect(tags.nth(2)).toContainText('CNC Machinist');
+  await expect(tags.nth(2)).not.toContainText('Standard');
+  // The skills its posting names, as the tree a career's page draws: groups that open, closed on arrival.
+  const tree = page.locator('#skills [data-skill-tree]');
+  await expect(tree).toBeVisible();
+  const groups = tree.locator('button[aria-expanded]');
+  expect(await groups.count()).toBeGreaterThan(0);
+  expect(await groups.evaluateAll((nodes) => nodes.every((node) => node.getAttribute('aria-expanded') === 'false'))).toBe(true);
+  // Nothing in the section asks anyone to sign in, and no button stands for the rest of the career.
+  await expect(page.locator('#skills a[href^="/sign-in"]')).toHaveCount(0);
+  await expect(page.locator('[data-job-range]')).toHaveCount(0);
+  // Every row of the page's lists of jobs leads with a name, never with a place.
+  const heads = await page.locator('[data-job-head]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-job-head')));
+  expect(heads.length).toBeGreaterThan(0);
+  expect(heads.every((kind) => kind === 'name' || kind === 'own')).toBe(true);
+  await assertHealthyLayout(page, 'a job from a careers site');
 });
 
-test("a job's skills when its posting names one skill, none, or the company has its own version of the career", async ({ page }) => {
-  const opener = page.locator('[data-job-range-button]');
-  // One skill named: it is the list, with nothing to count (no line for a visitor either), and the range holds the other seven.
-  // Its posting says nothing beyond the career: the title stands alone, with no line under it, and the tab is the title.
-  await standInForPostedJobs(page, { names: 'one', ownName: null });
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Space Exploration Technologies CNC Machinist');
-  await expect(page.locator('[data-job-own-name]')).toHaveCount(0);
-  await expect(page).toHaveTitle('Space Exploration Technologies CNC Machinist · Archangel');
-  await expect(page.locator('[data-job-own] > li')).toHaveCount(1);
-  await expect(page.locator(`[data-job-own] [data-skill-tag="${SKILL(2)}"]`)).toContainText('Blueprint Reading');
-  await expect(opener.locator('[data-job-range-count]')).toContainText('· 7 more');
-  await expect(opener).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in], #equipment')).toHaveCount(0);
-  await assertHealthyLayout(page, 'a job whose posting names one skill');
-
-  // Nothing named: the section is its heading and the closed line alone, which says how many skills the career's path holds.
-  // Its own name is as long as employers write them: it is said whole under the title, wrapped, and pushes nothing sideways.
-  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
-  await page.unroute('**/api/jobs/by-number/1000');
-  await standInForPostedJobs(page, { names: 'none', ownName: LONG_OWN_NAME });
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-job-own-name]')).toHaveText(LONG_OWN_NAME);
-  expect(await page.locator('[data-job-own-name]').evaluate((node) => node.scrollWidth <= node.clientWidth + 1 && node.getBoundingClientRect().right <= document.documentElement.clientWidth), 'a long own name stays inside the page').toBe(true);
-  await expect(page.locator('#skills h2')).toHaveText('Skills');
-  await expect(page.locator('[data-job-own], [data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
-  await expect(opener).toContainText('CNC Machinist career');
-  await expect(opener.locator('[data-job-range-count]')).toContainText('· 8 skills');
-  await expect(opener).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('#skills [data-skill-tag]')).toHaveCount(0);
-  await opener.click();
-  await page.locator('[data-job-range] [data-route-open-all]').click();
-  await expect(page.locator('[data-job-range] [data-skill-tag]')).toHaveCount(8);
-  await assertHealthyLayout(page, 'a job whose posting names nothing, its career\'s range open');
-
-  // The company has its own version of the career: the range is that version's, by its title, and leads to it.
-  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
-  await page.unroute('**/api/jobs/by-number/1000');
-  await standInForPostedJobs(page, { version: true });
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  // The third tag is then the company's version, and opens it.
-  await expect(page.locator('[data-job-tags] [data-job-version]')).toHaveText('Career: Space Exploration Technologies CNC Machinist');
-  await expect(page.locator('[data-job-tags] [data-job-version]')).toHaveAttribute('href', /^\/occupations\/00000000-0000-4000-8000-0000000000d1\?at=00000000-0000-4000-8000-0000000000c1$/);
-  await expect(page.locator('[data-job-standard]')).toHaveCount(0);
-  await expect(page.locator('[data-job-range="version"]')).toHaveCount(1);
-  await expect(opener).toContainText('Space Exploration Technologies CNC Machinist');
-  await expect(opener).not.toContainText('career');
-  await expect(opener.locator('[data-job-range-count]')).toContainText('· 5 more');
-  await opener.click();
-  await expect(page.locator('[data-job-range-page]')).toHaveAttribute('href', /^\/occupations\/00000000-0000-4000-8000-0000000000d1\?at=00000000-0000-4000-8000-0000000000c1$/);
-});
 
 test('a job a company posted here by hand lists the skills it chose, by group, as before', async ({ page }) => {
   await standInForPostedJobs(page, { byHand: true });
@@ -2365,203 +3130,7 @@ test('a job a company posted here by hand lists the skills it chose, by group, a
   await assertHealthyLayout(page, 'a job posted by hand');
 });
 
-test("every other list of jobs: a row's first line is a job's name, the opening's own name beside it, and never where the job is", async ({ page, request }) => {
-  // Real records of the sample, each given the stand-in jobs as its open jobs: a company's, a factory's, a career's and a
-  // skill's page, an industry's, and the map's panels. Nothing is written.
-  const listed = postedJobs(0, 6).map((job) => ({ ...job, companySlug: null }));
-  const withJobs = (address: string | RegExp) =>
-    page.route(address, async (route) => {
-      if (route.request().method() !== 'GET') return route.fallback();
-      const response = await route.fetch();
-      const record = (await response.json()) as Record<string, unknown>;
-      await route.fulfill({ response, json: { ...record, jobs: listed, openJobCount: 60, openJobs: 60 } });
-    });
-  const [company, factory, skill] = await Promise.all([firstId(request, '/companies'), firstId(request, '/factories'), firstId(request, '/skills')]);
-  const careers = (await (await request.get(`${API}/occupations?limit=1`)).json()) as { data: { id: string; title: string }[] };
-  const career = careers.data[0];
-  expect(company && factory && skill && career?.id, 'the API returned records to open').toBeTruthy();
-  const rows = page.locator('#jobs li[data-job-head]');
-  const title = (at: number) => rows.nth(at).locator('[data-row-title]');
-  const second = (at: number) => rows.nth(at).locator('[data-row-second]');
-  const line = (at: number) => rows.nth(at).locator('[data-row-line]');
 
-  // A company's page has said the company: the standard name, the opening's own name, then where the job is.
-  // (The page puts the company's slug in its address and reads the record by it.)
-  await withJobs(/\/api\/companies\/(?!marks$)[^/?]+$/);
-  await page.goto(`/companies/${company}`, { waitUntil: 'domcontentloaded' });
-  await expect(rows).toHaveCount(6);
-  await expect(rows.locator('[data-row-title]')).toHaveText(['CNC Machinist', 'Manufacturing Engineer', 'Welder', 'Quality Control Inspector', 'NDT Technician (Magnetic Particle)', 'Production Operator']);
-  await expect(second(0)).toHaveText(POSTED_OWN_NAME);
-  await expect(second(3)).toHaveCount(0);
-  await expect(line(0)).toHaveText('Bastrop, TX · 2nd shift · Full-time · $28–$42 an hour');
-  await expect(line(3)).toHaveText('Bastrop, TX · Full-time');
-  for (const row of await rows.all()) await expect(row).not.toContainText(/Space Exploration|Posted|Listed/);
-  await expectTwoLinesAtMost(second(1), "a company's open jobs, a long own name");
-  expect(await expectJobRows(page, "a company's open jobs")).toBe(6);
-  await assertHealthyLayout(page, "a company's page with open jobs");
-
-  // A factory's page has said the factory, and with it its company and its place: the names, and what the job states.
-  await withJobs(`**/api/factories/${factory}`);
-  await page.goto(`/factories/${factory}`, { waitUntil: 'domcontentloaded' });
-  await expect(rows).toHaveCount(6);
-  await expect(title(2)).toHaveText('Welder');
-  await expect(second(2)).toHaveText('Structural Welder, Ground Support Equipment (Starship)');
-  await expect(line(2)).toHaveText('$28–$42 an hour');
-  await expect(line(5)).toHaveCount(0);
-  for (const row of await rows.all()) await expect(row).not.toContainText(/Space Exploration|Bastrop/i);
-  expect(await expectJobRows(page, "a factory's open jobs")).toBe(6);
-  await assertHealthyLayout(page, "a factory's page with open jobs");
-
-  // A career's page has said the career: the opening's own name leads, the career's title where it has none, and the
-  // company is said in the line under it, never as the row's first line.
-  await withJobs(`**/api/occupations/${career.id}`);
-  await page.goto(`/occupations/${career.id}`, { waitUntil: 'domcontentloaded' });
-  await expect(rows).toHaveCount(5);
-  await expect(rows.nth(0)).toHaveAttribute('data-job-head', 'own');
-  await expect(title(0)).toHaveText(POSTED_OWN_NAME);
-  await expect(rows.nth(3)).toHaveAttribute('data-job-head', 'name');
-  await expect(title(3)).toHaveText('Quality Control Inspector');
-  await expect(page.locator('#jobs [data-row-second]')).toHaveCount(0);
-  await expect(line(0)).toHaveText('Space Exploration Technologies · Bastrop, TX · 2nd shift · Full-time · $28–$42 an hour');
-  await expectTwoLinesAtMost(title(1).locator('.line-clamp-2'), "a career's open jobs, a long own name");
-  expect(await expectJobRows(page, "a career's open jobs")).toBe(5);
-  await assertHealthyLayout(page, "a career's page with open jobs");
-
-  // A skill's page has said none of it: the standard name, the own name, the company and the place.
-  await withJobs(`**/api/skills/${skill}`);
-  await page.goto(`/skills/${skill}`, { waitUntil: 'domcontentloaded' });
-  await expect(rows.first()).toBeVisible();
-  await expect(title(0)).toHaveText('CNC Machinist');
-  await expect(second(0)).toHaveText(POSTED_OWN_NAME);
-  await expect(line(0)).toContainText('Space Exploration Technologies · Bastrop, TX');
-  expect(await expectJobRows(page, "a skill's open jobs")).toBeGreaterThan(0);
-  await assertHealthyLayout(page, "a skill's page with open jobs");
-
-  // An industry's page for one state: the city alone says where.
-  const industries = (await (await request.get(`${API}/industries?state=TX`)).json()) as { industries: { slug: string; plants: number }[] };
-  const industry = [...industries.industries].sort((a, b) => b.plants - a.plants)[0];
-  await withJobs(new RegExp(`/api/industries/${industry.slug}(\\?|$)`));
-  await page.goto(`/industries/${industry.slug}?state=TX`, { waitUntil: 'domcontentloaded' });
-  const industryRows = page.locator('[data-industry-view] li[data-job-head]');
-  await expect(industryRows.first()).toBeVisible();
-  await expect(industryRows.nth(0).locator('[data-row-title]')).toHaveText('CNC Machinist');
-  await expect(industryRows.nth(0).locator('[data-row-second]')).toHaveText(POSTED_OWN_NAME);
-  await expect(industryRows.nth(0).locator('[data-row-line]')).toContainText('Space Exploration Technologies · Bastrop · ');
-  expect(await expectJobRows(page, "an industry's open jobs")).toBeGreaterThan(0);
-  await assertHealthyLayout(page, "an industry's page with open jobs");
-
-  // The map's panel for the factory: the same rule, in the panel's own row.
-  await page.goto(`/map?factory=${factory}`, { waitUntil: 'domcontentloaded' });
-  const panelRows = page.locator('a[data-job-head]');
-  await expect(panelRows).toHaveCount(4, { timeout: 20_000 });
-  await expect(panelRows.nth(0).locator('[data-row-title]')).toHaveText('CNC Machinist');
-  await expect(panelRows.nth(0).locator('[data-row-second]')).toHaveText(POSTED_OWN_NAME);
-  await expect(panelRows.nth(0)).not.toContainText(/Space Exploration|Bastrop/i);
-  expect(await expectJobRows(page, "the map's factory panel")).toBe(4);
-  // And for the career, where the own name leads.
-  await page.goto(`/map?career=${career.id}`, { waitUntil: 'domcontentloaded' });
-  await expect(panelRows).toHaveCount(3, { timeout: 20_000 });
-  await expect(panelRows.nth(0)).toHaveAttribute('data-job-head', 'own');
-  await expect(panelRows.nth(0).locator('[data-row-title]')).toHaveText(POSTED_OWN_NAME);
-  await expect(panelRows.nth(0).locator('[data-row-line]')).toContainText('Space Exploration Technologies · Bastrop, TX');
-  await expectTwoLinesAtMost(panelRows.nth(1).locator('[data-row-title]'), "the map's career panel, a long own name");
-  expect(await expectJobRows(page, "the map's career panel")).toBe(3);
-});
-
-test("a job from a company's careers site, as a seeker and as the company: a count and ticks for one, a line and nothing to edit for the other", async ({ page }) => {
-  const person = (purpose: 'work' | 'hire', memberships: unknown[] = []) => ({
-    user: { id: '00000000-0000-4000-8000-000000000002', email: 'person@device.test', name: 'Device Person', isAdmin: false, homeZip: null, about: null, emailNotices: true, purpose },
-    memberships, isEmployer: memberships.length > 0,
-  });
-  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
-  await page.route('**/api/me/skills', (route) =>
-    route.fulfill({ json: { skills: [
-      { skillId: SKILL(1), name: 'CNC Control Operation', status: 'held', updatedAt: new Date().toISOString(), makes: [{ id: 'm1', name: 'Mazak' }] },
-      { skillId: SKILL(2), name: 'Blueprint Reading', status: 'learning', updatedAt: new Date().toISOString(), makes: [] },
-      { skillId: SKILL(6), name: 'Micrometer Measurement', status: 'held', updatedAt: new Date().toISOString(), makes: [] },
-    ] } })
-  );
-  // A seeker: one line with the ring says how many of the job's own skills they hold (the four its posting names, never
-  // the career's eight), and those are ticked. Nothing is marked here.
-  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('work') }));
-  await standInForPostedJobs(page);
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  const overlap = page.locator('[data-job-overlap]');
-  await expect(overlap).toHaveText('You hold 1 of 4');
-  await expect(overlap.locator('[data-share-ring]')).toHaveCount(1);
-  await expect(page.locator('[data-job-overlap-sign-in]')).toHaveCount(0);
-  const ownRow = (n: number) => page.locator(`[data-job-own] [data-skill-tag="${SKILL(n)}"]`);
-  await expect(ownRow(1)).toHaveAttribute('data-status', 'held');
-  await expect(ownRow(1).locator('[data-skill-mark="held"]')).toHaveCount(1);
-  await expect(ownRow(2)).toHaveAttribute('data-status', 'learning');
-  await expect(ownRow(4)).toHaveAttribute('data-status', 'none');
-  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  // Inside the career's range, once it is opened, a skill they hold still carries its tick.
-  await page.locator('[data-job-range-button]').click();
-  await page.locator('[data-job-range] [data-route-open-all]').click();
-  await expect(page.locator(`[data-job-range] [data-skill-tag="${SKILL(6)}"]`)).toHaveAttribute('data-status', 'held');
-  await expect(page.locator(`[data-job-range] [data-skill-tag="${SKILL(6)}"] [data-skill-mark="held"]`)).toHaveCount(1);
-  await expect(page.locator(`[data-job-range] [data-skill-tag="${SKILL(5)}"]`)).toHaveAttribute('data-status', 'none');
-  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  // A make they have run stands in full ink among the equipment.
-  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toContainText('Mazak');
-  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toHaveCount(1);
-  await expect(page.locator('[data-apply-on-site]')).toHaveCount(1);
-  await assertHealthyLayout(page, 'a job from a posting, a seeker');
-
-  // Someone who manages the company's jobs: told where it comes from, with nothing to change, nothing to apply to and no count.
-  await page.unroute('**/api/auth/me');
-  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
-  await page.unroute('**/api/jobs/by-number/1000');
-  await page.route('**/api/auth/me', (route) =>
-    route.fulfill({ json: person('hire', [{ companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active' }]) })
-  );
-  await standInForPostedJobs(page, { canManage: true });
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  // One quiet line in the facts panel, beside the button that opens the posting on the company's site.
-  await expect(page.locator('[data-job-panel] [data-job-from-source]')).toContainText("careers site and is kept in step with it");
-  const view = page.locator('[data-job-panel] [data-view-on-site]');
-  await expect(view).toHaveText(/^View on Space Exploration Technologies' careers site/);
-  await expect(view).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
-  await expect(view).toHaveAttribute('target', '_blank');
-  expect((await view.boundingBox())?.height ?? 0, 'the way to the posting is a button').toBeGreaterThanOrEqual(40);
-  await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
-  await expect(page.locator('[data-apply-on-site], #applicants, #manage-job')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
-  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in], [data-skill-mark]')).toHaveCount(0);
-  // The same listing: the posting's four skills, and the career's range closed under them.
-  await expect(page.locator('[data-job-path] [data-skill-tag]')).toHaveCount(4);
-  await expect(page.locator('[data-job-range-button]')).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  await assertHealthyLayout(page, 'a job from a posting, the company');
-
-  // Someone here to hire who is not of this company: the same button to the posting, no line about managing, no Apply.
-  await page.unroute('**/api/auth/me');
-  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
-  await page.unroute('**/api/jobs/by-number/1000');
-  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('hire') }));
-  await standInForPostedJobs(page);
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-view-on-site]')).toHaveCount(1);
-  await expect(page.locator('[data-apply-on-site], [data-job-from-source], [data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
-
-  // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
-  await page.route('**/api/employer', (route) =>
-    route.fulfill({
-      json: {
-        companies: [
-          { companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active', decidedAt: null, askAgainAt: null, factories: [], jobs: [], listedJobs: 485 },
-        ],
-      },
-    })
-  );
-  await page.route('**/api/employer/company-requests', (route) => route.fulfill({ json: { requests: [] } }));
-  await page.route('**/api/companies/*/careers', (route) => route.fulfill({ json: { versions: [] } }));
-  await page.goto('/employer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-listed-jobs]')).toContainText("485 open jobs come from the company's careers site and are kept in step with it.");
-  await expect(page.getByRole('heading', { name: 'Post a job' })).toBeVisible();
-  await assertHealthyLayout(page, '/employer with listed jobs and none posted');
-});
 
 // ─── Military careers: reached on purpose ──────────────────────────────────────
 
@@ -2658,7 +3227,7 @@ test('military careers stay out of the lists until asked for: the Careers filter
   await expect(page.locator('[data-skill-group="weapons-and-munitions"]')).toBeVisible();
   await page.goto('/explore?tab=skills&domain=assembly&group=weapons-and-munitions&sort=careers-desc', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-explore-count]')).toHaveText(inGroup);
-  await expect(page.getByRole('button', { name: 'Group: Weapons and munitions' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Group: Ordnance' })).toBeVisible();
   await assertHealthyLayout(page, '/explore?tab=skills a group only military careers use');
 
   // A civilian career's page ends in the military careers that reach it, each with how much of the path it holds.
@@ -2887,37 +3456,56 @@ test("a military career's page: its kind and code above the service's own title,
   await expect(view.getByRole('link', { name: /goal/i })).toHaveCount(0);
   await expect(view.locator('[data-detail-action] button, [data-detail-action] a')).toHaveCount(0);
   await expect(page.getByText(/I have done this|Sign in to mark its skills held/)).toHaveCount(0);
-  // Its path draws from the same parts as any career's: one route, and no other view of it.
-  await expectOneRoute(view.locator('[data-route]'), 'a military career');
-  await expect(view.locator('[data-route] [data-skill-tag]')).toHaveCount(record.skills.length);
+  // The service's own title is said once, as the page's name: no tree's root and no line says it again.
+  await expect(view.getByText(ht.officialTitle, { exact: true }), 'the name is said once').toHaveCount(1);
+  await expect(view.getByText(ht.title, { exact: true })).toHaveCount(0);
+  expect(await headingParts(page), 'the heading block').toEqual(['back', 'kind', 'name', 'paragraph']);
+  // Its skills draw from the same parts as any career's: one tree, every group closed, and no other view of it.
+  const { tree, openAll } = skillsTree(page);
+  await expectTree(tree, 'a military career');
+  await expect(tree.locator('[data-tree-root]')).toHaveText(`${record.skills.length} skills`);
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
+  await openAll.click();
+  await expect(tree.locator('[data-skill-tag]')).toHaveCount(record.skills.length);
+  await expectTree(tree, 'a military career, all open');
+  await openAll.click();
+  // No sentence under a heading, and nothing that asks a visitor to sign in.
+  await expect(view.locator('[data-section-heading] p')).toHaveCount(0);
+  await expect(view.locator('a[href*="sign-in"]')).toHaveCount(0);
+  await expect(view.getByText(/sign in/i)).toHaveCount(0);
   // Whether a person has reviewed the path is an admin's business: nobody else is shown the word Draft.
   await expect(view.locator('[data-draft-path]')).toHaveCount(0);
   await expect(view.getByRole('link', { name: 'Atlas', exact: true }).or(view.getByRole('button', { name: 'Atlas', exact: true })).or(view.getByRole('radio', { name: 'Atlas', exact: true }))).toHaveCount(0);
   // It has no ladder, industries, jobs, companies or factories: none of those sections is drawn, and none is empty.
-  await expect(view.locator('#where, #jobs, #companies, #factories, #military')).toHaveCount(0);
-  await expect(view.getByText(/Comes from|Leads to/)).toHaveCount(0);
+  await expect(view.locator('#where, #jobs, #companies, #factories, #military, #ladder, [data-career-ladder]')).toHaveCount(0);
+  await expect(view.getByText(/Comes from|Leads to|This career/)).toHaveCount(0);
   // Its skills come first, then what else they are for.
   expect(await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual(['skills', 'reach']);
-  // The civilian careers its path covers most, each with how much; none is open until it is pressed.
+  // The civilian careers its path covers most, as the same tree: each a node with how much, none open until it is pressed.
   const reach = view.locator('#reach');
   await expect(reach.getByRole('heading', { name: 'Civilian careers within reach' })).toBeVisible();
-  await expect(reach).toContainText('Where these skills carry over.');
+  const reached = reach.locator('[data-reach-tree]');
+  await expectTree(reached, 'the careers within reach');
+  await expect(reached.locator('[data-tree-root]')).toHaveText(`${record.withinReach.length} ${record.withinReach.length === 1 ? 'career' : 'careers'}`);
   const rows = reach.locator('[data-reach-career]');
   const closest = record.withinReach[0];
-  await expect(rows.first()).toHaveText(`${closest.title} · ${closest.held} of ${closest.total} skills`);
-  await expect(rows.first()).toHaveAttribute('aria-expanded', 'false');
+  await expect(nodeName(rows.first())).toHaveText(closest.title);
+  await expect(rows.first().locator('[data-tree-figure]')).toContainText(`${closest.held} of ${closest.total} skills`);
+  await expect(head(rows.first())).toHaveAttribute('aria-expanded', 'false');
   await expect(reach.locator('[data-reach-panel]')).toHaveCount(0);
-  await rows.first().click();
-  const panel = reach.locator(`[data-reach-panel="${closest.id}"]`);
-  // Open, it says what is missing in the civilian career's own order (five, then the rest behind "N more"), with no level named, and leads to its page.
-  const missing = closest.missing.length > 6 ? closest.missing.slice(0, 5) : closest.missing;
-  await expect(panel.locator('[data-next-skills] li')).toHaveText(missing.map((skill) => skill.name));
+  await head(rows.first()).click();
+  const panel = rows.first().locator(`[data-reach-panel="${closest.id}"]`);
+  // Open, its card says what is missing in the civilian career's own order, every one of them and with no level named, and leads to its page.
+  await expect(panel.locator('[data-reach-missing] h4')).toHaveText('Missing');
+  expect((await panel.locator('[data-reach-missing] [data-name]').allInnerTexts()).map((name) => name.replace(/[,.]\s*$/, '').trim())).toEqual(closest.missing.map((skill) => skill.name));
   await expect(reach).not.toContainText(/Fundamentals|Intermediate|Advanced/);
   await expect(panel.locator('[data-reach-open]')).toHaveAttribute('href', `/occupations/${closest.id}`);
-  // One button and nothing else: no industries, no atlas, and the skills that carry over are not listed again.
+  // One link and nothing else to press: no industries, no atlas, and the skills that carry over are not listed again.
   await expect(panel.getByRole('link')).toHaveCount(1);
-  await expect(reach.locator('[data-reach-industries], [data-reach-shared], [data-reach-compare]')).toHaveCount(0);
+  await expect(panel.locator('button, .tree-mark')).toHaveCount(0);
+  await expect(reach.locator('[data-reach-industries], [data-reach-shared], [data-reach-compare], [data-reach-more]')).toHaveCount(0);
   await expect(reach).not.toContainText(/on the atlas|Carries over/i);
+  await expectTree(reached, 'the careers within reach, one open');
   for (const text of await rows.allInnerTexts()) expect(text, 'no military career is within reach of one').not.toMatch(KIND_LINE);
   await reach.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/occupations/:id military, within reach');
@@ -2938,8 +3526,8 @@ test("a military career's page: its kind and code above the service's own title,
   await page.goto(`/occupations/${ht.id}?path=atlas`, { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(new RegExp(`/occupations/${ht.id}$`));
   await expect(view.locator('[data-detail-kind]')).toHaveText(/Navy rating · HT$/);
-  await expect(view.locator('[data-route]')).toHaveCount(1);
-  await expect(page.locator('.atlas-plate')).toHaveCount(0);
+  await expect(view.locator('#skills [data-skill-tree]')).toHaveCount(1);
+  await expect(page.locator('[data-atlas], #skills canvas')).toHaveCount(0);
 
   // A seeker: the page says how much of the path they hold, once they hold some, and has no action.
   const made = await page.request.post(`${API}/auth/sign-up`, { data: { email: `mil-work-${stamp}@device.test`, name: 'Mil Seeker', password, purpose: 'work' } });
@@ -2951,19 +3539,22 @@ test("a military career's page: its kind and code above the service's own title,
     await expect(page.locator('[data-held-count]')).toHaveCount(0);
     await expect(action.locator('button, a')).toHaveCount(0);
     await expect(page.getByText('I have done this')).toHaveCount(0);
-    await expect(view.locator('[data-route] [data-skill-tag] button')).toHaveCount(0);
+    await expect(view.locator('[aria-pressed], [role="checkbox"], [role="switch"]')).toHaveCount(0);
     await expect(view.locator('[data-draft-path]')).toHaveCount(0);
     // Marked held where that is done (Profile's door; here, the same write through the API), the page follows.
     expect((await page.request.post(`${API}/me/careers/${ht.id}/held`)).ok(), 'the path marked held').toBe(true);
     await page.goto('/me', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-careers-in-reach]')).toContainText(closest.title);
     await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#skills [data-held-count]')).toContainText(`${record.skills.length} of ${record.skills.length} held`);
-    // Everything held: every section closed and whole, nothing next, and still nothing to press but the sections.
-    await expect(view.locator('[data-route] [data-next]')).toHaveCount(0);
+    await expect(page.locator('#skills [data-held-count]')).toHaveText(`${record.skills.length} of ${record.skills.length} held`);
+    // Everything held: every group closed and whole, nothing next, and still nothing to press but the nodes.
+    await expect(view.locator('[data-next]')).toHaveCount(0);
     await expect(page.locator('[data-next-up], [data-route-aside]')).toHaveCount(0);
-    await expect(view.locator('[data-route] [data-route-section][data-open]')).toHaveCount(0);
-    await expect(view.locator('[data-route] [data-section-count]')).toHaveCount(0);
+    await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
+    for (const figure of await tree.locator('[data-group-figure]').allInnerTexts()) expect(figure, 'a whole group says so').toMatch(/^(\d+) of \1 held$/);
+    await openAll.click();
+    await expect(tree.locator('[data-skill-mark="held"]')).toHaveCount(record.skills.length);
+    await expectTree(tree, 'a military career, held whole');
     await expect(action.locator('button, a')).toHaveCount(0);
     await assertHealthyLayout(page, '/occupations/:id military, held whole');
   } finally {
@@ -3011,66 +3602,108 @@ test("a military career's page: its kind and code above the service's own title,
   await assertHealthyLayout(page, '/companies/us-marine-corps');
 });
 
-test("a military career's civilian careers within reach are rows at every width that open in place, one at a time, from the keyboard too", async ({ page, request }) => {
+test("a military career's civilian careers within reach are one tree at every width: each opens its card in place and closes no other, from the keyboard too", async ({ page, request }) => {
   const ht = await militaryCareer(request, 'HT');
   const record = (await (await request.get(`${API}/occupations/${ht.id}`)).json()) as {
     withinReach: { id: string; title: string; held: number; total: number; missing: { name: string }[] }[];
   };
   const careers = record.withinReach;
   expect(careers.length, 'the rating reaches more than one civilian career').toBeGreaterThan(2);
-  // Five, then "Show all"; a list only a row or two longer than that is shown whole.
+  // Five, then "Show all"; a list only a node or two longer than that is shown whole.
   const shown = careers.length > 7 ? careers.slice(0, 5) : careers;
-  /** What an open row lists as missing: five, and the rest behind "N more", unless there is only one more. */
-  const missingOf = (career: (typeof careers)[number]) => (career.missing.length > 6 ? career.missing.slice(0, 5) : career.missing);
+  /** The names a card lists as missing: all of them, as one run of words. */
+  const missingIn = async (card: Locator) => (await card.locator('[data-reach-missing] [data-name]').allInnerTexts()).map((name) => name.replace(/[,.]\s*$/, '').trim());
 
   await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
   const reach = page.locator('#reach');
+  const tree = reach.locator('[data-reach-tree]');
   const rows = reach.locator('[data-reach-career]');
   await expect(rows).toHaveCount(shown.length);
-  // Rows at every width: no drawing, no radios, nothing open on arrival.
+  // One tree in one frame under its heading: no sentence, no drawing beside it, no radios, nothing open on arrival.
+  await expect(reach.locator('[data-section-heading] p')).toHaveCount(0);
   await expect(reach.locator('[data-reach-flow], [role="radio"], [role="img"], [data-reach-panel]')).toHaveCount(0);
+  await expect(tree.locator('[data-tree-root]')).toHaveText(`${careers.length} careers`);
   for (const [at, career] of shown.entries()) {
-    await expect(rows.nth(at)).toHaveText(`${career.title} · ${career.held} of ${career.total} skills`);
-    await expect(rows.nth(at)).toHaveAttribute('aria-expanded', 'false');
+    await expect(nodeName(rows.nth(at))).toHaveText(career.title);
+    await expect(rows.nth(at).locator('[data-tree-figure]')).toContainText(`${career.held} of ${career.total} skills`);
+    await expect(head(rows.nth(at))).toHaveAttribute('aria-expanded', 'false');
   }
-  for (const height of await rows.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height))) {
-    expect(height, 'a row is a full finger tall').toBeGreaterThanOrEqual(44);
-  }
+  // Every node a full finger tall, on one upright, nothing loose (the tree's own rules).
+  await expectTree(tree, 'careers within reach');
+  // Across from a laptop up (the root on the left, its careers in the next column), down under it; either way the careers are one column.
+  const wide = (page.viewportSize()?.width ?? 0) >= 1024;
+  await expect(tree).toHaveAttribute('data-layout', wide ? 'wide' : 'stacked');
+  const [root, firstRow] = [await tree.locator('[data-tree-root]').boundingBox(), await head(rows.first()).boundingBox()];
+  if (wide) expect(Math.abs((root?.y ?? 0) - (firstRow?.y ?? 0)), 'the root stands level with its first career').toBeLessThanOrEqual(2);
+  else expect(firstRow?.y ?? 0, 'the careers stand under the root').toBeGreaterThanOrEqual((root?.y ?? 0) + (root?.height ?? 0) - 1);
+  await reach.scrollIntoViewIfNeeded();
   await assertHealthyLayout(page, '/occupations/:id military, careers within reach');
 
-  // A press opens a row in place: what the career still asks, and one button to its page.
-  await rows.first().click();
-  await expect(rows.first()).toHaveAttribute('aria-expanded', 'true');
-  const first = reach.locator(`[data-reach-panel="${careers[0].id}"]`);
+  // A press opens a node in place: its card, with what the career still asks and one way to its page.
+  await head(rows.first()).click();
+  await expect(head(rows.first())).toHaveAttribute('aria-expanded', 'true');
+  const first = rows.first().locator(`[data-reach-panel="${careers[0].id}"]`);
   await expect(first).toBeVisible();
-  await expect(first.locator('[data-next-skills] li')).toHaveText(missingOf(careers[0]).map((skill) => skill.name));
+  expect(await missingIn(first)).toEqual(careers[0].missing.map((skill) => skill.name));
   await expect(first.locator('[data-reach-open]')).toHaveText(new RegExp('Career page$'));
   await expect(first.locator('[data-reach-open]')).toHaveAttribute('href', `/occupations/${careers[0].id}`);
+  // The card stands under its career, inside the frame, and the next career follows under it.
+  const [opened, card, following] = [await head(rows.first()).boundingBox(), await first.boundingBox(), await head(rows.nth(1)).boundingBox()];
+  expect(card?.y ?? 0, 'the card is under its career').toBeGreaterThanOrEqual((opened?.y ?? 0) + (opened?.height ?? 0) - 1);
+  expect(following?.y ?? 0, 'the next career follows the card').toBeGreaterThanOrEqual((card?.y ?? 0) + (card?.height ?? 0));
+  await expectTree(tree, 'careers within reach, one open');
   await assertHealthyLayout(page, '/occupations/:id military, a career open');
 
-  // The keyboard: each row is a stop; Enter opens the second, and the first closes. One at a time.
-  await rows.nth(1).focus();
+  // The keyboard: each node is a stop; Enter opens the second, and the first stays open, so the career pressed
+  // does not move from where it was.
+  const placeOf = (locator: Locator) => locator.evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+  const was = await placeOf(head(rows.nth(1)));
+  await head(rows.nth(1)).focus();
   await page.keyboard.press('Enter');
-  await expect(rows.nth(1)).toHaveAttribute('aria-expanded', 'true');
-  await expect(rows.first()).toHaveAttribute('aria-expanded', 'false');
-  await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
-  const second = reach.locator(`[data-reach-panel="${careers[1].id}"]`);
-  await expect(second.locator('[data-next-skills] li')).toHaveText(missingOf(careers[1]).map((skill) => skill.name));
-  // A long list of what is missing names five, and the rest are one press away.
-  if (careers[1].missing.length > 6) {
-    await second.locator('[data-reach-more]').click();
-    await expect(second.locator('[data-next-skills] li')).toHaveText(careers[1].missing.map((skill) => skill.name));
-  }
-  // Space on the open row closes it.
-  await rows.nth(1).focus();
+  await expect(head(rows.nth(1))).toHaveAttribute('aria-expanded', 'true');
+  await expect(head(rows.first()), 'the first card stays open').toHaveAttribute('aria-expanded', 'true');
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(2);
+  expect(Math.abs((await placeOf(head(rows.nth(1)))) - was), 'the career pressed stays where it was').toBeLessThanOrEqual(1);
+  const second = rows.nth(1).locator(`[data-reach-panel="${careers[1].id}"]`);
+  expect(await missingIn(second)).toEqual(careers[1].missing.map((skill) => skill.name));
+  await expectTree(tree, 'careers within reach, two open');
+  // The way to a career's page is a full finger tall wherever a finger is used, at any width.
+  const finger = await page.evaluate(() => window.matchMedia('(pointer: coarse)').matches);
+  expect((await second.locator('[data-reach-open]').boundingBox())?.height ?? 0, 'the way to the career is a full finger tall where a finger is used').toBeGreaterThanOrEqual(finger ? 44 : 32);
+  // Tab goes on into the card, to its one link, and then to the next career.
+  await page.keyboard.press('Tab');
+  await expect(second.locator('[data-reach-open]')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(head(rows.nth(2))).toBeFocused();
+  // Space on an open node closes it, and only it.
+  await head(rows.nth(1)).focus();
   await page.keyboard.press('Space');
-  await expect(rows.nth(1)).toHaveAttribute('aria-expanded', 'false');
+  await expect(head(rows.nth(1))).toHaveAttribute('aria-expanded', 'false');
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+  await head(rows.first()).click();
   await expect(reach.locator('[data-reach-panel]')).toHaveCount(0);
+  await expectTree(tree, 'careers within reach, closed again');
 
-  // The rest are one press away.
+  // The rest are one press away: a button, the frame's last row under the tree, never a node.
   if (careers.length > shown.length) {
-    await reach.getByRole('button', { name: `Show all ${careers.length}` }).click();
+    const more = reach.getByRole('button', { name: 'Show all', exact: true });
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await expect(tree.locator('[data-show-all]')).toHaveCount(0);
+    await more.click();
     await expect(rows).toHaveCount(careers.length);
+    await expectTree(tree, 'every career within reach');
     await assertHealthyLayout(page, '/occupations/:id military, every career within reach');
+    // A card left open on a career the shorter list does not show closes with it; one on a career it still shows stays.
+    await head(rows.first()).click();
+    await head(rows.last()).click();
+    await expect(reach.locator('[data-reach-panel]')).toHaveCount(2);
+    await reach.getByRole('button', { name: 'Show fewer', exact: true }).click();
+    await expect(rows).toHaveCount(shown.length);
+    await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+    await expect(rows.first().locator(`[data-reach-panel="${careers[0].id}"]`)).toBeVisible();
   }
+  // The page loaded again arrives closed, whatever was open on it.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(rows).toHaveCount(shown.length);
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(0);
 });

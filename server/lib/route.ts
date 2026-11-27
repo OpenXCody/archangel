@@ -53,12 +53,14 @@ export interface RouteSkill extends SkillPlace {
   importance: string | null;
   /** How the skill is learned, in the catalogue's sentence. */
   howLearned: string | null;
+  /** What the skill is, in the catalogue's words: a career's page previews a skill with it. */
+  description: string | null;
 }
 
 /** A career's path in order: its skills, each with its level, group and domain. */
 export async function routeOf(executor: Executor, careerId: string): Promise<RouteSkill[]> {
   const rows = await executor
-    .select({ id: skills.id, name: skills.name, importance: occupationSkills.importance, howLearned: skills.howLearned, ...placeColumns })
+    .select({ id: skills.id, name: skills.name, importance: occupationSkills.importance, howLearned: skills.howLearned, description: skills.description, ...placeColumns })
     .from(occupationSkills)
     .innerJoin(skills, eq(occupationSkills.skillId, skills.id))
     .leftJoin(skillGroups, eq(skillGroups.slug, skills.groupSlug))

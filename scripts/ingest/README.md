@@ -291,15 +291,9 @@ Tools calls the same functions.
   trigger on `jobs`, and one on `occupations` that renames a career's jobs
   with it); the title the employer posted it under is kept as it was
   collected in `posted_as`, which the Jobs search reads and no answer of the
-  API gives. What the API gives on every job row is the opening's own name
-  (`ownName`): the posted title with what a page states elsewhere cut out
-  (the company, the site and its place, the shift, the kind of employment,
-  requisition numbers, recruiting notes), otherwise as the company wrote it,
-  level words included, and null where it says nothing beyond the career.
-  It is read by the server on every read (`jobOwnName` in
-  `shared/jobOwnName.ts`, through `server/lib/jobRows.ts`) and stored
-  nowhere, so five openings for one career at one factory are told apart on
-  a screen and the rule can change without a back-fill. `level_word` and
+  API gives under that name. What the API gives on every job row is
+  `ownName`: the posted title as the company wrote it, or null where it
+  says no more than the career (`server/lib/jobRows.ts`). `level_word` and
   `level_rank`,
   `requirements` (one `jsonb` in the reader's words: `yearsMin`, `yearsMax`,
   `education`, `certifications`, `clearance`, `citizenship`, only the keys

@@ -52,10 +52,8 @@ const WORD = /\bplant(s|wide|side)?\b/i;
  * a label of ours ("Chemical plants" as a tab) is still judged.
  */
 const PHRASES: [RegExp, string][] = [
-  [/\bpower plants?\b/g, 'what makes electricity, or an engine: a skill group is "Engines and power plants"'],
+  [/\bpower plants?\b/g, 'what makes electricity, or an engine'],
   [/\b(chemical|treatment|wastewater|asphalt mixing) plants?\b/g, 'an installation a skill or a record is about, not a place in our list'],
-  [/\bPlant utilities\b/g, "a skill group's name: steam, air and water for a site"],
-  [/\bNuclear plant operations\b/g, "a skill group's name"],
   [/\bPlant City\b/g, 'a town in Florida'],
 ];
 
@@ -95,7 +93,6 @@ const CODE: Record<string, Record<string, [times: number, why: string]>> = {
 /** Whole files whose strings are patterns over registry names, not words of ours. */
 const PATTERN_FILES: Record<string, string> = {
   'shared/addressStubFilter.ts': 'patterns that find "ASPHALT MIXING PLANT", "WASTEWATER PLANT", "FORMER PLANT" in registry names',
-  'shared/jobOwnName.ts': 'patterns over the titles employers post: the words that say what kind of site a title names ("Faribault Plant") are cut from a name, never shown',
 };
 
 const DIRS = ['client/src', 'server', 'shared', 'api'];
@@ -232,6 +229,8 @@ test('the check tells a word on a screen from a value the code keeps', () => {
   ]);
   // Another sense of the word, and a name; but not a label of ours that borrows the phrase.
   assert.deepEqual(lines(`const a = 'Engines and power plants'; const b = 'Plant City, FL'; const c = 'a water treatment plant';`), []);
+  // No skill group is named with the word any more ("Utilities", "Nuclear power"), so those names are judged like any other.
+  assert.deepEqual(lines(`const a = 'Plant utilities';`), ['Plant utilities']);
   assert.deepEqual(lines(`const a = 'A power plant is not a plant of ours';`), ['A power plant is not a plant of ours']);
   assert.deepEqual(lines(`const tabs = { factories: 'Chemical plants' };`), ['Chemical plants']);
 });

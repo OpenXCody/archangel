@@ -2,51 +2,67 @@
  * The Atlas's address. Everything the page shows is in it, so any view can be
  * linked to and Back steps through what was opened:
  *
- *   /atlas                      the whole atlas
- *   /atlas?domain=quality       one domain, turned to and enlarged
- *   /atlas?group=calibration    one skill group, open in its domain
- *   /atlas?skill=<id>           one skill, in its group
- *   …&career=<id>               a career laid over it
- *   …&career=<id>&with=<id>     and a second career over the first
- *   …&career=<id>&at=<company>  the first career as that company's version of it
- *                               (which can then be compared with the career itself)
+ *   /atlas                        the whole wheel
+ *   /atlas?fundamentals=1         Fundamentals open: the core's own view
+ *   /atlas?field=welding          a field open
+ *   /atlas?group=arc-welding      a group chosen: inside its field, or, for a core group, inside Fundamentals
+ *   /atlas?skill=<id>             a skill chosen, in its group
+ *   …&field=welding               beside group= or skill=, only for a core group reached from inside that open field
+ *   …&career=<id>                 a career laid over it
+ *   …&career=<id>&at=<company>    that company's version of it
+ *   …&career=<id>&from=<id>       a military career under it: what carries over is solid, what is missing dashed
  *
- * One of `domain`, `group` and `skill` is written, the most specific: a
- * skill's group and a group's domain are known from the taxonomy.
+ * One of `fundamentals`, `field`, `group` and `skill` is written, the most
+ * specific: a skill's group and a group's field are known from the wheel.
+ * `domain` is the Skills list's word for where it stands: the Atlas opens the
+ * field that holds most of that domain's groups and writes the field in its
+ * place (`viewOf` in view.ts, which reads an address against the wheel).
+ *
+ * This file holds no wheel, so the Skills list links here without carrying it.
  */
 export interface AtlasState {
-  domain?: string | null;
+  fundamentals?: boolean | null;
+  field?: string | null;
   group?: string | null;
   skill?: string | null;
+  /** A domain of the taxonomy, as the Skills list names where it stands. Read, then replaced by a field. */
+  domain?: string | null;
   career?: string | null;
-  with?: string | null;
-  /** A company's id or slug: the first career is laid over as that company's version of it. */
+  /** A company's id or slug: the career is laid over as that company's version of it. */
   at?: string | null;
+  /** A military career laid under the career. */
+  from?: string | null;
 }
 
 export function readAtlasState(params: URLSearchParams): AtlasState {
+  const career = params.get('career');
   return {
-    domain: params.get('domain'),
+    fundamentals: params.get('fundamentals') === '1',
+    field: params.get('field'),
     group: params.get('group'),
     skill: params.get('skill'),
-    career: params.get('career'),
-    with: params.get('with'),
-    at: params.get('career') ? params.get('at') : null,
+    domain: params.get('domain'),
+    career,
+    at: career ? params.get('at') : null,
+    from: career ? params.get('from') : null,
   };
 }
 
+/** The one writer of a link to the Atlas. */
 export function atlasHref(state: AtlasState): string {
   const params = new URLSearchParams();
   if (state.skill) params.set('skill', state.skill);
   else if (state.group) params.set('group', state.group);
-  else if (state.domain) params.set('domain', state.domain);
+  // Beside a group or a skill the field is the open one a core group was reached from; alone it is the field open.
+  if (state.field) params.set('field', state.field);
+  else if (!state.skill && !state.group) {
+    if (state.fundamentals) params.set('fundamentals', '1');
+    else if (state.domain) params.set('domain', state.domain);
+  }
   if (state.career) {
     params.set('career', state.career);
     if (state.at) params.set('at', state.at);
-    // A company's version can be compared with the career it is a version of.
-    if (state.with && (state.with !== state.career || state.at)) params.set('with', state.with);
-  } else if (state.with) {
-    params.set('career', state.with);
+    if (state.from && state.from !== state.career) params.set('from', state.from);
   }
   const query = params.toString();
   return query ? `/atlas?${query}` : '/atlas';

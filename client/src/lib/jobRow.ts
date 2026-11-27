@@ -63,6 +63,8 @@ export interface JobListSays {
   factory?: boolean;
   /** The state: a state's or a focus area's page or panel. A place is then its city alone. */
   state?: boolean;
+  /** The list the row stands in. An opening's own name is said under its standard name only where another row of the list would otherwise read the same. */
+  among?: readonly JobRowJob[];
 }
 
 /** What of a job a row is written from: every list of jobs the API gives carries these. */
@@ -105,6 +107,17 @@ export interface JobRowWords {
   facts: JobRowPart[];
 }
 
+const same = (a?: string | null, b?: string | null) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase();
+
+/** Another job of the list has this one's standard name, company and place. */
+function hasTwin(job: JobRowJob, among: readonly JobRowJob[] | undefined): boolean {
+  if (!among) return false;
+  return among.some(
+    (other) =>
+      other !== job && same(other.title, job.title) && same(other.companyName, job.companyName) && same(other.city, job.city) && same(other.state, job.state)
+  );
+}
+
 export function jobRow(job: JobRowJob, said: JobListSays = {}): JobRowWords {
   const standard = job.title?.trim() || job.occupationTitle?.trim() || 'Job';
   const own = job.ownName?.trim() || null;
@@ -112,7 +125,8 @@ export function jobRow(job: JobRowJob, said: JobListSays = {}): JobRowWords {
   const companySaid = Boolean(said.company || said.factory);
   // Under a heading that names the career, the opening's own name is what a row has left to say of what the job is.
   const head: JobRowPart = careerSaid && own ? { kind: 'own', text: own } : { kind: 'name', text: standard };
-  const second = head.kind === 'name' ? own : null;
+  // Under the standard name the own name is said only to tell apart rows that would otherwise read alike.
+  const second = head.kind === 'name' && own && hasTwin(job, said.among) ? own : null;
   // A job a company titled in its own words says its career under them, except under a heading that names the career.
   const career = !careerSaid && job.occupationTitle && !titleSaysCareer(job.title, job.occupationTitle) ? job.occupationTitle : null;
   // The factory by its own name only where the company stands above the list and not in the row.

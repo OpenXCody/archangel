@@ -117,7 +117,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               plants: state.plants,
             }))}
           />
-          {states.length > STATES_SHOWN && <ShowAll open={allStates} total={states.length} onToggle={() => setAllStates((value) => !value)} />}
+          {states.length > STATES_SHOWN && <ShowAll alone open={allStates} total={states.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
       {cities.length > 0 && (
@@ -131,7 +131,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               return { key: `${city.name}-${city.state ?? ''}`, to: `/map?${query}`, label: name, plants: city.plants };
             })}
           />
-          {cities.length > STATES_SHOWN && <ShowAll open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
+          {cities.length > STATES_SHOWN && <ShowAll alone open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
 
@@ -141,7 +141,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
             {data.jobs.map((job) => (
               // The page names an industry, never a career or a company: a row is the job's name, its company and its
               // place (the city alone where the page is one state's or one focus area's).
-              <JobRecordRow key={job.id} job={job} said={{ state: data.place.kind !== 'country' }} />
+              <JobRecordRow key={job.id} job={job} said={{ state: data.place.kind !== 'country', among: data.jobs }} />
             ))}
           </RecordList>
           {data.openJobs > data.jobs.length && (
@@ -217,12 +217,11 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
       {/* What work is here */}
       {data.careers.length > 0 && (
         <DetailSection id="careers" title="Careers in this industry">
-          <RecordList>
+          <RecordList footer={careersCut && <ShowAll open={allCareers} total={data.careers.length} onToggle={() => setAllCareers((value) => !value)} />}>
             {careers.map((career) => (
               <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
             ))}
           </RecordList>
-          {careersCut && <ShowAll open={allCareers} total={data.careers.length} onToggle={() => setAllCareers((value) => !value)} />}
         </DetailSection>
       )}
     </>

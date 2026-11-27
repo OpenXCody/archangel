@@ -306,7 +306,7 @@ export default function Jobs() {
           <ul className={cn('grid grid-cols-1 border-t border-line lg:grid-cols-2 lg:gap-x-12', jobs.isPlaceholderData && 'opacity-60')}>
             {shown.map((job) => (
               <li key={job.id} className="min-w-0 border-b border-line">
-                <JobCard job={job} said={said} from={filtered ? here : undefined} />
+                <JobCard job={job} said={{ ...said, among: shown }} from={filtered ? here : undefined} />
               </li>
             ))}
           </ul>

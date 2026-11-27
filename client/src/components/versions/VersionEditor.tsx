@@ -12,8 +12,7 @@ import { SkillAdder } from '../jobs/JobSkillTags';
 import ConfirmDialog from '../layout/ConfirmDialog';
 import { EmptyState, PageContainer, PageHeader } from '../layout/Page';
 import type { PlacedSkill } from '../path/model';
-import { Route } from '../route/Route';
-import type { RowContext } from '../route/RouteRow';
+import { Route, type RowContext } from '../route/Route';
 
 /**
  * The editor of a company's version of a career, for the company's own

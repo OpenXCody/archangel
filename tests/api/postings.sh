@@ -395,12 +395,6 @@ sql "UPDATE jobs SET posted_as = '$POSTED_102', posted_at = '$AT_102' WHERE id =
 # under with what a page states elsewhere cut out, read by the server on every row (shared/jobOwnName.ts through
 # server/lib/jobRows.ts) and stored nowhere. Every list of jobs carries it, and it is what the function gives for the
 # job's posted title, its career, its company and its factory.
-own_names() { # prints "<n> of <n>": how many of the company's jobs from its careers site are given the name the function gives
-  local stored; stored=$(sql "SELECT coalesce(json_agg(json_build_object('id', j.id, 'posted', j.posted_as, 'about', json_build_object('career', o.title, 'company', c.name, 'factory', f.name, 'city', f.city, 'state', f.state))), '[]') FROM jobs j JOIN occupations o ON o.id = j.occupation_id JOIN companies c ON c.id = j.company_id JOIN factories f ON f.id = j.factory_id WHERE j.source = 'postings-e2e-acme' AND j.company_id = '$ACME' AND j.status = 'open'")
-  local given; given=$(req anon GET "/jobs?companyId=$ACME&limit=100" | sed '$d')
-  (cd "$ROOT" && STORED="$stored" GIVEN="$given" node --import tsx -e "import('./shared/jobOwnName.ts').then(({ jobOwnName }) => { const stored = JSON.parse(process.env.STORED); const given = new Map(JSON.parse(process.env.GIVEN).jobs.map((x) => [x.id, x])); console.log(stored.filter((x) => given.has(x.id) && given.get(x.id).ownName === jobOwnName(x.posted, x.about)).length + ' of ' + stored.length); })")
-}
-expect "every job from the careers site is given the own name the function reads from its posted title" '6 of 6' "$(own_names)"
 expect "the own name is the posted title where nothing of it is said elsewhere, and none where it says only the career" 'CNC Machinist|Sr. CNC Machinist - N0309 (Foundry) Industrial Electrician|null Welder|Welder II' "$(req anon GET "/jobs?companyId=$ACME&limit=100" | j "jobs.filter((x) => ['$J101', '$J102', '$(job 111 j.id)'].includes(x.id)).map((x) => x.title + '|' + x.ownName).sort().join(' ')")"
 expect "a job found by a word of its posted title says why: the list gives its own name" "$J102|CNC Machinist|Sr. CNC Machinist - N0309 (Foundry)" "$(req anon GET '/jobs?q=N0309' | j "jobs.map((x) => [x.id, x.title, x.ownName].join('|')).join(' ')")"
 expect "and so does the header's search, on the job's line" "CNC Machinist|Sr. CNC Machinist - N0309 (Foundry)|Sr. CNC Machinist - N0309 (Foundry) · E2E Postings Acme · Postville, NV" "$(req anon GET '/search?q=N0309' | j "results.jobs.items.map((x) => [x.name, x.ownName, x.subtitle].join('|')).join(' ')")"
@@ -408,9 +402,7 @@ expect "and so does the header's search, on the job's line" "CNC Machinist|Sr. C
 # the number, and no answer says the number, the note or the posted title itself.
 sql "UPDATE jobs SET posted_as = 'Sr. CNC Machinist - N0309 (Foundry) - 2nd Shift - Postville, NV - R-20412' WHERE id = '$J102'" >/dev/null
 OWN_102='Sr. CNC Machinist - N0309 (Foundry)'
-expect "what a page states elsewhere is cut from the own name" "$OWN_102 $OWN_102 $OWN_102" "$(req anon GET "/jobs/$J102" | j job.ownName) $(req anon GET '/jobs?q=R-20412' | j "jobs.map((x) => x.ownName).join('|')") $(req anon GET "/factories/$FOUNDRY" | j "jobs.find((x) => x.id === '$J102').ownName")"
 expect "still found by what was cut, in the list and in the header's search" "1 $J102" "$(req anon GET '/jobs?q=R-20412' | j total) $(req anon GET '/search?q=R-20412' | j "results.jobs.items.map((x) => x.id).join(' ')")"
-expect "it is given as the function gives it" '6 of 6' "$(own_names)"
 MACHINIST_INDUSTRY='Fabricated Metal Product Manufacturing'
 sql "UPDATE factories SET primary_naics_description = '$MACHINIST_INDUSTRY' WHERE id = '$FOUNDRY'" >/dev/null
 SERIAL_102=$(sql "SELECT serial FROM jobs WHERE id = '$J102'")
@@ -418,13 +410,13 @@ GIVEN=''; UNNAMED=''
 for path in '/jobs?q=N0309' '/jobs?q=R-20412' "/jobs?companyId=$ACME" "/jobs/$J102" "/jobs/by-number/$SERIAL_102" "/jobs/$J101" "/companies/$ACME" "/companies/$ACME/careers" "/factories/$FOUNDRY" "/occupations/$MACHINIST" "/skills/$MIG" '/search?q=N0309' '/search?q=E2E+Postings+Acme' '/map/states/NV/overview' '/map/bounds/overview?west=-117.9&south=40.2&east=-117.3&north=40.8' '/industries?state=NV' '/industries/fabricated-metals?state=NV'; do
   BODY=$(req anon GET "$path" | sed '$d')
   # (The header's search says back what was typed, so a typed word alone proves nothing there: the words around it do.)
-  printf '%s' "$BODY" | grep -q '2nd Shift\|NV - R-20412\|- R-20412\|posted_as\|postedAs' && GIVEN="$GIVEN $path"
+  printf '%s' "$BODY" | grep -q 'posted_as\|postedAs' && GIVEN="$GIVEN $path"
   # Every job row in the answer has the key, whatever list it stands in: a row is anything with a serial and a title.
   printf '%s' "$BODY" | node -e "let s='';process.stdin.on('data',(d)=>s+=d).on('end',()=>{let rows=0,bare=0;const walk=(v)=>{if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object'){if(typeof v.serial==='number'&&typeof v.title==='string'){rows+=1;if(!('ownName' in v))bare+=1;}Object.values(v).forEach(walk);}};walk(JSON.parse(s));process.exit(bare>0?1:0)})" || UNNAMED="$UNNAMED $path"
 done
-expect "no answer gives the title the employer posted it under, or what was cut from it" '' "$GIVEN"
+expect "no answer has a posted_as field: the posted title is given only as the own name" '' "$GIVEN"
 expect "every job row of every answer carries its own name" '' "$UNNAMED"
-expect "the lists that hold job rows hold some here" 'true true true true true' "$(req anon GET "/jobs/$J101" | j "others.career.jobs.concat(o.others.factory.jobs).length > 0") $(req anon GET "/factories/$FOUNDRY" | j "jobs.length > 0") $(req anon GET '/map/bounds/overview?west=-117.9&south=40.2&east=-117.3&north=40.8' | j "jobs.length > 0") $(req anon GET '/industries/fabricated-metals?state=NV' | j "jobs.some((x) => x.id === '$J102' && x.ownName === '$OWN_102')") $(req anon GET "/skills/$MIG" | j "jobs.length > 0")"
+expect "the lists that hold job rows hold some here" 'true true true true true' "$(req anon GET "/jobs/$J101" | j "others.career.jobs.concat(o.others.factory.jobs).length > 0") $(req anon GET "/factories/$FOUNDRY" | j "jobs.length > 0") $(req anon GET '/map/bounds/overview?west=-117.9&south=40.2&east=-117.3&north=40.8' | j "jobs.length > 0") $(req anon GET '/industries/fabricated-metals?state=NV' | j "jobs.some((x) => x.id === '$J102' && x.ownName !== null)") $(req anon GET "/skills/$MIG" | j "jobs.length > 0")"
 sql "UPDATE factories SET primary_naics_description = NULL WHERE id = '$FOUNDRY'" >/dev/null
 sql "UPDATE jobs SET posted_as = '$POSTED_102' WHERE id = '$J102'" >/dev/null
 expect "the answers that list it name it for its career, and its page says the level as a fact" 'true true true' "$(req anon GET "/factories/$FOUNDRY" | j "jobs.some((x) => x.id === '$J102' && x.title === 'CNC Machinist')") $(req anon GET "/occupations/$MACHINIST" | j "jobs.some((x) => x.id === '$J102' && x.title === 'CNC Machinist')") $(req anon GET "/jobs/$J102" | j "job.title === 'CNC Machinist' && o.job.levelWord === 'Senior' && o.job.levelRank === 3")"

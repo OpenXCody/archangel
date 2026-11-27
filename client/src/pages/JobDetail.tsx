@@ -247,7 +247,7 @@ export default function JobDetail() {
             <CareerTag career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
           ) : sourced ? (
             // The title is the company's variant of the career: the tag is the standard it varies, as on a version's page.
-            <CareerTag career={{ id: career.id, title: `Standard ${career.title}` }} data-job-standard="" />
+            <CareerTag career={{ id: career.id, title: career.title }} data-job-standard="" />
           ) : (
             <CareerTag career={career} />
           )}
@@ -390,7 +390,7 @@ function OtherJobs({
     >
       <RecordList>
         {list.jobs.map((job) => (
-          <JobRecordRow key={job.id} job={job} said={said} />
+          <JobRecordRow key={job.id} job={job} said={{ ...said, among: list.jobs }} />
         ))}
       </RecordList>
     </DetailSection>

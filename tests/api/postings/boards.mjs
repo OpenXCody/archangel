@@ -39,7 +39,7 @@ const one = [
   job(101, 'Welder II', 'Postville, NV', { text: welding([28, 34]) }),
   // Titled as an employer titles one: a level in short, a requisition number, a team in brackets. The job is named
   // "CNC Machinist", for its career alone (migration 0088); these words are kept as they were posted, and what a
-  // screen shows of them is the opening's own name (shared/jobOwnName.ts): here all of them, since none says what the
+  // screen shows of them is the opening's own name: here all of them, since none says what the
   // job's page states elsewhere.
   job(102, 'Sr. CNC Machinist - N0309 (Foundry)', 'Postville, NV', { department: 'Foundry', text: machining }),
   job(103, 'Maintenance Technician', 'Castings Gap, NV'),

@@ -1,5 +1,4 @@
 import { sql, type SQL } from 'drizzle-orm';
-import { jobOwnName } from '../../shared/jobOwnName.js';
 import { int, text, type Row } from './rows.js';
 
 /**
@@ -8,9 +7,8 @@ import { int, text, type Row } from './rows.js';
  * A job from a careers site is named for its career ("Welder"), and the title
  * its employer posted it under is kept beside that name (`jobs.posted_as`,
  * migration 0088). The posted title is given to nobody. What is given is the
- * opening's OWN NAME: that title with everything a page states elsewhere cut
- * out (`jobOwnName` in shared/jobOwnName.ts), or null where it says nothing
- * beyond the career's title. It is derived here on every read and stored
+ * opening's OWN NAME: that title as the company wrote it, or null where it says
+ * nothing beyond the career's title. It is derived here on every read and stored
  * nowhere, so a change to the rule needs no back-fill.
  *
  * Every statement that gives job rows selects what a name is read from
@@ -34,14 +32,10 @@ export interface JobNameSource {
 
 /** The opening's own name beside its standard name, or null where it has none. */
 export function ownNameOf(job: JobNameSource): string | null {
-  if (!job.postedAs) return null;
-  return jobOwnName(job.postedAs, {
-    career: job.occupationTitle ?? '',
-    company: job.companyName ?? '',
-    factory: job.factoryName,
-    city: job.city,
-    state: job.state,
-  });
+  // The title as the company posted it; nothing where it says no more than the career's.
+  const posted = job.postedAs?.replace(/\s+/g, ' ').trim();
+  if (!posted) return null;
+  return posted.toLowerCase() === (job.occupationTitle ?? '').trim().toLowerCase() ? null : posted;
 }
 
 /** The row as it is given: with its own name, without the title it was posted under. */
