@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { factoryNameBesideCompany } from '@shared/factoryName';
 import { cn, focusRing } from '@/lib/utils';
@@ -26,10 +27,12 @@ interface RecordTagProps {
   name: ReactNode;
   /** A few quiet words after the name: a factory's "City, ST". */
   detail?: ReactNode;
+  /** Drawn after the name: the chevron of a tag that is a page's one way to another record (a job's career). */
+  trail?: ReactNode;
   className?: string;
 }
 
-export function RecordTag({ to, kind, lead, name, detail, className, ...rest }: RecordTagProps & Record<`data-${string}`, string | undefined>) {
+export function RecordTag({ to, kind, lead, name, detail, trail, className, ...rest }: RecordTagProps & Record<`data-${string}`, string | undefined>) {
   return (
     <li className="min-w-0 max-w-full">
       <Link
@@ -48,6 +51,7 @@ export function RecordTag({ to, kind, lead, name, detail, className, ...rest }: 
           {name}
           {detail && <span className="text-text-3"> · {detail}</span>}
         </span>
+        {trail}
       </Link>
     </li>
   );
@@ -90,6 +94,6 @@ export function FactoryTag({ factory, beside }: { factory: { id: string; name: s
 }
 
 /** A career, by its title; `to` where the tag leads to a company's version of it. */
-export function CareerTag({ career, to, ...rest }: { career: { id: string; title: string }; to?: string } & Record<`data-${string}`, string | undefined>) {
-  return <RecordTag to={to ?? `/occupations/${career.id}`} kind="Career" name={career.title} {...rest} />;
+export function CareerTag({ career, to, goes, ...rest }: { career: { id: string; title: string }; to?: string; goes?: boolean } & Record<`data-${string}`, string | undefined>) {
+  return <RecordTag to={to ?? `/occupations/${career.id}`} kind="Career" name={career.title} trail={goes ? <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-text-2" /> : undefined} {...rest} />;
 }

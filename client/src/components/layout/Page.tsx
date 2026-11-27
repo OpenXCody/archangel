@@ -209,13 +209,15 @@ interface DetailHeaderProps {
    * it keeps the smaller size, where 40px would run to four lines and more.
    */
   longTitle?: boolean;
+  /** What stands before the name is more than a mark (a job's company, as a tag): the name goes under it where the two do not fit a line. */
+  markWraps?: boolean;
   /** Quiet lines of facts under the description. */
   children?: ReactNode;
   className?: string;
 }
 
 /** The heading block of a detail page. See the template at the top of this file. */
-export function DetailHeader({ back, kind, title, mark, qualifier, description, action, edit, longTitle, children, className }: DetailHeaderProps) {
+export function DetailHeader({ back, kind, title, mark, markWraps, qualifier, description, action, edit, longTitle, children, className }: DetailHeaderProps) {
   return (
     <header className={cn('min-w-0', className)} data-detail-header>
       <div className="-mt-2 mb-1 flex items-center justify-between gap-3">
@@ -225,7 +227,7 @@ export function DetailHeader({ back, kind, title, mark, qualifier, description, 
       <p className={cn(EYEBROW, 'mb-1.5')} data-detail-kind>
         {kind}
       </p>
-      <div className="flex min-w-0 items-center gap-3">
+      <div className={cn('flex min-w-0 items-center gap-3', markWraps && 'flex-wrap gap-y-2')}>
         {mark}
         <h1 className={cn(pageTitleClass, 'min-w-0 break-words [text-wrap:balance]', longTitle && 'max-sm:text-2xl max-sm:leading-8')}>{title}</h1>
       </div>

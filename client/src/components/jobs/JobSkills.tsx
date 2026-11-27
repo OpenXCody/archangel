@@ -97,6 +97,9 @@ export default function JobSkills({ job, path, forApplicant }: JobSkillsProps) {
   );
 }
 
+/** What a skill's row says when the posting itself names the skill. */
+const IN_POSTING = 'In this posting';
+
 interface PartProps {
   job: JobDetail;
   path: JobPath;
@@ -111,13 +114,16 @@ interface PartProps {
  * career's whole path is what the job takes.
  */
 function PostingSkills({ job, path, marks }: PartProps) {
-  // The job's own skills, and the rest of the career's range (`jobSkillParts` in lib/jobSkills.ts is the rule).
+  // The job's own skills (`jobSkillParts` in lib/jobSkills.ts is the rule): the ones its posting names.
   const { own } = jobSkillParts(path);
-  // A posting that names no skill has no Skills section: the career's tag leads to the career's own.
-  if (own.length === 0) return null;
+  const named = new Set(own.map((skill) => skill.id));
+  // The career's whole path in the route's order, then what the posting names beyond it; a named skill says so
+  // under its name, and its group arrives open.
+  const all = path.skills.concat(path.alsoNamed).map((skill) => ({ ...skill, added: undefined, makes: undefined, note: named.has(skill.id) ? IN_POSTING : null }));
+  if (all.length === 0) return null;
   return (
     <div className="[&>section]:mt-10" data-job-path={path.of} data-job-own="">
-      <SkillGroups skills={own} marks={marks} keepAs={`job ${job.id}`} />
+      <SkillGroups skills={all} marks={marks} keepAs={`job ${job.id}`} openWith={named} />
     </div>
   );
 }

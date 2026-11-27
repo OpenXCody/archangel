@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ import { useApply, useJobPage, type JobDetail as JobDetailData, type JobDetailRe
 import type { CareerJob } from '../lib/api';
 import { ApiError } from '../lib/http';
 import { accountKeys } from '../lib/queryKeys';
+import { recordQuery } from '../lib/queries';
 import { useViewer } from '../lib/viewer';
 import type { JobListSays } from '../lib/jobRow';
 import { jobPageTitle, jobTabTitle } from '../lib/jobTitle';
@@ -30,6 +31,7 @@ import { formatDay } from '../lib/dates';
 import JobDescription from '../components/jobs/JobDescription';
 import JobFacts from '../components/jobs/JobFacts';
 import JobManage from '../components/jobs/JobManage';
+import { CareerLadderSection } from '../components/route/CareerLadder';
 import JobSkills, { jobSectionClass } from '../components/jobs/JobSkills';
 import { SourcedApply, SourcedView } from '../components/jobs/SourcedJob';
 import { JobRecordRow } from '../components/jobs/JobRow';
@@ -134,6 +136,9 @@ export default function JobDetail() {
     }
   }, [canManage, recheckAccount]);
 
+  // The career's ladder, read as the career's own page reads it (one shared read).
+  const ladder = useQuery({ ...recordQuery('occupations', job.data?.job.occupationId), enabled: Boolean(job.data?.job.occupationId) });
+
   if (ref && job.isPending) return <PageLoading label="Loading job" />;
 
   const gone = !ref || (job.error instanceof ApiError && (job.error.status === 404 || job.error.status === 400));
@@ -221,7 +226,15 @@ export default function JobDetail() {
         // The number is the company's own count of its jobs: said to the people who manage it.
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
         kind={managesPosted ? `Job #${data.job.serial}` : 'Job'}
-        title={jobPageTitle(data.job)}
+        // Whose job it is stands before the name as the company's own tag, which opens the company; the name is then
+        // the career's alone (a job posted here keeps the title its poster wrote).
+        mark={
+          <ul className="flex shrink-0" data-job-company="">
+            <CompanyTag company={company} />
+          </ul>
+        }
+        markWraps
+        title={sourced ? career.title : jobPageTitle(data.job)}
         // What the employer called this opening, as plain text under the name the page gives it: not a tag, not a label.
         qualifier={
           data.job.ownName ? (
@@ -231,19 +244,18 @@ export default function JobDetail() {
           ) : undefined
         }
       >
-        {/* Whose job it is, where, and for which career: each opens its own page. */}
+        {/* Where, and for which career: each opens its own page. The company is the tag before the name. */}
         <RecordTags data-job-tags="">
-          <CompanyTag company={company} />
           {/* The company is named by the tag before it: the factory's tag does not say it again. */}
           <FactoryTag factory={{ id: data.job.factoryId, name: data.job.factoryName, city: data.job.city, state: data.job.state }} beside={company.name} />
           {data.job.hasVersion ? (
             // Where the company has its own version of the career, the job leads to that.
-            <CareerTag career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
+            <CareerTag goes career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
           ) : sourced ? (
             // The title is the company's variant of the career: the tag is the standard it varies, as on a version's page.
-            <CareerTag career={{ id: career.id, title: career.title }} data-job-standard="" />
+            <CareerTag goes career={{ id: career.id, title: career.title }} data-job-standard="" />
           ) : (
-            <CareerTag career={career} />
+            <CareerTag goes career={career} />
           )}
         </RecordTags>
         {!managesPosted && <div className="mt-5">{facts}</div>}
@@ -286,6 +298,9 @@ export default function JobDetail() {
       {!sourced && !manages && applying && apply}
 
       <JobSkills job={data.job} path={data.path} forApplicant={!manages} />
+
+      {/* Where the job's career comes from and leads: the same ladder the career's page draws. */}
+      <CareerLadderSection comesFrom={ladder.data?.comesFrom} leadsTo={ladder.data?.leadsTo} />
 
       {managesPosted &&
         (applying ? (
