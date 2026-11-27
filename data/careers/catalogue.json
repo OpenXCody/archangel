@@ -18,7 +18,22 @@
         "Razor Assembly Operator",
         "Blade Manufacturing Op"
       ],
-      "note": "The folded titles are single consumer-goods lines (diapers, tissue, razors). The path is the shared floor skills; a converting line's own skills are Converting Machine Operator's, since 0073."
+      "note": "The folded titles are single consumer-goods lines (diapers, tissue, razors). The path is the shared floor skills; a converting line's own skills are Converting Machine Operator's, since 0073.",
+      "dropAliases": [
+        "manufacturing technician",
+        "production technician"
+      ]
+    },
+    {
+      "title": "Manufacturing Technician",
+      "home": "assembly",
+      "what": "Builds and integrates hardware by hand from drawings and work instructions: assembles mechanical and electrical parts, measures as the build goes and records each step in the factory's system.",
+      "leadsTo": [
+        "Precision Assembly Technician",
+        "Quality Control Inspector"
+      ],
+      "was": [],
+      "note": "Added in November 2026 from employers' postings, which title it apart: 42 open postings titled Manufacturing Technician or Production Technician stood under Production Operator, asking drawings, calipers and micrometers, soldering and a multimeter, which an operator's line work does not."
     },
     {
       "title": "Setup Technician",
@@ -2404,11 +2419,23 @@
       "leadsTo": [],
       "was": [
         "Quality Systems Engineer",
-        "Supplier Quality Engineer",
         "Casting Quality Engineer",
         "AS9100 Lead Auditor"
       ],
-      "note": "Supplier Quality Engineer has a draft path and brings PPAP Submission and Acceptance Sampling; auditing brings the quality-system skills (ISO 9001, AS9100, IATF 16949, ISO 13485)."
+      "note": "Auditing brings the quality-system skills (ISO 9001, AS9100, IATF 16949, ISO 13485). Supplier Quality Engineer is a career of its own.",
+      "dropAliases": [
+        "Supplier Quality Engineer",
+        "SQE",
+        "supplier quality specialist"
+      ]
+    },
+    {
+      "title": "Supplier Quality Engineer",
+      "home": "quality",
+      "what": "Holds suppliers to the drawing and the quality system: qualifies and audits them, approves first articles and production parts, and drives root cause and corrective action when a supplied part escapes.",
+      "leadsTo": [],
+      "was": [],
+      "note": "A title folded into Quality Engineer until November 2026; 57 open postings carry it, and they ask auditing and part approval ahead of the plant's own process."
     },
     {
       "title": "Lumber Grader",
@@ -2533,7 +2560,9 @@
       "title": "RF Technician",
       "home": "test",
       "what": "Builds, tunes and tests radio-frequency hardware (radar, antennas, phased arrays, electronic warfare equipment) with network and spectrum analyzers.",
-      "leadsTo": [],
+      "leadsTo": [
+        "RF Engineer"
+      ],
       "was": [
         "Radar Technician",
         "Electronic Warfare Technician",
@@ -2597,10 +2626,22 @@
         "DVT Engineer",
         "EMC Engineer",
         "Compliance Engineer",
-        "Starlink RF Test Engineer",
-        "Flight Test Engineer"
+        "Starlink RF Test Engineer"
       ],
-      "note": "Manufacturing Test Engineer has a draft path and brings In-Circuit Test Development; EMC and compliance work bring EMC Testing. Flight test is instrumentation and data review here, not flying."
+      "note": "Manufacturing Test Engineer has a draft path and brings In-Circuit Test Development; EMC and compliance work bring EMC Testing.",
+      "dropAliases": [
+        "Flight Test Engineer"
+      ]
+    },
+    {
+      "title": "Flight Test Engineer",
+      "home": "test",
+      "what": "Plans and runs the flight tests of an aircraft or spacecraft: writes the test procedures, sees the vehicle instrumented, watches the data in flight and reports what it showed against the requirements.",
+      "leadsTo": [
+        "Systems Engineer"
+      ],
+      "was": [],
+      "note": "A title folded into Test Engineer until November 2026; 24 open postings carry it. Instrumentation and data review, not flying."
     },
     {
       "title": "Product Reliability Engineer",
@@ -2842,9 +2883,24 @@
       "leadsTo": [],
       "was": [
         "Design Engineer",
-        "Mechanical Design Engineer",
+        "Mechanical Design Engineer"
+      ],
+      "dropAliases": [
+        "thermal engineer",
         "Thermal Design Engineer"
       ]
+    },
+    {
+      "title": "Thermal Engineer",
+      "home": "engineering",
+      "what": "Keeps hardware within its temperature limits: works out heat flow by hand and in analysis software, designs the insulation, heat sinks and cooling, and proves the design in chamber and vacuum tests.",
+      "leadsTo": [
+        "Systems Engineer"
+      ],
+      "was": [
+        "Thermal Design Engineer"
+      ],
+      "note": "Added in November 2026 from employers' postings, which title it apart: 38 open postings stood under Mechanical Engineer."
     },
     {
       "title": "Electrical Engineer",
@@ -2862,7 +2918,46 @@
         "Motor Design Engineer",
         "Power Electronics Engineer"
       ],
-      "note": "The catalogue describes plant and equipment electrical work (480 V Power Distribution, drives, EMC Testing) but not circuit design, PCB layout, signal integrity or motor design, which is what the nine folded titles do."
+      "note": "The catalogue describes plant and equipment electrical work (480 V Power Distribution, drives, EMC Testing) but not circuit design, PCB layout, signal integrity or motor design, which is what the nine folded titles do.",
+      "dropAliases": [
+        "Radio Frequency Engineer",
+        "RF Engineer",
+        "Antenna Engineer",
+        "RF/Microwave Engineer",
+        "RF Design Engineer",
+        "RF Systems Engineer",
+        "RF Radar Engineer",
+        "RF Phased Array Engineer",
+        "RF Communications Engineer",
+        "Antenna Design Engineer",
+        "Antenna RF Engineer",
+        "harness design engineer",
+        "wire harness design engineer",
+        "electrical harness design engineer",
+        "wire harness engineer",
+        "harness engineer",
+        "EWIS engineer"
+      ]
+    },
+    {
+      "title": "RF Engineer",
+      "home": "engineering",
+      "what": "Designs and proves radio-frequency hardware: antennas, amplifiers, filters and the boards that carry them, from the first trade study to measurement on network and spectrum analyzers.",
+      "leadsTo": [
+        "Systems Engineer"
+      ],
+      "was": [],
+      "note": "Added in November 2026 from employers' postings, which title it apart: 130 open postings (RF design, RF systems, antenna, microwave, radar) stood under Electrical Engineer and Test Engineer."
+    },
+    {
+      "title": "Harness Design Engineer",
+      "home": "engineering",
+      "what": "Designs the wiring of a vehicle or machine: lays out harnesses in CAD, chooses wire, connectors and shielding, and writes the drawings a harness is built and tested to.",
+      "leadsTo": [
+        "Electrical Engineer"
+      ],
+      "was": [],
+      "note": "Added in November 2026 from employers' postings, which title it apart: 33 open postings stood under Electrical Engineer, 32 of them asking wire harness design."
     },
     {
       "title": "Tooling Engineer",

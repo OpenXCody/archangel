@@ -43,7 +43,8 @@
 // 0047 was the first, 0056 the second and 0074, which listed the careers 0073
 // added, the third, each as it was applied; 0085 follows 0084, which took four
 // careers out of the catalogue (their industry links and other names went with
-// them), and takes "Oven Operator" back from the paint shop's career. Only the
+// them), and took "Oven Operator" back from the paint shop's career; 0093 lists the
+// six careers 0092 added and names the welding branches by their process. Only the
 // latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -54,7 +55,7 @@ const [
   catalogueFile = 'data/careers/catalogue.json',
   industriesFile = 'data/careers/industries.json',
   aliasesFile = 'data/careers/aliases.json',
-  output = 'migrations/0085_career_lists_4.sql',
+  output = 'migrations/0093_career_lists_5.sql',
 ] = args.filter((arg) => arg !== '--check');
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0 && value === value.trim();

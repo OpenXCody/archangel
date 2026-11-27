@@ -286,10 +286,10 @@ test('a military career is a title with the service in front, a code of its serv
 });
 
 test('the civilian catalogue is untouched, and no name is shared with it', () => {
-  // The civilian catalogue is its own file's: 156 careers, 231 with its second pass (0073), 227 since four left with
-  // its third (0084); none of them is a military one.
-  assert.equal(civilianCatalogue.careers.length, 227);
-  assert.equal(civilianPaths.careers.length, 227);
+  // The civilian catalogue is its own file's: 156 careers, 231 with its second pass (0073), 227 since four left with its third (0084), 233 since six were added with
+  // its fourth (0092); none of them is a military one.
+  assert.equal(civilianCatalogue.careers.length, 233);
+  assert.equal(civilianPaths.careers.length, 233);
   const military = new Set(careers.flatMap((career) => [career.title, ...career.was]).map((name) => name.toLowerCase()));
   for (const name of military) assert.ok(!civilian.has(name), `${name} is a civilian name`);
   for (const career of civilianCatalogue.careers) assert.ok(!military.has(career.title.toLowerCase()), career.title);
@@ -412,7 +412,7 @@ test('the check refuses military files that are not whole', () => {
 test('the posting reader knows the civilian careers only', () => {
   const root = path.resolve('.');
   const vocab = loadVocabulary(root) as { careers: Map<string, unknown> };
-  assert.equal(vocab.careers.size, 227);
+  assert.equal(vocab.careers.size, 233);
   const military = new Set(careers.map((career) => career.title));
   for (const title of vocab.careers.keys()) assert.ok(!military.has(title), `${title} is in the reader's vocabulary`);
   const career = (title: string): string | null =>

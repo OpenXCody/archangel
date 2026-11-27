@@ -27,7 +27,7 @@ import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successf
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { beforeText, collect, inTurn, report, siteNames, stage, stillACareer } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect, inTurn, report, sameCareerByTitle, siteNames, stage, stillACareer } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import { TITLES_KEPT, titleKey, titleLines, titleTally } from '../../scripts/ingest/postings/titles.mjs';
 // @ts-expect-error a plain script, no types
@@ -584,10 +584,11 @@ test('before a text is asked for: a title that is a career, one that could be, a
   const ask = (title: string, location: string | null) =>
     beforeText(reader, { title, location, locations: location ? [location] : [] }, { employer: 'Acme', title }, vocab);
   // The title says it.
-  assert.deepEqual(ask('Welder', 'Franklin, LA'), { could: true, places: [{ city: 'Franklin', state: 'LA' }] });
+  assert.deepEqual(ask('Welder', 'Franklin, LA'), { could: true, places: [{ city: 'Franklin', state: 'LA' }], career: 'Welder' });
   // The title could be one of ours and the text has to bear it out: the reader reached for the text, so it is worth the request.
-  assert.equal(reader.readPosting({ employer: 'Acme', title: 'Manufacturing Technician', location: 'Franklin, LA', text: '' }, vocab).career, null);
-  assert.equal(ask('Manufacturing Technician', 'Franklin, LA').could, true);
+  assert.equal(reader.readPosting({ employer: 'Acme', title: 'Electronics Manufacturing Technician', location: 'Franklin, LA', text: '' }, vocab).career, null);
+  assert.equal(ask('Electronics Manufacturing Technician', 'Franklin, LA').could, true);
+  assert.equal(ask('Electronics Manufacturing Technician', 'Franklin, LA').career, null, 'the title alone does not say which');
   // A title the reader refuses outright is never asked about.
   assert.equal(ask('Deputy Program Manager', 'Austin, Texas, United States').could, false);
   assert.equal(ask('Accountant', 'Franklin, LA').could, false);
@@ -1137,4 +1138,16 @@ test('a listing that is refused part way keeps what it listed and says it did no
   // Refused before anything was listed: there is nothing to stage, and the run fails as a refusal.
   put('refuse/careers.partway.test', '403 after 1');
   await assert.rejects(collect(noRows, entry, { session: fetcherHere().session('partway', { pace: 0 }), reader, vocab: reader.loadVocabulary(ROOT), today: '2026-11-19' }), Refusal);
+});
+
+test('a staged posting is read again when its title now says another career by itself', () => {
+  const staged = (title: string, byTitle?: string) => ({ reading: { career: { title } }, ...(byTitle ? { byTitle } : {}) });
+  // The catalogue gained RF Engineer: a posting staged as an electrical engineer whose title is now that career's.
+  assert.equal(sameCareerByTitle({ career: 'RF Engineer' }, staged('Electrical Engineer')), false);
+  assert.equal(sameCareerByTitle({ career: 'Welder' }, staged('Welder')), true);
+  // A title the text has to decide says nothing by itself, and is left as it was read.
+  assert.equal(sameCareerByTitle({ career: null }, staged('Production Operator')), true);
+  // The text made it a branch: what the title said is kept beside the reading, so it is not asked for on every run.
+  assert.equal(sameCareerByTitle({ career: 'Welder' }, staged('TIG Welder', 'Welder')), true);
+  assert.equal(sameCareerByTitle({ career: 'TIG Welder' }, staged('TIG Welder', 'Welder')), false);
 });

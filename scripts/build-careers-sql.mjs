@@ -52,8 +52,10 @@
 // Every step is a no-op once it has been done.
 //
 // 0046 was the first and 0073, which added the trades of the industries the
-// catalogue lacked, the second, each as it was applied; 0084 takes out four
-// careers that are cleaning a plant and preparing food by hand. Only the latest
+// catalogue lacked, the second, each as it was applied; 0084 took out four
+// careers that are cleaning a plant and preparing food by hand; 0092 adds six
+// that employers' postings title apart from the broad careers they stood under
+// (two of them titles folded into another until then). Only the latest
 // is what this script writes today, and it needs the tables of 0043 and 0054,
 // which stand before it in the runner's list.
 import { readFile, writeFile } from 'node:fs/promises';
@@ -61,7 +63,7 @@ import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0084_careers_catalogue_3.sql'] = args.filter((arg) => arg !== '--check');
+const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0092_careers_catalogue_4.sql'] = args.filter((arg) => arg !== '--check');
 
 /** The most careers one career leads to. */
 export const MAX_LEADS_TO = 3;

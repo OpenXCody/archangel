@@ -43,9 +43,13 @@ const CATALOGUE = 'data/careers/catalogue.json';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const INDUSTRY_LIST = 'data/careers/industries.json';
 const ALIASES = 'data/careers/aliases.json';
-// The latest of each. 0046 and 0073 were the catalogue's first and second; 0047, 0056 and 0074 the lists' first three; each is as it was applied.
-const MIGRATION = 'migrations/0084_careers_catalogue_3.sql';
-const LISTS_MIGRATION = 'migrations/0085_career_lists_4.sql';
+// The latest of each. 0046, 0073 and 0084 were the catalogue's first three; 0047, 0056, 0074 and 0085 the lists' first four; each is as it was applied.
+const MIGRATION = 'migrations/0092_careers_catalogue_4.sql';
+const LISTS_MIGRATION = 'migrations/0093_career_lists_5.sql';
+const THIRD_MIGRATION = 'migrations/0084_careers_catalogue_3.sql';
+const THIRD_LISTS_MIGRATION = 'migrations/0085_career_lists_4.sql';
+// The careers employers' postings title apart from the broad ones they stood under, added with the fourth.
+const ADDED = ['Manufacturing Technician', 'Supplier Quality Engineer', 'Flight Test Engineer', 'Thermal Engineer', 'RF Engineer', 'Harness Design Engineer'];
 const SECOND_MIGRATION = 'migrations/0073_careers_catalogue_2.sql';
 // The careers that left the catalogue with its third migration: cleaning a plant, and preparing food by hand.
 const TAKEN_OUT = ['Sanitation Technician', 'Meat Cutter', 'Slaughterer', 'Baker'];
@@ -354,6 +358,9 @@ test('both migrations are in the runner\'s list, the lists after the catalogue',
   // The catalogue's third, the lists' fourth and the paths' third stand together, after everything applied before them.
   assert.match(runner, /'0084_careers_catalogue_3\.sql', '0085_career_lists_4\.sql', '0086_career_paths_3\.sql'/);
   assert.ok(runner.indexOf("'0082_texas_hubs_2.sql'") < runner.indexOf("'0084_careers_catalogue_3.sql'"));
+  // And the catalogue's fourth, the lists' fifth and the paths' fourth, after 0091.
+  assert.match(runner, /'0092_careers_catalogue_4\.sql', '0093_career_lists_5\.sql', '0094_career_paths_4\.sql'/);
+  assert.ok(runner.indexOf("'0091_new_jobs_in_scope.sql'") < runner.indexOf("'0092_careers_catalogue_4.sql'"));
 });
 
 test('a name taken back is deleted from its career only, said in the log, and listed for nobody', () => {
@@ -418,11 +425,10 @@ test('the second catalogue adds the trades of the industries it lacked: each wit
 
 test('the third catalogue takes out cleaning a plant and preparing food by hand, and nothing else', () => {
   const before = readFileSync(SECOND_MIGRATION, 'utf8');
-  const after = readFileSync(MIGRATION, 'utf8');
+  const after = readFileSync(THIRD_MIGRATION, 'utf8');
   const was = rowTitles(before);
   const now = rowTitles(after);
   assert.equal(now.size, 227);
-  assert.equal(catalogue.careers.length, 227);
   assert.deepEqual([...was].filter((title) => !now.has(title)).sort(), [...TAKEN_OUT].sort(), 'the four, and only they, are careers no longer');
   assert.deepEqual([...now].filter((title) => !was.has(title)), [], 'no career is added');
   // They are under `removed`, in one group that says why, so the migration deletes them and the title cannot come back unnoticed.
@@ -475,12 +481,11 @@ test('the third catalogue takes out cleaning a plant and preparing food by hand,
   // technician as one employer titles it) and one taken back (a rigger is not a millwright). The reader's test holds
   // what each changes.
   const listsBefore = readFileSync('migrations/0074_career_lists_3.sql', 'utf8');
-  const listsAfter = readFileSync(LISTS_MIGRATION, 'utf8');
+  const listsAfter = readFileSync(THIRD_LISTS_MIGRATION, 'utf8');
   const listed = (sql: string, from: string, to: string) => sql.slice(sql.indexOf(from), sql.indexOf(to)).split('\n').filter((line) => line.startsWith('  (')).map((line) => line.replace(/[,;]$/, ''));
   const own = (sql: string) => listed(sql, 'INSERT INTO list_industries', 'INSERT INTO list_names').filter((line) => line.endsWith(', false)'));
   assert.equal(own(listsBefore).length, 426);
   assert.equal(own(listsAfter).length, 421);
-  assert.equal(industries.industries.reduce((sum, row) => sum + row.careers.length, 0), 421);
   const names = (sql: string) => listed(sql, 'INSERT INTO list_names', '-- Careers by industry');
   assert.equal(names(listsBefore).length, 1156);
   assert.equal(names(listsAfter).length, 1118);
@@ -501,6 +506,54 @@ test('the third catalogue takes out cleaning a plant and preparing food by hand,
   assert.ok(listsAfter.includes("  ('Oven Operator', 'Automotive Paint Technician')"));
   assert.ok(listsAfter.includes("  ('rigger', 'Millwright')"));
   assert.equal(aliases.careers.reduce((sum, row) => sum + (row.not ?? []).length, 0), 14);
+});
+
+test('the fourth catalogue adds six careers that postings title apart, and takes their names from the careers they stood under', () => {
+  const before = readFileSync(THIRD_MIGRATION, 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const [was, now] = [rowTitles(before), rowTitles(after)];
+  assert.equal(now.size, 233);
+  assert.equal(catalogue.careers.length, 233);
+  assert.deepEqual([...now].filter((title) => !was.has(title)), ADDED, 'the six, and only they, are new');
+  assert.deepEqual([...was].filter((title) => !now.has(title)), [], 'no career leaves');
+  const career = (title: string) => catalogue.careers.find((each) => each.title === title)!;
+  const names = (title: string) => aliases.careers.find((row) => row.title === title)?.aliases ?? [];
+  // Each is typical of an industry, has a home and says what it is; none repeats the career it came out of.
+  const listed = new Set(industries.industries.flatMap((row) => row.careers));
+  for (const title of ADDED) {
+    assert.ok(listed.has(title), `${title} is typical of an industry`);
+    assert.ok(career(title).what.length > 60, `${title} says what it is`);
+  }
+  assert.equal(industries.industries.reduce((sum, row) => sum + row.careers.length, 0), 435);
+  // A title folded into a career until now is that career's name no longer, in the file and in the database.
+  assert.ok(!career('Quality Engineer').was.includes('Supplier Quality Engineer'));
+  assert.ok(!career('Test Engineer').was.includes('Flight Test Engineer'));
+  assert.ok(!career('Mechanical Engineer').was.includes('Thermal Design Engineer'));
+  assert.deepEqual(career('Thermal Engineer').was, ['Thermal Design Engineer']);
+  const moved: [string, string, string][] = [
+    ['RF Design Engineer', 'Electrical Engineer', 'RF Engineer'], ['Antenna Engineer', 'Electrical Engineer', 'RF Engineer'],
+    ['wire harness engineer', 'Electrical Engineer', 'Harness Design Engineer'], ['SQE', 'Quality Engineer', 'Supplier Quality Engineer'],
+    ['production technician', 'Production Operator', 'Manufacturing Technician'],
+  ];
+  for (const [name, from, to] of moved) {
+    assert.ok(career(from).dropAliases?.includes(name), `${name} must not follow ${from}`);
+    assert.ok(!names(from).includes(name), `${name} is not listed for ${from}`);
+    assert.ok(names(to).includes(name), `${name} is ${to}'s`);
+  }
+  for (const [title, name] of [['Quality Engineer', 'Supplier Quality Engineer'], ['Test Engineer', 'Flight Test Engineer'], ['Mechanical Engineer', 'thermal engineer'], ['Production Operator', 'manufacturing technician']]) {
+    assert.ok(career(title).dropAliases?.includes(name), `${name} is taken from ${title}`);
+  }
+  // The ladders: seven links more, none gone. The RF technician has a rung above it now.
+  const linkRows = (sql: string) => new Set(sql.slice(sql.indexOf('INSERT INTO cat_links'), sql.indexOf('INSERT INTO cat_drop')).split('\n').filter((line) => line.startsWith('  (')).map((line) => line.replace(/, \d+\)[,;]?$/, ')')));
+  const [linksBefore, linksAfter] = [linkRows(before), linkRows(after)];
+  assert.equal(linksAfter.size, 198);
+  assert.deepEqual([...linksBefore].filter((link) => !linksAfter.has(link)), []);
+  assert.deepEqual(career('RF Technician').leadsTo, ['RF Engineer']);
+  // A welding title that names its process is that branch's: orbital welding is TIG's, and the automated welding of
+  // flight hardware the aerospace welder's.
+  assert.ok(names('TIG Welder').includes('orbital welder'));
+  assert.ok(names('Aerospace Welder').includes('automated welding technician'));
+  assert.ok(names('Robotic Welding Technician').includes('robotic welder'));
 });
 
 test('the words that make a title not ours: the check holds their shape, and no career is named with one', () => {

@@ -68,7 +68,11 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // Where new jobs are ported from (data/employers/boards.json, "states"): a column on a source of jobs, and the two
   // functions that decide a job keeping to it. It closes and deletes nothing. Numbered 0091 because 0083 to 0090 are
   // taken on other branches.
-  '0091_new_jobs_in_scope.sql'];
+  '0091_new_jobs_in_scope.sql',
+  // Six careers employers' postings title apart from the broad ones they stood under (Manufacturing Technician, RF
+  // Engineer, Harness Design Engineer, Thermal Engineer, Supplier Quality Engineer, Flight Test Engineer), with their
+  // industries, names and paths; welding titles that name a process go to its branch.
+  '0092_careers_catalogue_4.sql', '0093_career_lists_5.sql', '0094_career_paths_4.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

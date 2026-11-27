@@ -133,7 +133,10 @@ function matchSegment(given, vocab) {
     // A trade's general name is no rival to a name that says the kind (a "Production Stick Welder" is a stick
     // welder), and has none in a name of its own trade (a "Certified Production Welder" is a production welder).
     const settled = generalNameOf(beside, vocab) || (beside && generalNameOf(name, vocab)?.career === beside.career);
-    const rival = beside && beside.career !== name.career && (beside.kind === 'title' || name.kind !== 'title') && !settled ? beside : null;
+    // A career's own title after words that leave a job what it is stays that career, though the last of those words
+    // makes a name with the job word: a "Manufacturing Test Technician" is a test technician, in manufacturing.
+    const itself = plain && name.kind === 'title';
+    const rival = beside && beside.career !== name.career && (beside.kind === 'title' || name.kind !== 'title') && !settled && !itself ? beside : null;
     return { name, close: true, words, also, rival, joined: Boolean(given.joins?.has(before.length)) };
   }
   // 3. A name with a word or two after it ("Aircraft Mechanic AME", "Systems Engineer Autonomy").
