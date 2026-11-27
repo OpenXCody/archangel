@@ -3071,27 +3071,31 @@ test('the Jobs list at volume: two fields, how many match in all, and a page at 
   await assertHealthyLayout(page, '/jobs narrowed to one career');
 });
 
-test("a job from a company's careers site: the company's variant as its title, its career as a tag, its own skills as a tree, no prompt to sign in", async ({ page }) => {
+test("a job from a company's careers site: its company before its career's name, its career as a tag, the career's skills as a tree with the posting's said, no prompt to sign in", async ({ page }) => {
   await standInForPostedJobs(page);
   await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Space Exploration Technologies CNC Machinist');
+  // The company is the tag before the name, and opens the company; the name is the career's alone.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist');
+  const whose = page.locator('[data-detail-header] [data-job-company] a');
+  await expect(whose).toContainText('Space Exploration Technologies');
+  await expect(whose).toHaveAttribute('href', /^\/companies\//);
   await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
   await expect(page.locator('[data-detail-header] [data-job-own-name]')).toHaveText(POSTED_OWN_NAME);
-  // The company, the factory and the career as tags; the career by its own name.
+  // The factory and the career as tags (the company is not said again); the career by its own name.
   const tags = page.locator('[data-job-tags] a');
-  await expect(tags).toHaveCount(3);
-  await expect(tags.nth(0)).toHaveAttribute('href', /^\/companies\//);
-  await expect(tags.nth(1)).toHaveAttribute('href', /^\/factories\//);
-  await expect(tags.nth(2)).toHaveAttribute('href', /^\/occupations\//);
-  await expect(tags.nth(2)).toContainText('CNC Machinist');
-  await expect(tags.nth(2)).not.toContainText('Standard');
-  // The skills its posting names, as the tree a career's page draws: groups that open, closed on arrival.
+  await expect(tags).toHaveCount(2);
+  await expect(tags.nth(0)).toHaveAttribute('href', /^\/factories\//);
+  await expect(tags.nth(1)).toHaveAttribute('href', /^\/occupations\//);
+  await expect(tags.nth(1)).toContainText('CNC Machinist');
+  await expect(tags.nth(1)).not.toContainText('Standard');
+  // Its career's skills, as the tree a career's page draws. A group that holds a skill the posting names arrives
+  // open, and those skills say so under their names; the rest of the career's groups arrive closed.
   const tree = page.locator('#skills [data-skill-tree]');
   await expect(tree).toBeVisible();
-  const groups = tree.locator('button[aria-expanded]');
-  expect(await groups.count()).toBeGreaterThan(0);
-  expect(await groups.evaluateAll((nodes) => nodes.every((node) => node.getAttribute('aria-expanded') === 'false'))).toBe(true);
+  const said = tree.locator('[data-skill-tag]', { hasText: 'In this posting' });
+  expect(await said.count(), 'the posting\'s own skills are on show').toBeGreaterThan(0);
+  expect(await tree.locator('[data-skill-tag]').count(), 'only the groups of the posting\'s skills are open').toBeGreaterThanOrEqual(await said.count());
   // Nothing in the section asks anyone to sign in, and no button stands for the rest of the career.
   await expect(page.locator('#skills a[href^="/sign-in"]')).toHaveCount(0);
   await expect(page.locator('[data-job-range]')).toHaveCount(0);
@@ -3109,7 +3113,9 @@ test('a job a company posted here by hand lists the skills it chose as the same 
   // It keeps the title its poster wrote, with no line under it, its career as the tag, and its tab as running text names it.
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist');
   await expect(page.locator('[data-job-own-name], [data-job-standard]')).toHaveCount(0);
-  await expect(page.locator('[data-job-tags] a').nth(2)).toHaveText('Career: CNC Machinist');
+  await expect(page.locator('[data-job-tags] a')).toHaveCount(2);
+  await expect(page.locator('[data-job-tags] a').nth(1)).toHaveText('Career: CNC Machinist');
+  await expect(page.locator('[data-job-company] a')).toContainText('Space Exploration Technologies');
   await expect(page).toHaveTitle('CNC Machinist at Space Exploration Technologies · Archangel');
   const skills = page.locator('#skills');
   await expect(skills.locator('h2')).toHaveText('Skills');
