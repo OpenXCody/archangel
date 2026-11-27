@@ -225,12 +225,27 @@ test("a version's line names the makes it runs, or else how it differs", () => {
 
 test('the Atlas keeps a version in its address, with the career it is of', () => {
   assert.equal(atlasHref({ career: 'c1', at: 'boeing' }), '/atlas?career=c1&at=boeing');
-  assert.equal(atlasHref({ domain: 'quality', career: 'c1', at: 'boeing' }), '/atlas?domain=quality&career=c1&at=boeing');
-  // A version can be compared with the career it is a version of; a career with itself still cannot.
-  assert.equal(atlasHref({ career: 'c1', at: 'boeing', with: 'c1' }), '/atlas?career=c1&at=boeing&with=c1');
-  assert.equal(atlasHref({ career: 'c1', with: 'c1' }), '/atlas?career=c1');
+  // Beside whatever is open: Fundamentals, a field, a group, a skill, a core group inside a field.
+  assert.equal(atlasHref({ fundamentals: true, career: 'c1', at: 'boeing' }), '/atlas?fundamentals=1&career=c1&at=boeing');
+  assert.equal(atlasHref({ field: 'welding', career: 'c1', at: 'boeing' }), '/atlas?field=welding&career=c1&at=boeing');
+  assert.equal(atlasHref({ group: 'arc-welding', career: 'c1', at: 'boeing' }), '/atlas?group=arc-welding&career=c1&at=boeing');
+  assert.equal(atlasHref({ skill: 'abc', career: 'c1', at: 'boeing' }), '/atlas?skill=abc&career=c1&at=boeing');
+  assert.equal(atlasHref({ group: 'workplace-safety', field: 'welding', career: 'c1', at: 'boeing' }), '/atlas?group=workplace-safety&field=welding&career=c1&at=boeing');
+  // A company is named by its id or its slug, written so that either reads back.
+  assert.equal(atlasHref({ career: 'c1', at: 'apex-manufacturing' }), '/atlas?career=c1&at=apex-manufacturing');
+  assert.equal(readAtlasState(new URLSearchParams(atlasHref({ career: 'c1', at: 'a b&c' }).split('?')[1])).at, 'a b&c');
+  // A military career can lie under a version as under the career itself.
+  assert.equal(atlasHref({ career: 'c1', at: 'boeing', from: 'm1' }), '/atlas?career=c1&at=boeing&from=m1');
+  assert.deepEqual(
+    (({ career, at, from }) => ({ career, at, from }))(readAtlasState(new URLSearchParams('field=welding&career=c1&at=boeing&from=m1'))),
+    { career: 'c1', at: 'boeing', from: 'm1' }
+  );
   // Without a career there is nothing for a company to have a version of.
   assert.equal(atlasHref({ at: 'boeing' }), '/atlas');
+  assert.equal(atlasHref({ field: 'welding', at: 'boeing' }), '/atlas?field=welding');
   assert.equal(readAtlasState(new URLSearchParams('at=boeing')).at, null);
+  assert.equal(readAtlasState(new URLSearchParams('field=welding&at=boeing')).at, null);
   assert.equal(readAtlasState(new URLSearchParams('career=c1&at=boeing')).at, 'boeing');
+  // An older Atlas compared a version with a second career: that word is no longer read, and the version stays.
+  assert.equal(atlasHref(readAtlasState(new URLSearchParams('career=c1&at=boeing&with=c1'))), '/atlas?career=c1&at=boeing');
 });

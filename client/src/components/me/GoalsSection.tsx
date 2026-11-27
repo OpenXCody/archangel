@@ -25,7 +25,7 @@ import {
 } from '../account/parts';
 import { PageSection } from '../layout/Page';
 import GoalPlate, { GoalPlateGround } from '../atlas/GoalPlate';
-import { useAtlasLayout } from '../atlas/useAtlasLayout';
+import { useAtlasModel } from '../atlas/useAtlasModel';
 import { ShareRing } from '../path/HeldShare';
 import { SkillsLine } from '../path/SkillsLine';
 import { accountKeys } from '../../lib/queryKeys';
@@ -42,7 +42,7 @@ export default function GoalsSection() {
 
   // Each goal's career as a small plate, filled as far as the person holds it. The plates read the taxonomy
   // and the person's skills, which the Skills section below reads too: no request of their own.
-  const { layout } = useAtlasLayout();
+  const { model } = useAtlasModel();
   const mySkills = useMySkills();
   const statusById = useMemo(() => new Map((mySkills.data ?? []).map((skill) => [skill.skillId, skill.status])), [mySkills.data]);
   const statusOf = useCallback((skillId: string) => statusById.get(skillId), [statusById]);
@@ -70,7 +70,7 @@ export default function GoalsSection() {
       ) : (
         <>
         {/* The ground every goal's small plate shows, drawn once. */}
-        {layout && <GoalPlateGround layout={layout} />}
+        {model && model.N > 0 && <GoalPlateGround />}
         <ul className={cardClass}>
           {listed.map((goal) => {
             if (removedIds.has(goal.occupationId)) {
@@ -94,14 +94,14 @@ export default function GoalsSection() {
             return (
               <li key={goal.occupationId} className={cn(rowClass, 'flex items-center gap-3 py-4')} data-goal={goal.occupationId}>
                 {/* The career on the Atlas, small: how much of it is filled. It opens the career's page at its path, the route. */}
-                {layout && goal.skillIds && goal.skillIds.length > 0 && (
+                {model && model.N > 0 && goal.skillIds && goal.skillIds.length > 0 && (
                   <Link
                     to={`/occupations/${goal.occupationId}#skills`}
                     aria-label={`Path of ${goal.title}`}
                     data-goal-plate-link
                     className={cn('-my-1 -ml-1 shrink-0 self-start rounded-full p-1 transition-opacity hover:opacity-80', focusRing)}
                   >
-                    <GoalPlate layout={layout} skillIds={goal.skillIds} statusOf={statusOf} className="h-16 w-16" />
+                    <GoalPlate model={model} skillIds={goal.skillIds} statusOf={statusOf} className="h-16 w-16" />
                   </Link>
                 )}
                 <div className="min-w-0 flex-1">

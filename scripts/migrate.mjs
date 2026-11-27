@@ -56,7 +56,9 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // were taken on other branches first (the list is ordered, not contiguous).
   '0081_posting_places_2.sql',
   // The Texas factories texas-hubs.json left waiting for a location, placed (data/employers/texas-hubs-2.json).
-  '0082_texas_hubs_2.sql'];
+  '0082_texas_hubs_2.sql',
+  // The skill groups re-cut to the Atlas's: seven new groups of skills already placed, 27 skills moved, 127 groups renamed.
+  '0083_skill_taxonomy_6.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

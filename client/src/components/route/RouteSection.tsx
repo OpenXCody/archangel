@@ -25,7 +25,7 @@ interface RouteSectionProps {
  * A section of a route: a run of skills of one skill group. One button, a
  * full finger tall, that opens and closes its rows: on the trunk the
  * section's ring, then the group's name with a figure after it that says
- * something or is not there ("Measurement tools · 2 of 4" part done, "· 4"
+ * something or is not there ("Measuring · 2 of 4" part done, "· 4"
  * untouched, nothing when it is whole), then the chevron. Closed, the names
  * of its skills stand under the group's in one quiet line (`SkillNames`), so
  * the path reads at a glance, and its rows are hidden and out of the tab

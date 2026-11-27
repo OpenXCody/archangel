@@ -3,13 +3,13 @@ import { ChevronRight } from 'lucide-react';
 import { cn, focusRing, plural } from '@/lib/utils';
 import type { TaxonomyDomain } from '../../lib/api';
 import { LEVEL_NAME } from '../../lib/stages';
+import { atlasHref } from '../atlas/state';
 
 /**
- * The Skills list in the taxonomy's own order: the Atlas, as a list. Each
- * domain is a heading with its sentence, each skill group a small heading
- * over its skills, and each skill a row with its level; the order is the
- * order the drawing runs in, clockwise from the top. A domain's heading
- * leads to that domain on the atlas.
+ * The Skills list in the taxonomy's own order. Each domain is a heading with
+ * its sentence, each skill group a small heading over its skills, and each
+ * skill a row with its level. A domain's heading leads to the atlas, opened
+ * on the field that holds most of that domain's groups.
  */
 export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
   return (
@@ -24,7 +24,7 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
           <div className="flex flex-wrap items-baseline justify-between gap-x-6">
             <h2 className="text-xl font-semibold text-text-1">{domain.name}</h2>
             <Link
-              to={`/atlas?domain=${encodeURIComponent(domain.slug)}`}
+              to={atlasHref({ domain: domain.slug })}
               className={cn(
                 'inline-flex min-h-11 items-center gap-1 text-sm text-text-2 transition-colors hover:text-text-1 hover:underline sm:min-h-0',
                 focusRing

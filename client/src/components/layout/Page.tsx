@@ -71,6 +71,9 @@ const SIZE_CLASS: Record<PageSize, string> = {
   full: 'max-w-none',    // map and other edge-to-edge surfaces
 };
 
+/** Centred, with the gutter every page keeps at its sides. */
+const PAGE_GUTTER = 'mx-auto w-full px-4 sm:px-6';
+
 interface PageContainerProps {
   size?: PageSize;
   /** Remove vertical padding for pages that manage their own (e.g. the map). */
@@ -79,11 +82,18 @@ interface PageContainerProps {
   children: ReactNode;
 }
 
+/**
+ * The page's width and its side gutters, for a part of a view that is no
+ * `PageContainer` but must stand on the same two edges as one (the Atlas's tab
+ * row and bar over its full-width stage).
+ */
+export const pageWidthClass = cn(PAGE_GUTTER, SIZE_CLASS.default);
+
 export function PageContainer({ size = 'default', flush = false, className, children }: PageContainerProps) {
   return (
     <div
       className={cn(
-        'mx-auto w-full px-4 sm:px-6',
+        PAGE_GUTTER,
         !flush && 'py-6 sm:py-8',
         'pb-[max(1.5rem,var(--safe-area-bottom))]',
         SIZE_CLASS[size],
