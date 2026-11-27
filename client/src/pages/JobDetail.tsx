@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, Loader2, Lock, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { signInPath, useAccount } from '../lib/account';
-import { useApply, useJobPage, useUpdateJob, type JobDetail as JobDetailData, type JobDetailResponse } from '../lib/jobs';
+import { useApply, useJobPage, type JobDetail as JobDetailData, type JobDetailResponse } from '../lib/jobs';
 import type { CareerJob } from '../lib/api';
 import { ApiError } from '../lib/http';
 import { accountKeys } from '../lib/queryKeys';
-import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
+import { recordQuery } from '../lib/queries';
 import { useViewer } from '../lib/viewer';
 import type { JobListSays } from '../lib/jobRow';
 import { jobPageTitle, jobTabTitle } from '../lib/jobTitle';
@@ -23,19 +23,17 @@ import {
   Field,
   LoadError,
   PageLoading,
-  RowsSkeleton,
   cardClass,
   fieldClass,
-  outlineButtonClass,
   busyButtonClass,
 } from '../components/account/parts';
-import { DAY_MS, formatDay } from '../lib/dates';
-import ApplicantList from '../components/jobs/ApplicantList';
+import { formatDay } from '../lib/dates';
 import JobDescription from '../components/jobs/JobDescription';
 import JobFacts from '../components/jobs/JobFacts';
+import JobManage from '../components/jobs/JobManage';
+import { CareerLadderSection } from '../components/route/CareerLadder';
 import JobSkills, { jobSectionClass } from '../components/jobs/JobSkills';
 import { SourcedApply, SourcedView } from '../components/jobs/SourcedJob';
-import ConfirmDialog from '../components/layout/ConfirmDialog';
 import { JobRecordRow } from '../components/jobs/JobRow';
 import { DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, detailActionClass, sectionLinkClass } from '../components/layout/Page';
 import { CareerTag, CompanyTag, FactoryTag, RecordTags } from '../components/layout/RecordTag';
@@ -51,24 +49,22 @@ import { versionPath, versionTitle } from '@shared/versions';
  *    in shared/versions.ts; the job's stored title stays the career's). The
  *    opening's own name stands directly under it, in secondary ink ("Pipe
  *    Welder (Starship)": `ownName`, what the employer called the posting), and
- *    the third tag is the standard career ("Standard Welder"). A job posted
- *    here keeps the title its poster wrote, and its career as the tag;
+ *    the third tag is the career, by its title. A job posted here keeps the
+ *    title its poster wrote, and its career as the tag;
  * 2. the facts the job states (pay where it is stated, level, type, shift, the
  *    day, what it asks for);
  * 3. the one action: Apply. On a job from the company's careers site it opens
  *    the company's page; on a job posted here it is the form;
- * 4. the skills. A job from a careers site: the skills its posting names, as
- *    rows, then one closed line for the rest of its career's range ("Welder
- *    career · 19 more"), which opens to that range by skill group. A job
- *    posted here: the skills the company chose, by group. One line above them
- *    for a seeker ("You hold 2 of 5": the job's own skills); a visitor reads
- *    the skills with nothing above them, and nothing there asks them to sign in;
+ * 4. the skills, as the tree a career's page draws: the skills a posting
+ *    names, or the ones the company chose for a job posted here. Nothing there
+ *    asks anyone to sign in;
  * 5. the equipment the posting names, each make beside its skill;
  * 6. other open jobs for this career at this company, each by its own name,
  *    and at this factory.
  *
  * The people who manage the job see the company's view first (its state, what
- * can be done with it, the applicants) and the listing under it.
+ * can be done with it, the applicants: `components/jobs/JobManage.tsx`) and
+ * the listing under it.
  *
  * The address is /jobs/<company>/<career>/<number> (`jobPath` in
  * shared/jobs.ts) and only the number is read. An older /jobs/<id>, or an
@@ -139,6 +135,9 @@ export default function JobDetail() {
       void recheckAccount();
     }
   }, [canManage, recheckAccount]);
+
+  // The career's ladder, read as the career's own page reads it (one shared read).
+  const ladder = useQuery({ ...recordQuery('occupations', job.data?.job.occupationId), enabled: Boolean(job.data?.job.occupationId) });
 
   if (ref && job.isPending) return <PageLoading label="Loading job" />;
 
@@ -227,7 +226,15 @@ export default function JobDetail() {
         // The number is the company's own count of its jobs: said to the people who manage it.
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
         kind={managesPosted ? `Job #${data.job.serial}` : 'Job'}
-        title={jobPageTitle(data.job)}
+        // Whose job it is stands before the name as the company's own tag, which opens the company; the name is then
+        // the career's alone (a job posted here keeps the title its poster wrote).
+        mark={
+          <ul className="flex shrink-0" data-job-company="">
+            <CompanyTag company={company} />
+          </ul>
+        }
+        markWraps
+        title={sourced ? career.title : jobPageTitle(data.job)}
         // What the employer called this opening, as plain text under the name the page gives it: not a tag, not a label.
         qualifier={
           data.job.ownName ? (
@@ -237,19 +244,18 @@ export default function JobDetail() {
           ) : undefined
         }
       >
-        {/* Whose job it is, where, and for which career: each opens its own page. */}
+        {/* Where, and for which career: each opens its own page. The company is the tag before the name. */}
         <RecordTags data-job-tags="">
-          <CompanyTag company={company} />
           {/* The company is named by the tag before it: the factory's tag does not say it again. */}
           <FactoryTag factory={{ id: data.job.factoryId, name: data.job.factoryName, city: data.job.city, state: data.job.state }} beside={company.name} />
           {data.job.hasVersion ? (
             // Where the company has its own version of the career, the job leads to that.
-            <CareerTag career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
+            <CareerTag goes career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
           ) : sourced ? (
             // The title is the company's variant of the career: the tag is the standard it varies, as on a version's page.
-            <CareerTag career={{ id: career.id, title: career.title }} data-job-standard="" />
+            <CareerTag goes career={{ id: career.id, title: career.title }} data-job-standard="" />
           ) : (
-            <CareerTag career={career} />
+            <CareerTag goes career={career} />
           )}
         </RecordTags>
         {!managesPosted && <div className="mt-5">{facts}</div>}
@@ -273,7 +279,7 @@ export default function JobDetail() {
       {managesPosted && (
         // The company's view comes first: the job's state, then who applied.
         <>
-          <ManageSection job={data.job} />
+          <JobManage job={data.job} />
           <DetailSection title="Listing" description="The job as applicants see it." className="mt-10 border-t border-line pt-8">
             {facts}
           </DetailSection>
@@ -292,6 +298,9 @@ export default function JobDetail() {
       {!sourced && !manages && applying && apply}
 
       <JobSkills job={data.job} path={data.path} forApplicant={!manages} />
+
+      {/* Where the job's career comes from and leads: the same ladder the career's page draws. */}
+      <CareerLadderSection comesFrom={ladder.data?.comesFrom} leadsTo={ladder.data?.leadsTo} />
 
       {managesPosted &&
         (applying ? (
@@ -511,223 +520,5 @@ function ApplyPanel({ data, signedIn, here }: { data: JobDetailResponse; signedI
         Apply
       </Button>
     </form>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// For the company: the job's state and what can be done with it, then applicants
-// ---------------------------------------------------------------------------
-
-function ManageSection({ job }: { job: JobDetailData }) {
-  const applicants = useApplicantList(job.id);
-  const count = applicants.data?.applications.length;
-  // With an application link the company collects applications itself.
-  const offsite = Boolean(job.applyUrl);
-
-  return (
-    <div id="manage-job" className="scroll-mt-20">
-      <DetailSection title="Manage" description={`Seen only by people who manage jobs for ${job.companyName.replace(/\.$/, '')}.`}>
-        <JobStatusControl job={job} applicantCount={count} />
-      </DetailSection>
-
-      <DetailSection
-        id="applicants"
-        title="Applicants"
-        description={
-          !count
-            ? undefined
-            : applicants.data?.skills.some((skill) => skill.required)
-              ? 'Ranked by required skills held. Skills are self-reported, not verified.'
-              : 'In order of application: this job lists no required skills.'
-        }
-      >
-        {applicants.isPending ? (
-          <RowsSkeleton rows={2} />
-        ) : applicants.isError ? (
-          <LoadError error={applicants.error} onRetry={() => void applicants.refetch()} retrying={applicants.isFetching} />
-        ) : applicants.data.applications.length === 0 ? (
-          <CardNote>{offsite ? 'People apply on your own website, so none are listed here.' : 'None yet.'}</CardNote>
-        ) : (
-          <ApplicantList data={applicants.data} job={job} />
-        )}
-      </DetailSection>
-    </div>
-  );
-}
-
-function JobStatusControl({ job, applicantCount }: { job: JobDetailData; applicantCount: number | undefined }) {
-  const navigate = useNavigate();
-  const update = useUpdateJob(job.id);
-  const remove = useDeleteJob();
-  const extend = useExtendJob();
-  // Offered once the 60 days are nearly up; before that there is nothing to gain.
-  const daysLeft = Math.ceil((new Date(job.expiresAt).getTime() - Date.now()) / DAY_MS);
-  const [closing, setClosing] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [reason, setReason] = useState('');
-  const closed = job.status === 'closed';
-  const listed = !closed && job.isOpen;
-
-  const close = (event: FormEvent) => {
-    event.preventDefault();
-    if (update.isPending) return;
-    update.mutate(
-      { status: 'closed', closedReason: reason },
-      {
-        onSuccess: () => {
-          setClosing(false);
-          setReason('');
-        },
-      }
-    );
-  };
-
-  return (
-    <div className={cardClass}>
-      <p className="text-sm text-text-1" data-job-state={closed ? 'closed' : job.isOpen ? 'open' : 'expired'}>
-        {closed ? 'Closed' : job.isOpen ? 'Open' : 'Expired'}
-        <span className="font-normal text-text-2">
-          {closed
-            ? job.closedReason
-              ? `: ${job.closedReason}`
-              : ''
-            : job.isOpen
-              ? ` until ${formatDay(job.expiresAt)}`
-              : ` ${formatDay(job.expiresAt)}`}
-        </span>
-      </p>
-      <p className="mt-0.5 text-sm text-text-2">
-        {listed
-          ? 'Closing takes it off the jobs list. People who applied can still see it.'
-          : 'Reopening lists the job again for 60 days.'}
-        {applicantCount ? ' A job with applicants can be closed, not deleted.' : ''}
-      </p>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-          <Link to={`/employer?edit=${job.id}&from=job`}>Edit</Link>
-        </Button>
-        <Button asChild variant="outline" className={cn('h-10 rounded-lg', outlineButtonClass)}>
-          <Link to={`/employer?copy=${job.id}&from=job`}>Post another like this</Link>
-        </Button>
-        {listed ? (
-          !closing && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                update.reset();
-                setClosing(true);
-              }}
-              className={cn('h-10 rounded-lg', outlineButtonClass)}
-            >
-              Close job
-            </Button>
-          )
-        ) : (
-          <Button
-            type="button"
-            aria-disabled={update.isPending}
-            aria-busy={update.isPending}
-            onClick={() => {
-              if (!update.isPending) update.mutate({ status: 'open' });
-            }}
-            className={cn('h-10 rounded-lg', busyButtonClass)}
-          >
-            {update.isPending && <Loader2 className="animate-spin" />}
-            Reopen job
-          </Button>
-        )}
-        {listed && daysLeft <= 14 && (
-          <Button
-            type="button"
-            variant="outline"
-            aria-disabled={extend.isPending}
-            aria-busy={extend.isPending}
-            onClick={() => {
-              if (!extend.isPending) extend.mutate(job.id);
-            }}
-            className={cn('h-10 rounded-lg', outlineButtonClass, busyButtonClass)}
-            data-extend-job
-          >
-            {extend.isPending && <Loader2 className="animate-spin" />}
-            Extend 60 days
-          </Button>
-        )}
-        {applicantCount === 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              remove.reset();
-              setDeleting(true);
-            }}
-            className={cn(detailActionClass, 'h-10')}
-          >
-            Delete
-          </button>
-        )}
-      </div>
-
-      {closing && listed && (
-        <form
-          onSubmit={close}
-          onKeyDown={(event) => {
-            // Escape leaves the job open, as Cancel does.
-            if (event.key === 'Escape' && !update.isPending) setClosing(false);
-          }}
-          className="mt-4 space-y-3 border-t border-line pt-4"
-        >
-          <Field label="Reason" htmlFor="close-reason" optional hint="Shown to people who applied, e.g. “Position filled”.">
-            <input
-              id="close-reason"
-              type="text"
-              maxLength={120}
-              autoFocus
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className={fieldClass}
-            />
-          </Field>
-          <div className="flex flex-wrap gap-2">
-            {/* Looks like the rest: the step it took to get here carries the weight. */}
-            <Button
-              type="submit"
-              aria-disabled={update.isPending}
-              aria-busy={update.isPending}
-              className={cn('h-10 rounded-lg', busyButtonClass)}
-            >
-              {update.isPending && <Loader2 className="animate-spin" />}
-              Close this job
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (!update.isPending) setClosing(false);
-              }}
-              className={cn('h-10 rounded-lg', outlineButtonClass)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      )}
-      <ErrorNote error={update.error ?? extend.error} className="mt-3" />
-
-      <ConfirmDialog
-        open={deleting}
-        title="Delete this job?"
-        description={
-          <p>
-            Job #{job.serial}, {job.title}, is removed for good. Nobody has applied to it.
-          </p>
-        }
-        confirmLabel="Delete job"
-        busy={remove.isPending}
-        error={remove.error}
-        onConfirm={() => remove.mutate(job.id, { onSuccess: () => navigate('/employer', { replace: true }) })}
-        onCancel={() => setDeleting(false)}
-      />
-    </div>
   );
 }

@@ -290,9 +290,11 @@ test("a job from a careers site is titled as its company's variant of the career
 
   // The page draws them: the title, the own name directly under it as plain text, and the standard career as the tag.
   const page = readFileSync(new URL('../../client/src/pages/JobDetail.tsx', import.meta.url), 'utf8');
-  assert.match(page, /title=\{jobPageTitle\(data\.job\)\}/);
+  // On the page the company stands before the name as its own tag, so a careers site's job is headed by its career alone.
+  assert.match(page, /title=\{sourced \? career\.title : jobPageTitle\(data\.job\)\}/);
+  assert.match(page, /mark=\{\s*<ul [^>]*data-job-company="">\s*<CompanyTag company=\{company\} \/>/);
   assert.match(page, /data\.job\.ownName \? \(\s*<p [^>]*data-job-own-name>\s*\{data\.job\.ownName\}/);
-  assert.match(page, /<CareerTag career=\{\{ id: career\.id, title: career\.title \}\} data-job-standard="" \/>/);
+  assert.match(page, /<CareerTag goes career=\{\{ id: career\.id, title: career\.title \}\} data-job-standard="" \/>/);
   assert.match(page, /jobTabTitle\(job\.data\.job\)/);
   // Nothing on the page says "Posted as": the own name is a name, not a label.
   assert.doesNotMatch(page.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''), /Posted as|posted as/);

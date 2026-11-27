@@ -64,7 +64,7 @@ export default function CareerVersionView({ data, at, head }: { data: Occupation
             title="No version of this career here"
             description="The link may be old, or the company removed its version."
             action={
-              <Link to={standard} className="rounded-lg border border-line-strong px-4 py-2 text-sm font-medium text-text-1 hover:bg-surface-hover" data-standard-link>
+              <Link to={standard} className={secondaryActionClass} data-standard-link>
                 {data.title}
               </Link>
             }
