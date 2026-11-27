@@ -122,7 +122,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
       {/* The newest five; "All N" leads to the rest on Jobs. */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs.slice(0, JOBS_SHOWN)} total={data.openJobCount ?? jobs.length} all={`/jobs?career=${data.id}`} />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs.slice(0, JOBS_SHOWN)} said={{ career: true }} total={data.openJobCount ?? jobs.length} all={`/jobs?career=${data.id}`} />}
 
       {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
       {versions.length > 0 && (

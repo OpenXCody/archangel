@@ -853,7 +853,7 @@ export const jobs = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     // Migration 0054. A job that came from an employer's public posting: the intake source it
     // came from and the posting's id there (both null on a job a member posted), the level its
-    // title states, what it asks for as facts ({ yearsMin, yearsMax, education, certifications,
+    // posting's title states, what it asks for as facts ({ yearsMin, yearsMax, education, certifications,
     // clearance, citizenship }, only the keys that were said) and when the employer's site last
     // listed it. The runner keeps such a job in step with the site; it is not edited here.
     source: text('source'),
@@ -864,6 +864,12 @@ export const jobs = pgTable(
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
     // True where the posting gives no date: postedAt is then the day it was first seen.
     undated: boolean('undated'),
+    // Migration 0088. A job from a source is named for its career: `title` is the career's title,
+    // with no level, held by the database (job_title and the trigger jobs_title_is_career). The
+    // title its employer posted it under is kept here as it was collected, and follows the
+    // posting: the Jobs search matches it, no route selects it and no screen shows it. Null on a
+    // job a member posted, whose title is the one the company typed.
+    postedAs: text('posted_as'),
   },
   (table) => ({
     serialIdx: uniqueIndex('jobs_serial_idx').on(table.serial),

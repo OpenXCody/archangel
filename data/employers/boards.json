@@ -18,7 +18,7 @@
     { "slug": "deere", "employer": "John Deere", "company": "John Deere", "system": "successfactors", "board": "https://jobs.deere.com/sitemap.xml" },
     { "slug": "rivian", "employer": "Rivian", "company": "Rivian", "system": "jibe", "board": "careers.rivian.com" },
     { "slug": "panasonic", "employer": "Panasonic North America", "company": "Panasonic Energy", "also": ["Panasonic Corp of N.a."], "system": "jibe", "board": "careers.na.panasonic.com" },
-    { "slug": "heb", "employer": "H-E-B", "company": "H-E-B", "system": "jibe", "board": "careers.heb.com", "note": "The career site is mostly H-E-B's stores: only postings at a place where we list a factory become jobs." },
+    { "slug": "heb", "employer": "H-E-B", "company": "H-E-B", "system": "jibe", "board": "careers.heb.com", "note": "The career site is mostly H-E-B's stores: only postings at a place where we list a factory become jobs. A store in a town where we list a factory is placed at that factory all the same (a store's Meat Cutter in Houston stood at the Houston bakery and milk plant until that career left the catalogue on Nov 26, 2026): what keeps a store's jobs out is that their titles are none of our careers, so a title a store shares with a factory (a maintenance technician) still comes in at the factory." },
     { "slug": "international-motors", "employer": "International Motors", "company": "International Motors", "system": "jibe", "board": "careers.international.com" },
     { "slug": "texas-instruments", "employer": "Texas Instruments", "company": "Texas Instruments", "system": "oracle", "board": "edbz.fa.us2.oraclecloud.com/CX" },
     { "slug": "ford", "employer": "Ford", "company": "Ford", "system": "oracle", "board": "efds.fa.em5.oraclecloud.com/CX_1" },

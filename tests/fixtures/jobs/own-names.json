@@ -1,0 +1,4262 @@
+[
+ {
+  "posted": "Pipe Welder, Stage 0 Ground Fabriciation (Starship) - Night Shift",
+  "about": {
+   "career": "Welder",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Pipe Welder, Stage 0 Ground Fabriciation (Starship)",
+  "shows": "shift cut; the company's spelling is not corrected"
+ },
+ {
+  "posted": "Lead Welder, Pipe (Starship Launch Fabrication)",
+  "about": {
+   "career": "Welder",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Lead Welder, Pipe (Starship Launch Fabrication)",
+  "shows": "kept whole"
+ },
+ {
+  "posted": "Welder (Starship)",
+  "about": {
+   "career": "Welder",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Welder (Starship)",
+  "shows": "the program says which opening"
+ },
+ {
+  "posted": "Welder (Starship) - Night Shift",
+  "about": {
+   "career": "Welder",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Welder (Starship)",
+  "shows": "shift"
+ },
+ {
+  "posted": "Lead Welder, Pipe (Starship Launch Fabrication) - 2nd Shift",
+  "about": {
+   "career": "Welder",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Lead Welder, Pipe (Starship Launch Fabrication)",
+  "shows": "shift"
+ },
+ {
+  "posted": "Machinist (Starlink Development) 2nd Shift",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "SpaceX",
+   "factory": "SpaceX Redmond",
+   "city": "Redmond",
+   "state": "WA"
+  },
+  "want": "Machinist (Starlink Development)",
+  "shows": "shift after a bracket"
+ },
+ {
+  "posted": "Production Machinist (Starlink) - 1st Shift - Level 4/5",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "SpaceX",
+   "factory": "SPACE EXPLORATION TECHNOLOGIES CORPORATION",
+   "city": "REDMOND",
+   "state": "WA"
+  },
+  "want": "Production Machinist (Starlink) - Level 4/5",
+  "shows": "shift in the middle; the level stays"
+ },
+ {
+  "posted": "Propulsion Technician (Raptor Flight), Level 4/5 – 2nd Shift",
+  "about": {
+   "career": "Propulsion Technician",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Propulsion Technician (Raptor Flight), Level 4/5",
+  "shows": "shift after an en dash"
+ },
+ {
+  "posted": "CNC Programmer (Starship Components) - Level 4/5 (2nd Shift)",
+  "about": {
+   "career": "CNC Programmer",
+   "company": "SpaceX",
+   "factory": "SpaceX Hawthorne",
+   "city": "Hawthorne",
+   "state": "CA"
+  },
+  "want": "CNC Programmer (Starship Components) - Level 4/5",
+  "shows": "shift in a bracket"
+ },
+ {
+  "posted": "Test Specialist - Multiple Shifts (Components)",
+  "about": {
+   "career": "Test Technician",
+   "company": "SpaceX",
+   "factory": "SpaceX Hawthorne",
+   "city": "Hawthorne",
+   "state": "CA"
+  },
+  "want": "Test Specialist (Components)",
+  "shows": "a bracket left by a cut stands beside the name"
+ },
+ {
+  "posted": "Additive Post Processing Technician I, Second Shift",
+  "about": {
+   "career": "Additive Manufacturing Technician",
+   "company": "Relativity Space",
+   "factory": "Relativity Space Wormhole",
+   "city": "Long Beach",
+   "state": "CA"
+  },
+  "want": "Additive Post Processing Technician I",
+  "shows": "shift after a comma"
+ },
+ {
+  "posted": "Senior NDE Inspector, ET, Second Shift",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Relativity Space",
+   "factory": "Relativity Space Launch Complex 16",
+   "city": "Cape Canaveral",
+   "state": "FL"
+  },
+  "want": "Senior NDE Inspector, ET",
+  "shows": "ET (eddy current) is not a shift"
+ },
+ {
+  "posted": "NDT Technician - Radiography (RT) - Level II - B Shift",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "NDT Technician - Radiography (RT) - Level II",
+  "shows": "a crew's letter beside \"Shift\""
+ },
+ {
+  "posted": "NDT Technician - Computed Tomography (CT) - Level II - D Shift (Weekend Night Shift)",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "NDT Technician - Computed Tomography (CT) - Level II",
+  "shows": "two shift notes; CT is not Connecticut"
+ },
+ {
+  "posted": "CNC Machinist/Programmer III - A, B and C Shift",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "CNC Machinist/Programmer III",
+  "shows": "a list of crews"
+ },
+ {
+  "posted": "Test Engineer II (Fluids) | Launch Ops - Shifts B, C and D",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Test Engineer II (Fluids) | Launch Ops",
+  "shows": "a list of crews after the word"
+ },
+ {
+  "posted": "Test Technician (All Levels - 8/6 Rotation)",
+  "about": {
+   "career": "Propulsion Test Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Launch Site One",
+   "city": "Van Horn",
+   "state": "TX"
+  },
+  "want": "Test Technician",
+  "shows": "a rota in a bracket, and a note that it is open at every level: both go"
+ },
+ {
+  "posted": "Technician - Avionics | All Shifts All Levels",
+  "about": {
+   "career": "Avionics Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": null,
+  "shows": "every shift and every level is one note; what is left is the career's words in another order"
+ },
+ {
+  "posted": "Lunar Lander Production Manufacturing Engineer (All levels, All shifts)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Lunar Lander Production Manufacturing Engineer",
+  "shows": "a bracket of two notes"
+ },
+ {
+  "posted": "Pipe Welder - C Shift (All Levels)",
+  "about": {
+   "career": "Welder",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "Pipe Welder",
+  "shows": "the shift, and a note that it is open at every level"
+ },
+ {
+  "posted": "Manufacturing Engineer II - Tooling A shift",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Manufacturing Engineer II - Tooling",
+  "shows": "shift at the end of a segment"
+ },
+ {
+  "posted": "Technician I Top Cap, Nights, B-Shift (7PM-7AM)[Sun-Tues + Alt Sat]",
+  "about": {
+   "career": "Battery Cell Assembly Technician",
+   "company": "Panasonic Energy",
+   "factory": "Panasonic Energy Nevada Factory",
+   "city": "Sparks",
+   "state": "NV"
+  },
+  "want": "Technician I Top Cap",
+  "shows": "shift, crew, hours and days"
+ },
+ {
+  "posted": "Technician I Electrode | Rotating Days | C-Shift | 7AM-7PM",
+  "about": {
+   "career": "Battery Electrode Technician",
+   "company": "Panasonic Energy",
+   "factory": "Panasonic Energy Nevada Factory",
+   "city": "Sparks",
+   "state": "NV"
+  },
+  "want": "Technician I Electrode",
+  "shows": "pipes"
+ },
+ {
+  "posted": "Quality Control Inspector I NV - Assembly NCR, Days M/Tu/Sa/Su & M/Tu/Su 6:30am to 7:15pm",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Panasonic Energy",
+   "factory": "Panasonic Energy Nevada Factory",
+   "city": "Sparks",
+   "state": "NV"
+  },
+  "want": "Quality Control Inspector I - Assembly NCR",
+  "shows": "the state's code after the name; days and hours"
+ },
+ {
+  "posted": "Maintenance Technician I - Conversion, Days, M-F 8:00AM-5:00PM",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Panasonic Energy",
+   "factory": "Panasonic Energy Nevada Factory",
+   "city": "Sparks",
+   "state": "NV"
+  },
+  "want": "Maintenance Technician I - Conversion",
+  "shows": "days and hours"
+ },
+ {
+  "posted": "Quality Systems Engineer II, (Quality, Day Shift Mon-Fri)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Panasonic Energy",
+   "factory": "Panasonic Energy Nevada Factory",
+   "city": "Sparks",
+   "state": "NV"
+  },
+  "want": "Quality Systems Engineer II (Quality)",
+  "shows": "half a bracket; no comma is left before it"
+ },
+ {
+  "posted": "Furnace Operator/Melter 1 – Monday - Thursday 10:00pm to 8:00am (Onsite)",
+  "about": {
+   "career": "Heat Treat Operator",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney HMI Metal Powders",
+   "city": "Clayville",
+   "state": "NY"
+  },
+  "want": "Furnace Operator/Melter 1",
+  "shows": "days across a dash"
+ },
+ {
+  "posted": "Furnace Operator 5 | Fri-Sun, 7A-7P | Onsite",
+  "about": {
+   "career": "Heat Treat Operator",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney HMI Metal Powders",
+   "city": "Clayville",
+   "state": "NY"
+  },
+  "want": "Furnace Operator 5",
+  "shows": "days and hours in letters"
+ },
+ {
+  "posted": "Quality Inspector I , 2nd shift ( Onsite)",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney North Berwick",
+   "city": "North Berwick",
+   "state": "ME"
+  },
+  "want": "Quality Inspector I",
+  "shows": "stray spaces"
+ },
+ {
+  "posted": "Assembly & Test Tech - Level 3 Swing Shift (2:30-11:00 PM)",
+  "about": {
+   "career": "Test Technician",
+   "company": "Honeywell",
+   "factory": "HONEYWELL TEMPE",
+   "city": "TEMPE",
+   "state": "AZ"
+  },
+  "want": "Assembly & Test Tech - Level 3",
+  "shows": "the level's number is not the shift's"
+ },
+ {
+  "posted": "CNC Machinist - Level 4 -SHIFT 2",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Honeywell",
+   "factory": "CAES SYSTEMS LLC",
+   "city": "LANSDALE",
+   "state": "PA"
+  },
+  "want": "CNC Machinist - Level 4",
+  "shows": "a shift's number"
+ },
+ {
+  "posted": "Aircraft Sheet Metal Technician 3 Days Nights Weekends",
+  "about": {
+   "career": "Aircraft Structures Mechanic",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN CORP",
+   "city": "LAKE CHARLES",
+   "state": "LA"
+  },
+  "want": "Aircraft Sheet Metal Technician 3",
+  "shows": "the grade stays"
+ },
+ {
+  "posted": "Engineer or Principal Engineer Structural Analysis (4/10 2nd Shift)",
+  "about": {
+   "career": "Aerospace Engineer",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Palmdale (Air Force Plant 42)",
+   "city": "Palmdale",
+   "state": "CA"
+  },
+  "want": "Engineer or Principal Engineer Structural Analysis",
+  "shows": "a 4/10 week"
+ },
+ {
+  "posted": "Aircraft Structures Mechanic 3 (Shift - B)",
+  "about": {
+   "career": "Aircraft Structures Mechanic",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Clearfield Aerospace Structures",
+   "city": "Clearfield",
+   "state": "UT"
+  },
+  "want": "Aircraft Structures Mechanic 3",
+  "shows": "shift"
+ },
+ {
+  "posted": "Sr. Failure Analysis Technician (A - Shift - Days)",
+  "about": {
+   "career": "Failure Analysis Technician",
+   "company": "GlobalFoundries",
+   "factory": "GlobalFoundries Fab 8",
+   "city": "Malta",
+   "state": "NY"
+  },
+  "want": "Sr. Failure Analysis Technician",
+  "shows": "dashes inside the note"
+ },
+ {
+  "posted": "Sr Failure Analysis Technician (Night Shift - N2/D Shift))",
+  "about": {
+   "career": "Failure Analysis Technician",
+   "company": "GlobalFoundries",
+   "factory": "GlobalFoundries Fab 8",
+   "city": "Malta",
+   "state": "NY"
+  },
+  "want": "Sr Failure Analysis Technician",
+  "shows": "a bracket too many"
+ },
+ {
+  "posted": "Equipment Maintenance Technician (Day Shifts and Night Shifts Available)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "GlobalFoundries",
+   "factory": "GlobalFoundries Fab 8",
+   "city": "Malta",
+   "state": "NY"
+  },
+  "want": "Equipment Maintenance Technician",
+  "shows": "shift"
+ },
+ {
+  "posted": "Process Test Technician (Day Shift) (Silicon Photonics)",
+  "about": {
+   "career": "Test Technician",
+   "company": "GlobalFoundries",
+   "factory": "GlobalFoundries Fab 8",
+   "city": "Malta",
+   "state": "NY"
+  },
+  "want": "Process Test Technician (Silicon Photonics)",
+  "shows": "one bracket of two"
+ },
+ {
+  "posted": "Technician- Manufacturing Engineer I USA (B Crew/PM Shift)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "First Solar",
+   "factory": "First Solar Perrysburg",
+   "city": "Perrysburg",
+   "state": "OH"
+  },
+  "want": "Technician - Manufacturing Engineer I",
+  "shows": "country and crew"
+ },
+ {
+  "posted": "Technician- Manufacturing Engineer I USA (PGT3/A Crew)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "First Solar",
+   "factory": "First Solar Perrysburg",
+   "city": "Perrysburg",
+   "state": "OH"
+  },
+  "want": "Technician - Manufacturing Engineer I (PGT3)",
+  "shows": "the crew taken, the plant's code left"
+ },
+ {
+  "posted": "Maintenance Technician (AM or PM Crew)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "First Solar",
+   "factory": "FIRST SOLAR INC",
+   "city": "TRINITY",
+   "state": "AL"
+  },
+  "want": null,
+  "shows": "crew"
+ },
+ {
+  "posted": "Machine Vision Engineer 2nd Shift, Manufacturing Automation",
+  "about": {
+   "career": "Automation Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Machine Vision Engineer, Manufacturing Automation",
+  "shows": "shift before a comma"
+ },
+ {
+  "posted": "Manufacturing Engineer, 2nd Shift Barracuda",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Manufacturing Engineer, Barracuda",
+  "shows": "shift before the program"
+ },
+ {
+  "posted": "NPC 2nd Shift Test Engineer(E4)- Heterogenous Integration",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Applied Materials",
+   "factory": "Austin manufacturing campus (Harris Branch)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "NPC Test Engineer (E4) - Heterogenous Integration",
+  "shows": "shift inside the name"
+ },
+ {
+  "posted": "Manufacturing Technician II - (T2) Weekend Compressed Shift",
+  "about": {
+   "career": "Production Operator",
+   "company": "Applied Materials",
+   "factory": "Austin manufacturing campus (Harris Branch)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Manufacturing Technician II (T2)",
+  "shows": "shift; the grade's bracket stands beside the name, with no dash before it"
+ },
+ {
+  "posted": "Sr. CNC Machinist | 5-Axis | Fanuc | Swing Shift",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Applied Materials",
+   "factory": "Tempe spares manufacturing (Hardy Drive)",
+   "city": "Tempe",
+   "state": "AZ"
+  },
+  "want": "Sr. CNC Machinist | 5-Axis | Fanuc",
+  "shows": "the machine and control stay"
+ },
+ {
+  "posted": "Engineering Technician IV (R&D 1st and 2nd shift)",
+  "about": {
+   "career": "Electronics Technician",
+   "company": "Applied Materials",
+   "factory": null,
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Engineering Technician IV (R&D)",
+  "shows": "half a bracket"
+ },
+ {
+  "posted": "Night Shift Manufacturing Engineer Lead Senior - Machining",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "International Motors",
+   "factory": "NAVISTAR DIESEL OF ALABAMA LLC",
+   "city": "HUNTSVILLE",
+   "state": "AL"
+  },
+  "want": "Manufacturing Engineer Lead Senior - Machining",
+  "shows": "shift first"
+ },
+ {
+  "posted": "2nd Shift Set Up Technician",
+  "about": {
+   "career": "Setup Technician",
+   "company": "Perrigo",
+   "factory": "PERRIGO NY",
+   "city": "BRONX",
+   "state": "NY"
+  },
+  "want": null,
+  "shows": "shift first; what is left is the career with a space more"
+ },
+ {
+  "posted": "Night EDM Operator",
+  "about": {
+   "career": "EDM Operator",
+   "company": "Flex",
+   "factory": "Flex Buffalo Grove",
+   "city": "Buffalo Grove",
+   "state": "IL"
+  },
+  "want": null,
+  "shows": "a bare \"Night\" before the role"
+ },
+ {
+  "posted": "Manufacturing Engineer - 3rd Shift / Weekend Crew - Plant 3",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Howmet Aerospace",
+   "factory": "HOWMET RESEARCH CENTER",
+   "city": "WHITEHALL",
+   "state": "MI"
+  },
+  "want": "Manufacturing Engineer - Plant 3",
+  "shows": "shift; the plant inside the site stays"
+ },
+ {
+  "posted": "Maintenance Electrician - 3rd Shift Foundry",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Emerson",
+   "factory": "APPLETON GRP LLC",
+   "city": "SOUTH MILWAUKEE",
+   "state": "WI"
+  },
+  "want": "Maintenance Electrician - Foundry",
+  "shows": "shift before the area"
+ },
+ {
+  "posted": "3rd Shift_ Machinist V_ Onsite",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Collins Aerospace",
+   "factory": "Collins Aerospace York",
+   "city": "York",
+   "state": "NE"
+  },
+  "want": "Machinist V",
+  "shows": "underscores"
+ },
+ {
+  "posted": "TIG Welder-Basic 1st Shift",
+  "about": {
+   "career": "TIG Welder",
+   "company": "S&C Electric",
+   "factory": "S&C Electric Chicago",
+   "city": "Chicago",
+   "state": "IL"
+  },
+  "want": "TIG Welder-Basic",
+  "shows": "shift"
+ },
+ {
+  "posted": "*Production Operator 2nd & 3rd",
+  "about": {
+   "career": "Production Operator",
+   "company": "Commercial Metals",
+   "factory": "CMC IMPACT METALS",
+   "city": "CHICORA",
+   "state": "PA"
+  },
+  "want": null,
+  "shows": "a star, and shifts by number alone"
+ },
+ {
+  "posted": "CNC Maintenance Technician III (Days -Weekends+)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Caterpillar",
+   "factory": "CATERPILLAR PAVING PRODUCTS INCORPORATED",
+   "city": "BROOKLYN PARK",
+   "state": "MN"
+  },
+  "want": "CNC Maintenance Technician III",
+  "shows": "shift"
+ },
+ {
+  "posted": "Maintenance Electrical Technician - Weekend Work Force",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Crown Equipment",
+   "factory": "Crown New Bremen",
+   "city": "New Bremen",
+   "state": "OH"
+  },
+  "want": "Maintenance Electrical Technician",
+  "shows": "shift"
+ },
+ {
+  "posted": "Sr. Process Engineer, Battery Nights",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Rivian",
+   "factory": "Rivian Normal",
+   "city": "Normal",
+   "state": "IL"
+  },
+  "want": "Sr. Process Engineer, Battery",
+  "shows": "\"Nights\" after the area"
+ },
+ {
+  "posted": "Maintenance Tech (DMNC - Maint, 2nd shift)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Denso",
+   "factory": "Denso Manufacturing Michigan",
+   "city": "Battle Creek",
+   "state": "MI"
+  },
+  "want": "Maintenance Tech (DMNC - Maint)",
+  "shows": "half a bracket"
+ },
+ {
+  "posted": "Maintenance Tech II Days - Fargo",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Marvin Lumber & Cedar",
+   "factory": "MARVIN COMPOSITES LLC",
+   "city": "FARGO",
+   "state": "ND"
+  },
+  "want": "Maintenance Tech II",
+  "shows": "shift and town"
+ },
+ {
+  "posted": "John Deere Des Moines Works - Production Welder",
+  "about": {
+   "career": "Welder",
+   "company": "John Deere",
+   "factory": "John Deere Des Moines Works",
+   "city": "Ankeny",
+   "state": "IA"
+  },
+  "want": "Production Welder",
+  "shows": "the leading clause"
+ },
+ {
+  "posted": "John Deere Dubuque - Production Welder",
+  "about": {
+   "career": "Welder",
+   "company": "John Deere",
+   "factory": "John Deere Dubuque Works",
+   "city": "Dubuque",
+   "state": "IA"
+  },
+  "want": "Production Welder",
+  "shows": "company and town"
+ },
+ {
+  "posted": "John Deere Cylinder / Seeding - Tool & Die Maker",
+  "about": {
+   "career": "Tool and Die Maker",
+   "company": "John Deere",
+   "factory": "John Deere Seeding Group",
+   "city": "Moline",
+   "state": "IL"
+  },
+  "want": null,
+  "shows": "leading clause; the rest is the career"
+ },
+ {
+  "posted": "John Deere Waterloo Works: Electrical Machine Maintenance",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "John Deere",
+   "factory": null,
+   "city": "Waterloo",
+   "state": "IA"
+  },
+  "want": "Electrical Machine Maintenance",
+  "shows": "leading clause before a colon"
+ },
+ {
+  "posted": "John Deere A&I Rock Valley - CNC Machinist",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "A & I Products",
+   "factory": "A&I Products Rock Valley",
+   "city": "Rock Valley",
+   "state": "IA"
+  },
+  "want": null,
+  "shows": "a parent's name in the clause that names the site"
+ },
+ {
+  "posted": "Rochelle Foods - Maintenance Mechanic 2nd/3rd Shift 2026",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Hormel Foods",
+   "factory": "ROCHELLE FOODS LLC",
+   "city": "ROCHELLE",
+   "state": "IL"
+  },
+  "want": "Maintenance Mechanic",
+  "shows": "the factory's own name first; shift; year"
+ },
+ {
+  "posted": "WAP - Mechanical Maintenance Technician-all shifts-Willmar, MN- Jennie-O",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Hormel Foods",
+   "factory": "JENNIE-O FOODS INC",
+   "city": "WILLMAR",
+   "state": "MN"
+  },
+  "want": "WAP - Mechanical Maintenance Technician",
+  "shows": "hyphens set against the words; the brand the factory carries"
+ },
+ {
+  "posted": "Plant Maintenance Mechanic 2nd and 3rd Shift - Austin Plant (Austin, MN)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Hormel Foods",
+   "factory": "Hormel Austin Plant",
+   "city": "Austin",
+   "state": "MN"
+  },
+  "want": "Plant Maintenance Mechanic",
+  "shows": "the plant and the town"
+ },
+ {
+  "posted": "Associate Maintenance Tech/Maintenance Technician - Faribault Plant",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Hormel Foods",
+   "factory": "JENNIE-O TURKEY STORE INC",
+   "city": "FARIBAULT",
+   "state": "MN"
+  },
+  "want": "Associate Maintenance Tech/Maintenance Technician",
+  "shows": "town and \"Plant\""
+ },
+ {
+  "posted": "Tool and Die Maker - Buffalo Stamping Plant (BSP)",
+  "about": {
+   "career": "Tool and Die Maker",
+   "company": "Ford",
+   "factory": "FORD MOTOR COMPANY BUFFALO STAMPING PLANT",
+   "city": "BUFFALO",
+   "state": "NY"
+  },
+  "want": null,
+  "shows": "the plant and its initials"
+ },
+ {
+  "posted": "Hourly Production Team Member - Temporary Full Time - Ohio Assembly Plant (OHAP)",
+  "about": {
+   "career": "Production Operator",
+   "company": "Ford",
+   "factory": "Ohio Assembly Plant",
+   "city": "Avon Lake",
+   "state": "OH"
+  },
+  "want": "Hourly Production Team Member",
+  "shows": "kind; plant; its abbreviation"
+ },
+ {
+  "posted": "Skilled Trade - Industrial Electrician - Sharonville Transmission Plant (STP)",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Ford",
+   "factory": "FORD MOTOR COMPANY (1431140861)",
+   "city": "SHARONVILLE",
+   "state": "OH"
+  },
+  "want": "Skilled Trade - Industrial Electrician",
+  "shows": "town and kind of plant; initials"
+ },
+ {
+  "posted": "Inspector - Tooling & Layout - Kansas City Assembly Plant (KCAP)",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Ford",
+   "factory": "Kansas City Assembly Plant",
+   "city": "Claycomo",
+   "state": "MO"
+  },
+  "want": "Inspector - Tooling & Layout",
+  "shows": "plant; the area stays"
+ },
+ {
+  "posted": "Industrial Electrician - Kansas City Assembly (KCAP)",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Ford",
+   "factory": "Kansas City Assembly Plant",
+   "city": "Claycomo",
+   "state": "MO"
+  },
+  "want": null,
+  "shows": "the plant's name shortened"
+ },
+ {
+  "posted": "Hourly Production Team Member - Temporary Full Time - Southeast MI / Wayne County",
+  "about": {
+   "career": "Production Operator",
+   "company": "Ford",
+   "factory": "Dearborn Truck Plant",
+   "city": "Dearborn",
+   "state": "MI"
+  },
+  "want": "Hourly Production Team Member",
+  "shows": "a region and a county"
+ },
+ {
+  "posted": "Tool & Die Maker - Southeast MI Locations (SE MI)",
+  "about": {
+   "career": "Tool and Die Maker",
+   "company": "Ford",
+   "factory": "Dearborn Truck Plant",
+   "city": "Dearborn",
+   "state": "MI"
+  },
+  "want": null,
+  "shows": "region"
+ },
+ {
+  "posted": "Manufacturing Engineer, Automation & Controls, BlueOval Battery Park Michigan",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Ford",
+   "factory": "BlueOval Battery Park Michigan",
+   "city": "Marshall",
+   "state": "MI"
+  },
+  "want": "Manufacturing Engineer, Automation & Controls",
+  "shows": "the factory's name after a comma"
+ },
+ {
+  "posted": "Mechanical Maintenance Technician, BlueOval Battery Park Michigan- PACK",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Ford",
+   "factory": "BlueOval Battery Park Michigan",
+   "city": "Marshall",
+   "state": "MI"
+  },
+  "want": "Mechanical Maintenance Technician - PACK",
+  "shows": "site in the middle"
+ },
+ {
+  "posted": "Process Engineer, Ford Energy",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Ford",
+   "factory": "Ford Energy Systems",
+   "city": "Glendale",
+   "state": "KY"
+  },
+  "want": null,
+  "shows": "the company and its division's word"
+ },
+ {
+  "posted": "Mechanical Journeyperson (Toolmaker) - Tonawanda",
+  "about": {
+   "career": "Tool and Die Maker",
+   "company": "General Motors",
+   "factory": "Tonawanda Propulsion",
+   "city": "Buffalo",
+   "state": "NY"
+  },
+  "want": "Mechanical Journeyperson (Toolmaker)",
+  "shows": "the head of the factory's name"
+ },
+ {
+  "posted": "Electrician Journeyperson - Pontiac Stamping",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "General Motors",
+   "factory": "Pontiac Metal Center",
+   "city": "Pontiac",
+   "state": "MI"
+  },
+  "want": "Electrician Journeyperson",
+  "shows": "town and kind of plant"
+ },
+ {
+  "posted": "Electrician Journeyperson - Flint Engine",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "General Motors",
+   "factory": "Flint Engine Operations",
+   "city": "Flint",
+   "state": "MI"
+  },
+  "want": "Electrician Journeyperson",
+  "shows": "the factory's name shortened"
+ },
+ {
+  "posted": "Mechanical Journeyperson (Millwright) - Defiance (Evergreen)",
+  "about": {
+   "career": "Millwright",
+   "company": "General Motors",
+   "factory": "Defiance Operations",
+   "city": "Defiance",
+   "state": "OH"
+  },
+  "want": "Mechanical Journeyperson (Millwright)",
+  "shows": "town; an always-open posting"
+ },
+ {
+  "posted": "Controls Engineer - (Off Shift) - Lockport",
+  "about": {
+   "career": "Controls Engineer",
+   "company": "General Motors",
+   "factory": "Lockport Operations",
+   "city": "Lockport",
+   "state": "NY"
+  },
+  "want": null,
+  "shows": "shift and town"
+ },
+ {
+  "posted": "CNC Setup Machinist - Automated Manufacturing System - Decatur, IL",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Decatur",
+   "city": "Decatur",
+   "state": "IL"
+  },
+  "want": "CNC Setup Machinist - Automated Manufacturing System",
+  "shows": "town and state"
+ },
+ {
+  "posted": "CNC Operator- East Peoria LL- 3rd Shift",
+  "about": {
+   "career": "CNC Machine Operator",
+   "company": "Caterpillar",
+   "factory": "Caterpillar East Peoria",
+   "city": "East Peoria",
+   "state": "IL"
+  },
+  "want": "CNC Operator",
+  "shows": "town with a building's code"
+ },
+ {
+  "posted": "Industrial Electrician - 2nd Shift - East Peoria Undercarriage BB",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Caterpillar",
+   "factory": "Caterpillar East Peoria",
+   "city": "East Peoria",
+   "state": "IL"
+  },
+  "want": "Industrial Electrician - Undercarriage BB",
+  "shows": "the town before a place inside the site"
+ },
+ {
+  "posted": "Maintenance Technician II, Schertz - 2nd shift",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Schertz",
+   "city": "Schertz",
+   "state": "TX"
+  },
+  "want": "Maintenance Technician II",
+  "shows": "town after a comma"
+ },
+ {
+  "posted": "Production Assembler - Decatur, IL (2nd Shift)",
+  "about": {
+   "career": "Production Assembler",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Decatur",
+   "city": "Decatur",
+   "state": "IL"
+  },
+  "want": null,
+  "shows": "town and shift"
+ },
+ {
+  "posted": "Digital Failure Analysis Engineer (Dallas/Richardson)",
+  "about": {
+   "career": "Failure Analysis Engineer",
+   "company": "Texas Instruments",
+   "factory": "RFAB",
+   "city": "Richardson",
+   "state": "TX"
+  },
+  "want": "Digital Failure Analysis Engineer",
+  "shows": "towns the posting lists"
+ },
+ {
+  "posted": "Systems Engineer - Supervisors (Santa Clara/Dallas)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Texas Instruments",
+   "factory": "North Campus",
+   "city": "Dallas",
+   "state": "TX"
+  },
+  "want": "Systems Engineer - Supervisors",
+  "shows": "towns the posting lists"
+ },
+ {
+  "posted": "PVD Manufacturing Process Engineer (RFAB)",
+  "about": {
+   "career": "Thin Film Process Engineer",
+   "company": "Texas Instruments",
+   "factory": "RFAB",
+   "city": "Richardson",
+   "state": "TX"
+  },
+  "want": "PVD Manufacturing Process Engineer",
+  "shows": "the factory's name"
+ },
+ {
+  "posted": "Facilities Controls Engineer (North Texas)",
+  "about": {
+   "career": "Controls Engineer",
+   "company": "Texas Instruments",
+   "factory": "RFAB",
+   "city": "Richardson",
+   "state": "TX"
+  },
+  "want": "Facilities Controls Engineer",
+  "shows": "a region of the state; \"Texas\" is not the company"
+ },
+ {
+  "posted": "Career Accelerator Program - Process Development Engineer - MS/PhD -  Dallas",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Texas Instruments",
+   "factory": "North Campus",
+   "city": "Dallas",
+   "state": "TX"
+  },
+  "want": "Career Accelerator Program - Process Development Engineer",
+  "shows": "town, and the degree asked for; the program stays"
+ },
+ {
+  "posted": "Career Accelerator Program - Failure Analysis Engineer - Lehi, UT",
+  "about": {
+   "career": "Failure Analysis Engineer",
+   "company": "Texas Instruments",
+   "factory": "LFAB",
+   "city": "Lehi",
+   "state": "UT"
+  },
+  "want": "Career Accelerator Program - Failure Analysis Engineer",
+  "shows": "\"Lehi, UT\" is a town though UT alone is not read as Utah"
+ },
+ {
+  "posted": "Structures Engineer Mechanical - Level 2/3 - Dulles",
+  "about": {
+   "career": "Aerospace Engineer",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Dulles Satellite Manufacturing Facility",
+   "city": "Dulles",
+   "state": "VA"
+  },
+  "want": "Structures Engineer Mechanical - Level 2/3",
+  "shows": "town"
+ },
+ {
+  "posted": "Senior Principal Systems Engineer (Melbourne FL)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION",
+   "city": "MELBOURNE",
+   "state": "FL"
+  },
+  "want": "Senior Principal Systems Engineer",
+  "shows": "town and state, no comma"
+ },
+ {
+  "posted": "2027 Associate Electrical RF Engineer - Plymouth MN",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Plymouth",
+   "city": "Plymouth",
+   "state": "MN"
+  },
+  "want": "2027 Associate Electrical RF Engineer",
+  "shows": "town and state; the year of an intake stays"
+ },
+ {
+  "posted": "Principal/Sr Principal Engineer Supplier Quality (Cleveland- OH)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN CORP",
+   "city": "CLEVELAND",
+   "state": "OH"
+  },
+  "want": "Principal/Sr Principal Engineer Supplier Quality",
+  "shows": "town and state, parted by a dash"
+ },
+ {
+  "posted": "Mechanical Engineer II – Test Equipment, Onsite (Tucson, AZ)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Raytheon",
+   "factory": "Raytheon Tucson",
+   "city": "Tucson",
+   "state": "AZ"
+  },
+  "want": "Mechanical Engineer II – Test Equipment",
+  "shows": "onsite and town"
+ },
+ {
+  "posted": "Test Systems Engineer II (onsite Tucson, AZ)",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Raytheon",
+   "factory": "Raytheon Tucson",
+   "city": "Tucson",
+   "state": "AZ"
+  },
+  "want": "Test Systems Engineer II",
+  "shows": "onsite and town in one bracket"
+ },
+ {
+  "posted": "Quality Engineer (Onsite - Fort Wayne, IN)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Raytheon",
+   "factory": "RAYTHEON CO",
+   "city": "FORT WAYNE",
+   "state": "IN"
+  },
+  "want": null,
+  "shows": "onsite and town"
+ },
+ {
+  "posted": "FSR AUR Maintenance Tech (Fallbrook, CA)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Raytheon",
+   "factory": "RAYTHEON COMPANY",
+   "city": "SAN DIEGO",
+   "state": "CA"
+  },
+  "want": "FSR AUR Maintenance Tech",
+  "shows": "a town that is not the factory's"
+ },
+ {
+  "posted": "New College Grad Test Engineer I  (Bachelors - Gloucester, MA)",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Applied Materials",
+   "factory": "Gloucester campus (Varian Semiconductor Equipment)",
+   "city": "Gloucester",
+   "state": "MA"
+  },
+  "want": "New College Grad Test Engineer I",
+  "shows": "town and the degree asked for, in one bracket"
+ },
+ {
+  "posted": "Process Engineer I, New College Grad - Bachelors (Billerica, MA)",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Applied Materials",
+   "factory": "Applied Materials Billerica (NEXX)",
+   "city": "Billerica",
+   "state": "MA"
+  },
+  "want": "Process Engineer I, New College Grad",
+  "shows": "town and the degree asked for; the intake stays"
+ },
+ {
+  "posted": "Process Engineer III - New College Grad (Kalispell, MT)",
+  "about": {
+   "career": "Thin Film Process Engineer",
+   "company": "Applied Materials",
+   "factory": "Kalispell main plant (Semitool)",
+   "city": "Kalispell",
+   "state": "MT"
+  },
+  "want": "Process Engineer III - New College Grad",
+  "shows": "town; MT here is Montana"
+ },
+ {
+  "posted": "Quality Control Technician II - KS (Night Shift)",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Panasonic Energy",
+   "factory": "Panasonic Energy Kansas Factory",
+   "city": "De Soto",
+   "state": "KS"
+  },
+  "want": "Quality Control Technician II",
+  "shows": "the state's code alone"
+ },
+ {
+  "posted": "Production Operator - TN",
+  "about": {
+   "career": "Production Operator",
+   "company": "Commercial Metals",
+   "factory": "CMC STEEL TENNESSEE",
+   "city": "KNOXVILLE",
+   "state": "TN"
+  },
+  "want": null,
+  "shows": "state"
+ },
+ {
+  "posted": "Process Engineer- Akron, Ohio",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Cargill",
+   "factory": "CARGILL INC SALT DIV",
+   "city": "AKRON",
+   "state": "OH"
+  },
+  "want": null,
+  "shows": "town and the state by name"
+ },
+ {
+  "posted": "Machinist-Tulsa",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "NOV",
+   "factory": "NOV AMERON TULSA POLE PRODUCTS TUBE MANUFACTURING",
+   "city": "TULSA",
+   "state": "OK"
+  },
+  "want": "Machinist",
+  "shows": "town set against the word"
+ },
+ {
+  "posted": "Manufacturing Engineer (experienced) - Tulsa",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "NOV",
+   "factory": "NOV AMERON TULSA POLE PRODUCTS TUBE MANUFACTURING",
+   "city": "TULSA",
+   "state": "OK"
+  },
+  "want": "Manufacturing Engineer (experienced)",
+  "shows": "town"
+ },
+ {
+  "posted": "Wireman Electrician (Austin)",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Base Power",
+   "factory": "Base Power South Congress Factory",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Wireman Electrician",
+  "shows": "town in a bracket"
+ },
+ {
+  "posted": "Product Application Specialist (Drafter) - Pella, IA",
+  "about": {
+   "career": "CAD Designer",
+   "company": "Pella",
+   "factory": "Pella Corporation Pella",
+   "city": "Pella",
+   "state": "IA"
+  },
+  "want": "Product Application Specialist (Drafter)",
+  "shows": "town and state; the company's name is the town's"
+ },
+ {
+  "posted": "Failure Analysis Technician - Walker Location",
+  "about": {
+   "career": "Failure Analysis Technician",
+   "company": "Flex",
+   "factory": "Flex Coopersville",
+   "city": "Coopersville",
+   "state": "MI"
+  },
+  "want": null,
+  "shows": "a \"Location\""
+ },
+ {
+  "posted": "Quality Engineer I (Modern Location)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Marvin Lumber & Cedar",
+   "factory": "MARVIN COMPOSITES LLC",
+   "city": "FARGO",
+   "state": "ND"
+  },
+  "want": "Quality Engineer I",
+  "shows": "a \"Location\""
+ },
+ {
+  "posted": "Test Technician - II, Motion Control, Honeybee Robotics",
+  "about": {
+   "career": "Test Technician",
+   "company": "Blue Origin",
+   "factory": "Honeybee Robotics Longmont",
+   "city": "Longmont",
+   "state": "CO"
+  },
+  "want": "Test Technician - II, Motion Control",
+  "shows": "the factory's own name (Honeybee Robotics Longmont)"
+ },
+ {
+  "posted": "Battery Pack Test Engineer III | Blue Batteries",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Batteries Grandview",
+   "city": "Grandview",
+   "state": "MO"
+  },
+  "want": "Battery Pack Test Engineer III",
+  "shows": "the factory's own name"
+ },
+ {
+  "posted": "Mechanical Design Engineer, Starship Material Flow (Starbase)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Mechanical Design Engineer, Starship Material Flow",
+  "shows": "the site in a bracket"
+ },
+ {
+  "posted": "Avionics Test Technician, Starbase Vibe Test Lab",
+  "about": {
+   "career": "Test Technician",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Avionics Test Technician, Vibe Test Lab",
+  "shows": "the site before a lab inside it"
+ },
+ {
+  "posted": "Mechanical Engineer, Anduril Expeditionary Systems",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Mechanical Engineer, Expeditionary Systems",
+  "shows": "the company before its division"
+ },
+ {
+  "posted": "Houston 66 (Washington Heights) Market - Meat Cutter - Full time",
+  "about": {
+   "career": "Meat Cutter",
+   "company": "H-E-B",
+   "factory": "Houston Bakery and Milk Plant (Clay Road)",
+   "city": "Houston",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "leading clause with the town; kind"
+ },
+ {
+  "posted": "Drafter II - R&D (Relocate to Warroad, MN)",
+  "about": {
+   "career": "CAD Designer",
+   "company": "Marvin",
+   "factory": "Marvin Warroad",
+   "city": "Warroad",
+   "state": "MN"
+  },
+  "want": "Drafter II - R&D",
+  "shows": "relocation; R&D stays"
+ },
+ {
+  "posted": "NDE Inspector Trainee (Starship) - Temporary",
+  "about": {
+   "career": "NDT Technician",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "NDE Inspector Trainee (Starship)",
+  "shows": "kind; \"Trainee\" is the job"
+ },
+ {
+  "posted": "Quality Engineer II - Post-Market Trending - 18 Month Defined Term",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Boston Scientific",
+   "factory": "Boston Scientific Arden Hills",
+   "city": "Arden Hills",
+   "state": "MN"
+  },
+  "want": "Quality Engineer II - Post-Market Trending",
+  "shows": "kind"
+ },
+ {
+  "posted": "Avionics Cable Harness Design Engineer III (Fixed Term)",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Avionics Cable Harness Design Engineer III",
+  "shows": "kind"
+ },
+ {
+  "posted": "(On-Call/Casual) Sr. Principal Maritime Test Engineer",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Annapolis",
+   "city": "Annapolis",
+   "state": "MD"
+  },
+  "want": "Sr. Principal Maritime Test Engineer",
+  "shows": "kind first"
+ },
+ {
+  "posted": "Product Guide III Part Time- Roswell Service Center",
+  "about": {
+   "career": "",
+   "company": "Rivian",
+   "factory": null,
+   "city": "Roswell",
+   "state": "GA"
+  },
+  "want": "Product Guide III",
+  "shows": "kind after the name; town and \"Service Center\""
+ },
+ {
+  "posted": "Technical Recruiter (Contract)",
+  "about": {
+   "career": "",
+   "company": "Relativity Space",
+   "factory": null,
+   "city": "Long Beach",
+   "state": "CA"
+  },
+  "want": "Technical Recruiter",
+  "shows": "kind"
+ },
+ {
+  "posted": "Sentinel - Principal Systems Engineer - (MS&A) - 20428",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Sentinel - Principal Systems Engineer (MS&A)",
+  "shows": "number; the program and the team stay; no dash before a bracket"
+ },
+ {
+  "posted": "Sentinel- Sr/Principal Mechanical Engineer (Secret Clearance) 19588",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN AEROSPACE SYSTEMS",
+   "city": "MANHATTAN BEACH",
+   "state": "CA"
+  },
+  "want": "Sentinel - Sr/Principal Mechanical Engineer",
+  "shows": "clearance and a number after the bracket"
+ },
+ {
+  "posted": "Sr Principal Engineer Systems (Global Interface) (26-505)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION",
+   "city": "COLORADO SPRINGS",
+   "state": "CO"
+  },
+  "want": "Sr Principal Engineer Systems (Global Interface)",
+  "shows": "a number with a dash"
+ },
+ {
+  "posted": "Sentinel - Systems Engineer / Principal Systems Engineer - 10601-1",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Sentinel - Systems Engineer / Principal Systems Engineer",
+  "shows": "a number with a dash"
+ },
+ {
+  "posted": "Electrical Engineer/Principal Electrical Engineer - (19658 19657 19656 19655 19654)",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Electrical Engineer/Principal Electrical Engineer",
+  "shows": "five numbers"
+ },
+ {
+  "posted": "Principal/Sr Principal Electrical Engineer - 20350 & 20351",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Principal/Sr Principal Electrical Engineer",
+  "shows": "two numbers"
+ },
+ {
+  "posted": "Sr Principal Engineer Systems-3217-3",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Sr Principal Engineer Systems",
+  "shows": "a number set against the word"
+ },
+ {
+  "posted": "Sentinel - Systems Engineer level 2 or 3 (19631*)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Sentinel - Systems Engineer level 2 or 3",
+  "shows": "a starred number; the level stays"
+ },
+ {
+  "posted": "Principal Mechanical Engineer - Top Secret Required (18524*)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Principal Mechanical Engineer",
+  "shows": "clearance and number"
+ },
+ {
+  "posted": "Systems Engineer -20539",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": null,
+  "shows": "number; the rest is the career"
+ },
+ {
+  "posted": "Engineer Mechanical - *20383",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": null,
+  "shows": "number; the same words as the career in another order"
+ },
+ {
+  "posted": "Senior Systems Engineer - Datalinks (ONSITE)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Collins Aerospace",
+   "factory": "Collins Aerospace Cedar Rapids",
+   "city": "Cedar Rapids",
+   "state": "IA"
+  },
+  "want": "Senior Systems Engineer - Datalinks",
+  "shows": "onsite"
+ },
+ {
+  "posted": "Electrical Engineer 1 - (RCP Hardware)(Onsite)",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Collins Aerospace",
+   "factory": "Collins Aerospace Cedar Rapids",
+   "city": "Cedar Rapids",
+   "state": "IA"
+  },
+  "want": "Electrical Engineer 1 (RCP Hardware)",
+  "shows": "one bracket of two; no dash before a bracket"
+ },
+ {
+  "posted": "Senior Supplier Quality Engineer (Hybrid)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Collins Aerospace",
+   "factory": "Collins Aerospace Phoenix 5th Street",
+   "city": "Phoenix",
+   "state": "AZ"
+  },
+  "want": "Senior Supplier Quality Engineer",
+  "shows": "hybrid"
+ },
+ {
+  "posted": "Senior Systems Engineer, Radar Integration Onsite",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Raytheon",
+   "factory": "RAYTHEON SEAPOWER CAPABILITY CENTER",
+   "city": "PORTSMOUTH",
+   "state": "RI"
+  },
+  "want": "Senior Systems Engineer, Radar Integration",
+  "shows": "onsite after the area"
+ },
+ {
+  "posted": "Senior Principal Spacecraft Concept & Mission Engineer/Sr Principal Systems Engineer Onsite",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Raytheon",
+   "factory": "Raytheon Tucson",
+   "city": "Tucson",
+   "state": "AZ"
+  },
+  "want": "Senior Principal Spacecraft Concept & Mission Engineer/Sr Principal Systems Engineer",
+  "shows": "onsite after the role"
+ },
+ {
+  "posted": "2027 ADGE Principal Mechanical Engineer – On-Site",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Raytheon",
+   "factory": "RAYTHEON IDS HEADQUARTERS",
+   "city": "TEWKSBURY",
+   "state": "MA"
+  },
+  "want": "2027 ADGE Principal Mechanical Engineer",
+  "shows": "on-site"
+ },
+ {
+  "posted": "Senior Electrical Engineer (Hybrid-Remote/Onsite)",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Senior Electrical Engineer",
+  "shows": "all three"
+ },
+ {
+  "posted": "Mechanical Engineer, P2 – Engineering Support to Operations (ESTO) - (On-site)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney East Hartford",
+   "city": "East Hartford",
+   "state": "CT"
+  },
+  "want": "Mechanical Engineer, P2 – Engineering Support to Operations (ESTO)",
+  "shows": "on-site"
+ },
+ {
+  "posted": "2nd shift Machinist I (Onsite)",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "RTX",
+   "factory": null,
+   "city": "Opa Locka",
+   "state": "FL"
+  },
+  "want": "Machinist I",
+  "shows": "shift first and onsite last"
+ },
+ {
+  "posted": "Systems Engineer, C2 Integration, Active Clearance",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Systems Engineer, C2 Integration",
+  "shows": "clearance"
+ },
+ {
+  "posted": "Quality Specialist- Clearance",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "ASHVILLE",
+   "state": "OH"
+  },
+  "want": "Quality Specialist",
+  "shows": "clearance"
+ },
+ {
+  "posted": "Principal Electrical Engineer ASIC/FPGA- Active Secret (Onsite)",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Raytheon",
+   "factory": "ROCKWELL COLLINS INC -C AVENUE FACILITY",
+   "city": "CEDAR RAPIDS",
+   "state": "IA"
+  },
+  "want": "Principal Electrical Engineer ASIC/FPGA",
+  "shows": "clearance and onsite"
+ },
+ {
+  "posted": "Principal Mechanical Engineer (No Clearance Required) - 17391",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Principal Mechanical Engineer",
+  "shows": "clearance and number"
+ },
+ {
+  "posted": "Sr. Avionics Systems Engineer (Special Programs) - Top Secret Clearance",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "SpaceX",
+   "factory": "SpaceX Hawthorne",
+   "city": "Hawthorne",
+   "state": "CA"
+  },
+  "want": "Sr. Avionics Systems Engineer (Special Programs)",
+  "shows": "clearance; \"Special Programs\" is a team"
+ },
+ {
+  "posted": "Systems Engineer - Vehicle Controls (Indefinite US Work Authorization Required)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Crown Equipment",
+   "factory": "Crown New Bremen",
+   "city": "New Bremen",
+   "state": "OH"
+  },
+  "want": "Systems Engineer - Vehicle Controls",
+  "shows": "work authorization; the area stays"
+ },
+ {
+  "posted": "Hardware‑in‑the‑Loop (HIL) Systems Engineer (Indefinite US Work Authorization Required)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Crown Equipment",
+   "factory": "Crown New Bremen",
+   "city": "New Bremen",
+   "state": "OH"
+  },
+  "want": "Hardware-in-the-Loop (HIL) Systems Engineer",
+  "shows": "work authorization; plain hyphens"
+ },
+ {
+  "posted": "Senior Electrical Engineer, Hardware Platform, 8+ years of experience",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Senior Electrical Engineer, Hardware Platform",
+  "shows": "years of experience"
+ },
+ {
+  "posted": "WELDER/PIPE - EXPERIENCED 4+ YEARS EXP REQUIRED",
+  "about": {
+   "career": "Welder",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Welder/Pipe - Experienced",
+  "shows": "years after the level; capitals"
+ },
+ {
+  "posted": "WELDER/PIPE - EXPERIENCED (10+ YEARS) REQUIRED",
+  "about": {
+   "career": "Welder",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Welder/Pipe - Experienced",
+  "shows": "years in a bracket and a word left hanging"
+ },
+ {
+  "posted": "WELDER/STRUCTURE - SKILLED (1-3 YEARS EXP REQUIRED)",
+  "about": {
+   "career": "Welder",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Welder/Structure - Skilled",
+  "shows": "years"
+ },
+ {
+  "posted": "DECK ELECTRICIAN (CERTIFICATION REQUIRED)",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Deck Electrician",
+  "shows": "a requirement"
+ },
+ {
+  "posted": "Manufacturing Operator (No Experience) - MAY BE ANY SHIFT",
+  "about": {
+   "career": "Production Operator",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney Asheville",
+   "city": "Asheville",
+   "state": "NC"
+  },
+  "want": "Manufacturing Operator",
+  "shows": "no experience; shift"
+ },
+ {
+  "posted": "SCM Planner- Japanese speaking is Required",
+  "about": {
+   "career": "",
+   "company": "Panasonic North America",
+   "factory": null,
+   "city": "Torrance",
+   "state": "CA"
+  },
+  "want": "SCM Planner",
+  "shows": "a requirement"
+ },
+ {
+  "posted": "Experienced FCAW Welder - $6,000 Sign-On Bonus",
+  "about": {
+   "career": "Welder",
+   "company": "Caterpillar",
+   "factory": "Caterpillar South Milwaukee",
+   "city": "South Milwaukee",
+   "state": "WI"
+  },
+  "want": "Experienced FCAW Welder",
+  "shows": "bonus"
+ },
+ {
+  "posted": "Welder -2nd Shift- East Peoria LL-  HIRING & RETENTION BONUS",
+  "about": {
+   "career": "Welder",
+   "company": "Caterpillar",
+   "factory": "Caterpillar East Peoria",
+   "city": "East Peoria",
+   "state": "IL"
+  },
+  "want": null,
+  "shows": "shift, site, bonus"
+ },
+ {
+  "posted": "Production Operator - Second or Third Shift Available - Full Benefits Day-One!",
+  "about": {
+   "career": "Production Operator",
+   "company": "Caterpillar",
+   "factory": "CATERPILLAR, INC",
+   "city": "POMONA",
+   "state": "MO"
+  },
+  "want": null,
+  "shows": "shift and a banner"
+ },
+ {
+  "posted": "Furnace Operator - Multiple Shifts Available!",
+  "about": {
+   "career": "Heat Treat Operator",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Menominee",
+   "city": "Menominee",
+   "state": "MI"
+  },
+  "want": "Furnace Operator",
+  "shows": "shift with a shout"
+ },
+ {
+  "posted": "Advanced Mechanical Design Engineer - Electromechanical (Relo Assistance!)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Honeywell",
+   "factory": "HONEYWELL INC IACD",
+   "city": "PHOENIX",
+   "state": "AZ"
+  },
+  "want": "Advanced Mechanical Design Engineer - Electromechanical",
+  "shows": "relocation in a bracket; the area before it stays"
+ },
+ {
+  "posted": "Sr Advanced Aerospace Systems Engineer  (Relo Assistance)",
+  "about": {
+   "career": "Aerospace Engineer",
+   "company": "Honeywell",
+   "factory": "HONEYWELL INC IACD",
+   "city": "PHOENIX",
+   "state": "AZ"
+  },
+  "want": "Sr Advanced Aerospace Systems Engineer",
+  "shows": "relocation"
+ },
+ {
+  "posted": "PIPE FITTER TRAINEE - 3 WEEK UNPAID TRAINING PROGRAM (7AM-3:30PM)",
+  "about": {
+   "career": "Pipefitter",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Pipe Fitter Trainee",
+  "shows": "a note of pay; hours"
+ },
+ {
+  "posted": "OUTSIDE MACHINIST- TRAINEE (3 WEEK UNPAID TRAINING PROGRAM 7AM-3:30PM)",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Outside Machinist - Trainee",
+  "shows": "a note of pay in a bracket"
+ },
+ {
+  "posted": "Electronics Technician - 3rd Shift - ***Premium Posting***",
+  "about": {
+   "career": "Electronics Technician",
+   "company": "Electric Boat",
+   "factory": "Electric Boat Groton",
+   "city": "Groton",
+   "state": "CT"
+  },
+  "want": null,
+  "shows": "a banner in asterisks"
+ },
+ {
+  "posted": "Lead, Senior or Experienced Electronic Systems Design, Integration, Analysis, and Test Engineers **Sign on Bonus Potential**",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Boeing",
+   "factory": "Boeing St. Louis",
+   "city": "Berkeley",
+   "state": "MO"
+  },
+  "want": "Lead, Senior or Experienced Electronic Systems Design, Integration, Analysis, and Test Engineers",
+  "shows": "a banner in asterisks after the role"
+ },
+ {
+  "posted": "Propulsion Engineer (2 positions)",
+  "about": {
+   "career": "Propulsion Engineer",
+   "company": "Venus Aerospace",
+   "factory": "Venus Aerospace Houston",
+   "city": "Houston",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "how many openings"
+ },
+ {
+  "posted": "NDT Technician – Radiography (RT) - Level I & Level II - EVERGREEN",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "NDT Technician – Radiography (RT) – Level I & Level II",
+  "shows": "an always-open posting; one kind of dash"
+ },
+ {
+  "posted": "Engineer - Quality I (Machine Shops) - Early Career (2027 Starts) (Evergreen)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "Engineer - Quality I (Machine Shops) - Early Career (2027 Starts)",
+  "shows": "evergreen; the intake's year stays"
+ },
+ {
+  "posted": "Principal/MTS Wet Process  Development Engineer, DRAM Wet Process (Evergreen)",
+  "about": {
+   "career": "Wet Process and CMP Engineer",
+   "company": "Micron Technology",
+   "factory": "Micron Boise",
+   "city": "Boise",
+   "state": "ID"
+  },
+  "want": "Principal/MTS Wet Process Development Engineer, DRAM Wet Process",
+  "shows": "evergreen; the area before it stays"
+ },
+ {
+  "posted": "Electronics Test Technician *4th Shift*",
+  "about": {
+   "career": "Test Technician",
+   "company": "Raytheon",
+   "factory": "Raytheon Andover",
+   "city": "Andover",
+   "state": "MA"
+  },
+  "want": "Electronics Test Technician",
+  "shows": "shift between stars"
+ },
+ {
+  "posted": "Sr. AD/ADAS Validation Engineer (m/f/d)",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Lucid Motors",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Sr. AD/ADAS Validation Engineer",
+  "shows": "the mark for every gender"
+ },
+ {
+  "posted": "MARINE PAINTER - EXPERIENCED",
+  "about": {
+   "career": "Industrial Painter",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Marine Painter - Experienced",
+  "shows": "capitals"
+ },
+ {
+  "posted": "ENGINEER SYSTEMS 3- RISK & KNOWLEDGE MANAGEMENT",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Engineer Systems 3 - Risk & Knowledge Management",
+  "shows": "capitals; a dash tidied"
+ },
+ {
+  "posted": "WELDER EXPERIENCED - OPIP",
+  "about": {
+   "career": "Welder",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Welder Experienced - OPIP",
+  "shows": "four letters that are no word stay capitals"
+ },
+ {
+  "posted": "INSPECTOR (DIMENSIONAL AND NDT)",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Inspector (Dimensional and NDT)",
+  "shows": "NDT stays; \"and\" small"
+ },
+ {
+  "posted": "MAINTENANCE ELECTRICIAN-DEPT O43",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Maintenance Electrician-Dept O43",
+  "shows": "a department's code"
+ },
+ {
+  "posted": "ELECTRICIAN (A) - MAINTENANCE",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Ingalls Shipbuilding",
+   "factory": "Ingalls Shipbuilding",
+   "city": "Pascagoula",
+   "state": "MS"
+  },
+  "want": "Electrician (A) - Maintenance",
+  "shows": "a grade's letter stays a capital"
+ },
+ {
+  "posted": "NDT INSPECTOR",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Ingalls Shipbuilding",
+   "factory": "Ingalls Shipbuilding",
+   "city": "Pascagoula",
+   "state": "MS"
+  },
+  "want": "NDT Inspector",
+  "shows": "NDT stays"
+ },
+ {
+  "posted": "ENGINEER INDUSTRIAL 1- FALL NEW GRAD",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Ingalls Shipbuilding",
+   "factory": "Ingalls Shipbuilding",
+   "city": "Pascagoula",
+   "state": "MS"
+  },
+  "want": "Engineer Industrial 1 - Fall New Grad",
+  "shows": "the season of a graduate intake stays"
+ },
+ {
+  "posted": "INSIDE MACHINIST SEMI-SKILLED",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Ingalls Shipbuilding",
+   "factory": "Ingalls Shipbuilding",
+   "city": "Pascagoula",
+   "state": "MS"
+  },
+  "want": "Inside Machinist Semi-Skilled",
+  "shows": "capitals across a hyphen"
+ },
+ {
+  "posted": "U104 ELECTRONIC ASSEMBLER",
+  "about": {
+   "career": "Electronics Assembler",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Azusa",
+   "city": "Azusa",
+   "state": "CA"
+  },
+  "want": "U104 Electronic Assembler",
+  "shows": "a code with a digit stays"
+ },
+ {
+  "posted": "AUTOMATION TECHNICIAN - Plant 3",
+  "about": {
+   "career": "Automation Technician",
+   "company": "Howmet Aerospace",
+   "factory": "HOWMET RESEARCH CENTER",
+   "city": "WHITEHALL",
+   "state": "MI"
+  },
+  "want": "Automation Technician - Plant 3",
+  "shows": "a name that shouts in part"
+ },
+ {
+  "posted": "Mechanical Engineer III -(E3)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Mechanical Engineer III (E3)",
+  "shows": "a dash set against a bracket goes"
+ },
+ {
+  "posted": "Drafter III -- New Glenn",
+  "about": {
+   "career": "CAD Designer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Drafter III - New Glenn",
+  "shows": "a doubled dash"
+ },
+ {
+  "posted": "Manufacturing Design Engineer II – Tooling & GSE II/III/Sr - Lunar",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Manufacturing Design Engineer II – Tooling & GSE II/III/Sr – Lunar",
+  "shows": "one kind of dash in one name"
+ },
+ {
+  "posted": "Sr. Systems Engineer, Spacecraft Guidance Navigation & Control (GN&C)-Project Sunrise",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Sr. Systems Engineer, Spacecraft Guidance Navigation & Control (GN&C) - Project Sunrise",
+  "shows": "a hyphen set against a bracket"
+ },
+ {
+  "posted": "Systems Engineer,. Mid-Career",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Boeing",
+   "factory": "BOEING CO. GMD LAYTON UTAH",
+   "city": "LAYTON",
+   "state": "UT"
+  },
+  "want": "Systems Engineer, Mid-Career",
+  "shows": "stray punctuation"
+ },
+ {
+  "posted": "Autonomous Senior Flight Test Engineer,  Rotorcraft",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Autonomous Senior Flight Test Engineer, Rotorcraft",
+  "shows": "a doubled space"
+ },
+ {
+  "posted": "Senior Manufacturing Engineer ( Drive Unit Assembly)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Crown Equipment",
+   "factory": "Crown New Bremen",
+   "city": "New Bremen",
+   "state": "OH"
+  },
+  "want": "Senior Manufacturing Engineer (Drive Unit Assembly)",
+  "shows": "a space inside a bracket"
+ },
+ {
+  "posted": "Design & Release Engineer -Wheel, Tire, Jack, and Ornamentation (WTJO)",
+  "about": {
+   "career": "Automotive Engineer",
+   "company": "Ford",
+   "factory": "Dearborn Truck Plant",
+   "city": "Dearborn",
+   "state": "MI"
+  },
+  "want": "Design & Release Engineer - Wheel, Tire, Jack, and Ornamentation (WTJO)",
+  "shows": "a list is not cut at its commas"
+ },
+ {
+  "posted": "CNC Machinist (G&L)-VTC/VTL",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "NOV",
+   "factory": "NOV Eldridge Parkway (Rig Pressure Control)",
+   "city": "Houston",
+   "state": "TX"
+  },
+  "want": "CNC Machinist (G&L) - VTC/VTL",
+  "shows": "a hyphen set against a bracket"
+ },
+ {
+  "posted": "Maintenance Technician -Experienced",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "TechnipFMC",
+   "factory": "TechnipFMC Houston Campus",
+   "city": "Houston",
+   "state": "TX"
+  },
+  "want": "Maintenance Technician - Experienced",
+  "shows": "a dash set against a word"
+ },
+ {
+  "posted": "Mechanical  Engineer, Production Operations (Starship)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Mechanical Engineer, Production Operations (Starship)",
+  "shows": "a doubled space inside the role"
+ },
+ {
+  "posted": "CNC Programmer - A shift",
+  "about": {
+   "career": "CNC Programmer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Industrial Electrician - 2nd/3rd Shift - Decatur, IL",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Decatur",
+   "city": "Decatur",
+   "state": "IL"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Welder - 2nd/3rd Shifts - Sign-On Bonus",
+  "about": {
+   "career": "Welder",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Pontiac",
+   "city": "Pontiac",
+   "state": "IL"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Failure Analysis Technician (Night Shift -B)",
+  "about": {
+   "career": "Failure Analysis Technician",
+   "company": "Coherent",
+   "factory": "Coherent Sherman",
+   "city": "Sherman",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Industrial Engineer (On-site)",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Collins Aerospace",
+   "factory": "Collins Aerospace Coralville",
+   "city": "Coralville",
+   "state": "IA"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "CNC -Machinist",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Electric Boat",
+   "factory": "Electric Boat Quonset Point",
+   "city": "North Kingstown",
+   "state": "RI"
+  },
+  "want": null,
+  "shows": "a stray dash"
+ },
+ {
+  "posted": "Millwright - Louisville, KY",
+  "about": {
+   "career": "Millwright",
+   "company": "Ford",
+   "factory": "Kentucky Truck Plant",
+   "city": "Louisville",
+   "state": "KY"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Industrial Engineer, BlueOval Battery Park Michigan",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Ford",
+   "factory": "BlueOval Battery Park Michigan",
+   "city": "Marshall",
+   "state": "MI"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Millwright - Lima Engine Plant (LEP)",
+  "about": {
+   "career": "Millwright",
+   "company": "Ford",
+   "factory": "FORD MOTOR CO LIMA ENGINE PLANT",
+   "city": "LIMA",
+   "state": "OH"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Industrial Engineer - Lockport",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "General Motors",
+   "factory": "Lockport Operations",
+   "city": "Lockport",
+   "state": "NY"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Night Shift Maintenance Technician",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "International Motors",
+   "factory": "NAVISTAR DIESEL OF ALABAMA LLC",
+   "city": "HUNTSVILLE",
+   "state": "AL"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Maintenance Technician - First Shift - Weekend",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "International Motors",
+   "factory": "San Antonio Manufacturing Plant",
+   "city": "San Antonio",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "John Deere Horicon Works - Tool & Die Maker",
+  "about": {
+   "career": "Tool and Die Maker",
+   "company": "John Deere",
+   "factory": "John Deere Horicon Works",
+   "city": "Horicon",
+   "state": "WI"
+  },
+  "want": null,
+  "shows": "\"&\" is \"and\""
+ },
+ {
+  "posted": "Welder-2nd Shift",
+  "about": {
+   "career": "Welder",
+   "company": "NOV",
+   "factory": "NOV Eldridge Parkway (Rig Pressure Control)",
+   "city": "Houston",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Manufacturing Engineer - Tulsa",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "NOV",
+   "factory": "NOV AMERON TULSA POLE PRODUCTS TUBE MANUFACTURING",
+   "city": "TULSA",
+   "state": "OK"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Metal Fabricator 1st Shift (onsite)",
+  "about": {
+   "career": "Metal Fabricator",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney East Hartford",
+   "city": "East Hartford",
+   "state": "CT"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Electronics Technician (Onsite)",
+  "about": {
+   "career": "Electronics Technician",
+   "company": "Raytheon",
+   "factory": "ROCKWELL COLLINS INC -C AVENUE FACILITY",
+   "city": "CEDAR RAPIDS",
+   "state": "IA"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "2nd Shift Manufacturing Engineer",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Saronic",
+   "factory": "Saronic Austin",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Engineer, Quality",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "StandardAero",
+   "factory": "STANDARDAERO COMPONENT SERVICES INC",
+   "city": "CINCINNATI",
+   "state": "OH"
+  },
+  "want": null,
+  "shows": "the career's words in another order"
+ },
+ {
+  "posted": "Composite Technician, First Shift",
+  "about": {
+   "career": "Composite Technician",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES, INC",
+   "city": "MORRISVILLE",
+   "state": "NC"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Test Engineer",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Micron Technology",
+   "factory": "Micron Boise",
+   "city": "Boise",
+   "state": "ID"
+  },
+  "want": null,
+  "shows": "the career's title itself"
+ },
+ {
+  "posted": "Manufacturing Engineer",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Saronic",
+   "factory": "Saronic Austin",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": ""
+ },
+ {
+  "posted": "Mechanical engineer",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Flex",
+   "factory": "Flex Milpitas",
+   "city": "Milpitas",
+   "state": "CA"
+  },
+  "want": null,
+  "shows": "in small letters"
+ },
+ {
+  "posted": "Automation Technician (All Crews/All PGT Plants)",
+  "about": {
+   "career": "Automation Technician",
+   "company": "First Solar",
+   "factory": "First Solar Perrysburg",
+   "city": "Perrysburg",
+   "state": "OH"
+  },
+  "want": null,
+  "shows": "every crew and every plant, a site's code inside the note"
+ },
+ {
+  "posted": "AFP Operator - All Levels",
+  "about": {
+   "career": "Automated Fiber Placement Operator",
+   "company": "Rocket Lab",
+   "factory": "Rocket Lab Space Structures Complex",
+   "city": "Middle River",
+   "state": "MD"
+  },
+  "want": "AFP Operator",
+  "shows": "\"All Levels\" is a recruiting note, not a grade"
+ },
+ {
+  "posted": "Electrical Engineer-All Levels",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Allen Control Systems",
+   "factory": "Allen Control Systems Headquarters",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "the note set against the word; the career is left"
+ },
+ {
+  "posted": "Composite Development Technician, all levels",
+  "about": {
+   "career": "Composite Technician",
+   "company": "Rocket Lab",
+   "factory": "Rocket Lab Space Structures Complex",
+   "city": "Middle River",
+   "state": "MD"
+  },
+  "want": "Composite Development Technician",
+  "shows": "after a comma, in small letters"
+ },
+ {
+  "posted": "Manufacturing Engineer II-Sr  (Multiple Levels/Shifts) - Operations",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Manufacturing Engineer II-Sr - Operations",
+  "shows": "levels and shifts in one bracket; the grades the company named stay"
+ },
+ {
+  "posted": "Electrical and Controls/Automation Technician (All Crews/All Plants)",
+  "about": {
+   "career": "Automation Technician",
+   "company": "First Solar",
+   "factory": "First Solar Perrysburg",
+   "city": "Perrysburg",
+   "state": "OH"
+  },
+  "want": "Electrical and Controls/Automation Technician",
+  "shows": "every crew, every plant"
+ },
+ {
+  "posted": "Manufacturing Engineer - Level II, III, Sr (All Shifts)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "Manufacturing Engineer - Level II, III, Sr",
+  "shows": "neighbour: levels that are named stay"
+ },
+ {
+  "posted": "Maintenance Technician Level 3 or Level 4 - (Nights)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - LAYTON EAST GATE",
+   "city": "LAYTON",
+   "state": "UT"
+  },
+  "want": "Maintenance Technician Level 3 or Level 4",
+  "shows": "neighbour: \"Level 3 or Level 4\" is a grade"
+ },
+ {
+  "posted": "Manufacturing Engineer (Associate or Mid-Level)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Boeing",
+   "factory": "BOEING AVIONICS REPAIR FACILITY",
+   "city": "JACKSONVILLE",
+   "state": "FL"
+  },
+  "want": "Manufacturing Engineer (Associate or Mid-Level)",
+  "shows": "neighbour: the levels a posting is open at, named"
+ },
+ {
+  "posted": "CVD Equipment Engineer (SM1)",
+  "about": {
+   "career": "Semiconductor Equipment Engineer",
+   "company": "Texas Instruments",
+   "factory": "Sherman (SM1)",
+   "city": "Sherman",
+   "state": "TX"
+  },
+  "want": "CVD Equipment Engineer",
+  "shows": "the factory is \"Sherman (SM1)\": its code"
+ },
+ {
+  "posted": "Process Integration Engineer (SM1)",
+  "about": {
+   "career": "Process Integration Engineer",
+   "company": "Texas Instruments",
+   "factory": "Sherman (SM1)",
+   "city": "Sherman",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "the code gone, the career is left"
+ },
+ {
+  "posted": "RFAB Module Industrial Engineer",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Texas Instruments",
+   "factory": "RFAB",
+   "city": "Richardson",
+   "state": "TX"
+  },
+  "want": "Module Industrial Engineer",
+  "shows": "the factory's code, written as a code, before the name"
+ },
+ {
+  "posted": "Senior Systems Engineer, Electronic Warfare",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Raytheon",
+   "factory": "RAYTHEON-HOLLISTER (ELECTRONIC WARFARE)",
+   "city": "GOLETA",
+   "state": "CA"
+  },
+  "want": "Senior Systems Engineer, Electronic Warfare",
+  "shows": "the factory is \"... (ELECTRONIC WARFARE)\": its line of business, which is this opening's branch"
+ },
+ {
+  "posted": "Senior Systems Integration & Test Engineer - Electronic Warfare",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Raytheon",
+   "factory": "RAYTHEON-HOLLISTER (ELECTRONIC WARFARE)",
+   "city": "GOLETA",
+   "state": "CA"
+  },
+  "want": "Senior Systems Integration & Test Engineer - Electronic Warfare",
+  "shows": "the same after a dash"
+ },
+ {
+  "posted": "CVD Equipment Engineer (RFAB)",
+  "about": {
+   "career": "Semiconductor Equipment Engineer",
+   "company": "Texas Instruments",
+   "factory": "RFAB",
+   "city": "Richardson",
+   "state": "TX"
+  },
+  "want": "CVD Equipment Engineer",
+  "shows": "neighbour: a code that is the factory's whole name"
+ },
+ {
+  "posted": "DM5 - Product Test Technician - C shift",
+  "about": {
+   "career": "Semiconductor Test Technician",
+   "company": "Texas Instruments",
+   "factory": "North Campus",
+   "city": "Dallas",
+   "state": "TX"
+  },
+  "want": "DM5 - Product Test Technician",
+  "shows": "neighbour: a fab inside the campus is not the factory's name"
+ },
+ {
+  "posted": "Systems Engineer, EW",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "Systems Engineer, EW",
+  "shows": "neighbour: a branch by its initials"
+ },
+ {
+  "posted": "Test Engineers L2-L4 | Test Operations Maintenance | Engines LSO",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Launch Site One",
+   "city": "Van Horn",
+   "state": "TX"
+  },
+  "want": "Test Engineers L2-L4 | Test Operations Maintenance | Engines",
+  "shows": "LSO is Launch Site One, the factory"
+ },
+ {
+  "posted": "NM Silicon Photonics Dry Etch Process Development Engineer",
+  "about": {
+   "career": "Etch Process Engineer",
+   "company": "Intel",
+   "factory": "Intel Rio Rancho",
+   "city": "Rio Rancho",
+   "state": "NM"
+  },
+  "want": "Silicon Photonics Dry Etch Process Development Engineer",
+  "shows": "the job's own state before the name"
+ },
+ {
+  "posted": "QC Inspector (DMNC MI, 3rd Shift)",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Denso",
+   "factory": "Denso Manufacturing Michigan",
+   "city": "Battle Creek",
+   "state": "MI"
+  },
+  "want": null,
+  "shows": "a site's code with the job's state; \"QC Inspector\" is the career abbreviated"
+ },
+ {
+  "posted": "Huntsville Technician - 12 hour shifts",
+  "about": {
+   "career": "Chemical Operator",
+   "company": "GE Aerospace",
+   "factory": null,
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "Technician",
+  "shows": "the job's own town straight before the role"
+ },
+ {
+  "posted": "Senior EHS Specialist (Cape)",
+  "about": {
+   "career": "",
+   "company": "Relativity Space",
+   "factory": null,
+   "city": "Cape Canaveral",
+   "state": "FL"
+  },
+  "want": "Senior EHS Specialist",
+  "shows": "Cape Canaveral by its first word"
+ },
+ {
+  "posted": "Product Guide III (Part-Time) - The Americana Showroom",
+  "about": {
+   "career": "",
+   "company": "Rivian",
+   "factory": null,
+   "city": "Glendale",
+   "state": "CA"
+  },
+  "want": "Product Guide III",
+  "shows": "a showroom is a place"
+ },
+ {
+  "posted": "A&I Products Canada Inc. - Production Welder",
+  "about": {
+   "career": "MIG Welder",
+   "company": "John Deere",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Production Welder",
+  "shows": "a firm under its legal name as the leading clause"
+ },
+ {
+  "posted": "CLS - F-35 Aircraft Mechanic (Airframes) 3/4",
+  "about": {
+   "career": "Aircraft Mechanic",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN INC",
+   "city": "SAN DIEGO",
+   "state": "CA"
+  },
+  "want": "CLS - F-35 Aircraft Mechanic (Airframes) 3/4",
+  "shows": "neighbour: a leading code that is a program stays; 3/4 is the grade"
+ },
+ {
+  "posted": "Facility Engineer - Trim & Final, ME",
+  "about": {
+   "career": "Facilities Engineer",
+   "company": "Subaru of Indiana Automotive",
+   "factory": "Subaru of Indiana Automotive",
+   "city": "Lafayette",
+   "state": "IN"
+  },
+  "want": "Facility Engineer - Trim & Final, ME",
+  "shows": "neighbour: ME is manufacturing engineering, not Maine"
+ },
+ {
+  "posted": "Equipment Maintenance Technician (Idaho Fab 1)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Micron Technology",
+   "factory": "Micron Boise",
+   "city": "Boise",
+   "state": "ID"
+  },
+  "want": "Equipment Maintenance Technician (Idaho Fab 1)",
+  "shows": "neighbour: a fab named for its state is a fab"
+ },
+ {
+  "posted": "RF Principal Systems Engineer",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Honeywell",
+   "factory": "HONEYWELL INDUSTRIAL SAFETY",
+   "city": "SAN DIEGO",
+   "state": "CA"
+  },
+  "want": "RF Principal Systems Engineer",
+  "shows": "neighbour: two capitals before a name are a trade"
+ },
+ {
+  "posted": "Systems Engineer - Level 2/3 - East Hartford",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORP",
+   "city": "HANOVER",
+   "state": "MD"
+  },
+  "want": "Systems Engineer - Level 2/3 - East Hartford",
+  "shows": "left whole: a town that is not the job's own cannot be known for a town"
+ },
+ {
+  "posted": "RFI - Electronics Technician",
+  "about": {
+   "career": "Electronics Technician",
+   "company": "Hormel Foods",
+   "factory": "ROCHELLE FOODS LLC",
+   "city": "ROCHELLE",
+   "state": "IL"
+  },
+  "want": "RFI - Electronics Technician",
+  "shows": "left whole: RFI is not the initials of the factory on record"
+ },
+ {
+  "posted": "Senior Test Engineer - HBR",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Blue Origin",
+   "factory": "Honeybee Robotics Longmont",
+   "city": "Longmont",
+   "state": "CO"
+  },
+  "want": "Senior Test Engineer - HBR",
+  "shows": "left whole: HBR is not the first letters of the factory's name (Honeybee Robotics Longmont)"
+ },
+ {
+  "posted": "Network Development Manager - Germany",
+  "about": {
+   "career": "",
+   "company": "Lucid Motors",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Network Development Manager - Germany",
+  "shows": "left whole: a country other than the job's own is the opening's territory"
+ },
+ {
+  "posted": "Field Service Technician - Laval, QC",
+  "about": {
+   "career": "",
+   "company": "Rivian",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Field Service Technician - Laval, QC",
+  "shows": "left whole: no place on record, and QC is also quality control"
+ },
+ {
+  "posted": "Process Engineer ||| - Plasma",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Process Engineer ||| - Plasma",
+  "shows": "III typed in strokes is a grade, kept as typed"
+ },
+ {
+  "posted": "Engineer Energetics Manufacturing - 2/3",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Northrop Grumman",
+   "factory": "ATK LAUNCH SYSTEMS NORTHROP GRUMMAN CORPORATION",
+   "city": "CORINNE",
+   "state": "UT"
+  },
+  "want": "Engineer Energetics Manufacturing - 2/3",
+  "shows": "2/3 is the grade"
+ },
+ {
+  "posted": "ENGINEER ELECTRICAL 1- ET&D HIRING EVENT",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Engineer Electrical 1 - ET&D",
+  "shows": "the event goes, the department stays"
+ },
+ {
+  "posted": "Aircraft Structures Mechanic 2/3 - Military & Veterans Encouraged to Apply",
+  "about": {
+   "career": "Aircraft Structures Mechanic",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Clearfield Aerospace Structures",
+   "city": "Clearfield",
+   "state": "UT"
+  },
+  "want": "Aircraft Structures Mechanic 2/3",
+  "shows": "neighbour: a note that is all words goes whole"
+ },
+ {
+  "posted": "(PIPELINE) Advanced Effects - Buyer",
+  "about": {
+   "career": "",
+   "company": "Anduril",
+   "factory": null,
+   "city": "Ashville",
+   "state": "OH"
+  },
+  "want": "Advanced Effects - Buyer",
+  "shows": "a recruiter's tag in brackets before the name"
+ },
+ {
+  "posted": "Machinist Trainee - 2nd and 3rd Shifts - Supplemental",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Caterpillar",
+   "factory": "Caterpillar Pontiac",
+   "city": "Pontiac",
+   "state": "IL"
+  },
+  "want": "Machinist Trainee",
+  "shows": "a supplemental hire is a kind of employment"
+ },
+ {
+  "posted": "CW- Manufacturing Engineer I - (E1)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Applied Materials",
+   "factory": "Austin manufacturing campus (Harris Branch)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Manufacturing Engineer I (E1)",
+  "shows": "CW, a contingent worker, before the name; no dash before the grade in its bracket"
+ },
+ {
+  "posted": "CW - Manufacturing Technician II - Weekend (T2)",
+  "about": {
+   "career": "Production Operator",
+   "company": "Applied Materials",
+   "factory": null,
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Manufacturing Technician II (T2)",
+  "shows": "the same, and the shift"
+ },
+ {
+  "posted": "Sr. Principal R&V Systems Engineer - AISR&T Contingent",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN INC",
+   "city": "SAN DIEGO",
+   "state": "CA"
+  },
+  "want": "Sr. Principal R&V Systems Engineer - AISR&T",
+  "shows": "contingent, after the team"
+ },
+ {
+  "posted": "Hourly Production Team Member - Temp Full Time - Lima Engine Plant (LEP)",
+  "about": {
+   "career": "Production Operator",
+   "company": "Ford",
+   "factory": "FORD MOTOR CO LIMA ENGINE PLANT",
+   "city": "LIMA",
+   "state": "OH"
+  },
+  "want": "Hourly Production Team Member",
+  "shows": "neighbour: a word set straight before the role is the company's name for it"
+ },
+ {
+  "posted": "Electrical Failure Analysis Engineer - Shift2 Nanoprobing",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Intel",
+   "factory": "Intel Oregon (Hillsboro)",
+   "city": "Hillsboro",
+   "state": "OR"
+  },
+  "want": "Electrical Failure Analysis Engineer - Nanoprobing",
+  "shows": "the shift set against its number"
+ },
+ {
+  "posted": "Industrial Maintenance Tech 1 AWW2 (Onsite)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney AmerCon",
+   "city": "Middletown",
+   "state": "PA"
+  },
+  "want": "Industrial Maintenance Tech 1",
+  "shows": "an alternative work week"
+ },
+ {
+  "posted": "Manufacturing and Quality Engineer, NBRO AWW (Onsite)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney North Berwick",
+   "city": "North Berwick",
+   "state": "ME"
+  },
+  "want": "Manufacturing and Quality Engineer, NBRO",
+  "shows": "the same; the code before it stays"
+ },
+ {
+  "posted": "New College Grad - Shift Manufacturing Engineer",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Micron Technology",
+   "factory": "Micron Boise",
+   "city": "Boise",
+   "state": "ID"
+  },
+  "want": "New College Grad - Shift Manufacturing Engineer",
+  "shows": "neighbour: \"Shift\" as part of the role"
+ },
+ {
+  "posted": "Production Shift Lead",
+  "about": {
+   "career": "",
+   "company": "General Motors",
+   "factory": null,
+   "city": "Wentzville",
+   "state": "MO"
+  },
+  "want": "Production Shift Lead",
+  "shows": "neighbour"
+ },
+ {
+  "posted": "New College Grad - ENGINEER, TD IE OPS",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Micron Technology",
+   "factory": "Micron Boise",
+   "city": "Boise",
+   "state": "ID"
+  },
+  "want": "New College Grad - Engineer, TD IE OPS",
+  "shows": "a role's word shouted among mixed case is repaired; the initials stay"
+ },
+ {
+  "posted": "CNC Programmer_Design",
+  "about": {
+   "career": "CNC Programmer",
+   "company": "Howmet Aerospace",
+   "factory": "HOWMET GLOBAL FASTENING SYSTEMS INC",
+   "city": "FULLERTON",
+   "state": "CA"
+  },
+  "want": "CNC Programmer - Design",
+  "shows": "an underscore between two words"
+ },
+ {
+  "posted": "TIG Welder, Combustion Devices (RAPTOR)",
+  "about": {
+   "career": "TIG Welder",
+   "company": "SpaceX",
+   "factory": "SpaceX Hawthorne",
+   "city": "Hawthorne",
+   "state": "CA"
+  },
+  "want": "TIG Welder, Combustion Devices (RAPTOR)",
+  "shows": "neighbour: a lone word in capitals may be a program"
+ },
+ {
+  "posted": "Systems Engineer Level 4 – COAST Ground SEIT",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORP",
+   "city": "REDONDO BEACH",
+   "state": "CA"
+  },
+  "want": "Systems Engineer Level 4 – COAST Ground SEIT",
+  "shows": "neighbour"
+ },
+ {
+  "posted": "Manufacturing Engineer II - (E2) 2nd Shift",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Applied Materials",
+   "factory": "Austin manufacturing campus (Harris Branch)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Manufacturing Engineer II (E2)",
+  "shows": "shift; no dash before the grade in its bracket"
+ },
+ {
+  "posted": "Production Associate (Starlink/Akoustis)",
+  "about": {
+   "career": "Production Operator",
+   "company": "SpaceX",
+   "factory": "Akoustis Canandaigua",
+   "city": "Canandaigua",
+   "state": "NY"
+  },
+  "want": "Production Associate (Starlink)",
+  "shows": "at the Akoustis factory: the factory's name goes, the program stays"
+ },
+ {
+  "posted": "Process Engineer (Starlink/Akoustis) - Night Shift",
+  "about": {
+   "career": "Process Engineer",
+   "company": "SpaceX",
+   "factory": "Akoustis Canandaigua",
+   "city": "Canandaigua",
+   "state": "NY"
+  },
+  "want": "Process Engineer (Starlink)",
+  "shows": "the same, and the shift"
+ },
+ {
+  "posted": "Process Engineer, Gold-To-Gold Interconnect & Flip Chip Assembly (Starlink/Akoustis)",
+  "about": {
+   "career": "Process Engineer",
+   "company": "SpaceX",
+   "factory": "SpaceX Bastrop",
+   "city": "Bastrop",
+   "state": "TX"
+  },
+  "want": "Process Engineer, Gold-To-Gold Interconnect & Flip Chip Assembly (Starlink/Akoustis)",
+  "shows": "neighbour: at Bastrop, Akoustis is a program"
+ },
+ {
+  "posted": "Sr. Construction Project Manager, Residential (Starbase Development)",
+  "about": {
+   "career": "",
+   "company": "SpaceX",
+   "factory": null,
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Sr. Construction Project Manager, Residential (Starbase Development)",
+  "shows": "a team named for the town: one word would be left"
+ },
+ {
+  "posted": "Industrial Engr",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Texas Instruments",
+   "factory": "MFAB",
+   "city": "South Portland",
+   "state": "ME"
+  },
+  "want": null,
+  "shows": "Industrial Engineer, a word abbreviated"
+ },
+ {
+  "posted": "AUTOMATION TECH",
+  "about": {
+   "career": "Automation Technician",
+   "company": "Howmet Aerospace",
+   "factory": "Howmet Wichita Falls Casting",
+   "city": "Wichita Falls",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "Automation Technician"
+ },
+ {
+  "posted": "Test Engineer - 2nd Shift (10%)",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Flex",
+   "factory": "Flex Austin (Research Blvd campus)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "a share is a note"
+ },
+ {
+  "posted": "Inspector, Quality",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "StandardAero",
+   "factory": "StandardAero San Antonio",
+   "city": "San Antonio",
+   "state": "TX"
+  },
+  "want": "Inspector, Quality",
+  "shows": "kept: a shorter form of the career is what the company calls it, as \"Quality Inspector\" is"
+ },
+ {
+  "posted": "Senior Forward Deployed Engineer - SAP Business AI Platform - Indaiatuba/SP",
+  "about": {
+   "career": "",
+   "company": "John Deere",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Senior Forward Deployed Engineer - SAP Business AI Platform - Indaiatuba/SP",
+  "shows": "no place on record: a town abroad cannot be known"
+ },
+ {
+  "posted": "Accounting Solutions Analyst- Granadero Baigorria",
+  "about": {
+   "career": "",
+   "company": "John Deere",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Accounting Solutions Analyst - Granadero Baigorria",
+  "shows": "the same; the dash is spaced"
+ },
+ {
+  "posted": "Autototechnicus EV | Lucid Motors Hilversum",
+  "about": {
+   "career": "",
+   "company": "Lucid Motors",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Autototechnicus EV | Hilversum",
+  "shows": "the company goes; what follows it is not known for a town"
+ },
+ {
+  "posted": "Equipment Engineer - EPI (DMOS5)",
+  "about": {
+   "career": "Semiconductor Equipment Engineer",
+   "company": "Texas Instruments",
+   "factory": null,
+   "city": "Dallas",
+   "state": "TX"
+  },
+  "want": "Equipment Engineer - EPI (DMOS5)",
+  "shows": "no factory on record"
+ },
+ {
+  "posted": "Position Facilities Engineering Technician, Bulk & Specialty Gas - Associates Degree (2027 New College Graduate)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "GlobalFoundries",
+   "factory": null,
+   "city": "Essex Junction",
+   "state": "VT"
+  },
+  "want": "Position Facilities Engineering Technician, Bulk & Specialty Gas (2027 New College Graduate)",
+  "shows": "the degree asked for goes, the intake and its year stay; the stray first word is the company's typing, like its spelling"
+ },
+ {
+  "posted": "NDT Technician - Ultrasonic (UT) - Level II - A Shift",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "NDT Technician - Ultrasonic (UT) - Level II",
+  "shows": "UT is ultrasonic testing, not Utah"
+ },
+ {
+  "posted": "NDT Technician - Ultrasonic (UT), Eddy Current (ET)  - Levell II - A Shift",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Rocket Park (Merritt Island)",
+   "city": "Merritt Island",
+   "state": "FL"
+  },
+  "want": "NDT Technician - Ultrasonic (UT), Eddy Current (ET) - Levell II",
+  "shows": "methods kept; \"Levell\" not corrected"
+ },
+ {
+  "posted": "NDT Technician III - Penetrant (PT)",
+  "about": {
+   "career": "NDT Technician",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "NDT Technician III - Penetrant (PT)",
+  "shows": "PT is penetrant testing, not part time"
+ },
+ {
+  "posted": "Aerospace Welder (Flex Lines) - A Shift",
+  "about": {
+   "career": "Aerospace Welder",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "Aerospace Welder (Flex Lines)",
+  "shows": "\"Flex\" here is no company"
+ },
+ {
+  "posted": "Build Engineer (Crew Starship)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "SpaceX",
+   "factory": "SpaceX Hawthorne",
+   "city": "Hawthorne",
+   "state": "CA"
+  },
+  "want": "Build Engineer (Crew Starship)",
+  "shows": "\"Crew\" here is no shift"
+ },
+ {
+  "posted": "Tooling Design Engineer, Solar Cell Factory (Starlink)",
+  "about": {
+   "career": "Tooling Engineer",
+   "company": "SpaceX",
+   "factory": "SpaceX Bastrop",
+   "city": "Bastrop",
+   "state": "TX"
+  },
+  "want": "Tooling Design Engineer, Solar Cell Factory (Starlink)",
+  "shows": "a factory that is not the job's own is the area"
+ },
+ {
+  "posted": "Structural Welder, Massey's Test Site (Starship) - Night Shift",
+  "about": {
+   "career": "Welder",
+   "company": "SpaceX",
+   "factory": "Starbase",
+   "city": "Starbase",
+   "state": "TX"
+  },
+  "want": "Structural Welder, Massey's Test Site (Starship)",
+  "shows": "a test site inside the site stays"
+ },
+ {
+  "posted": "Supplier Quality Specialist (SpaceXSI)",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "SpaceX",
+   "factory": "SpaceX Bastrop",
+   "city": "Bastrop",
+   "state": "TX"
+  },
+  "want": "Supplier Quality Specialist (SpaceXSI)",
+  "shows": "the company's name inside another word"
+ },
+ {
+  "posted": "Propulsion Technician (Starship) - Level 4/5",
+  "about": {
+   "career": "Propulsion Technician",
+   "company": "SpaceX",
+   "factory": "SpaceX Hawthorne",
+   "city": "Hawthorne",
+   "state": "CA"
+  },
+  "want": "Propulsion Technician (Starship) - Level 4/5",
+  "shows": "a level is not a requisition"
+ },
+ {
+  "posted": "Industrial Engineer, US Front-End Expansion Planning",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Micron Technology",
+   "factory": "Micron Boise",
+   "city": "Boise",
+   "state": "ID"
+  },
+  "want": "Industrial Engineer, US Front-End Expansion Planning",
+  "shows": "\"US\" at the head of an area"
+ },
+ {
+  "posted": "Process Engineer – Die to Wafer Hybrid Bonding",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Process Engineer – Die to Wafer Hybrid Bonding",
+  "shows": "\"Hybrid\" here is a process"
+ },
+ {
+  "posted": "Mechanical Engineer V - (E5)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Mechanical Engineer V (E5)",
+  "shows": "a grade's code; no dash before a bracket"
+ },
+ {
+  "posted": "New College Grad - Process Engineer III - PhD (2027 Summer Cohort)",
+  "about": {
+   "career": "Thin Film Process Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "New College Grad - Process Engineer III (2027 Summer Cohort)",
+  "shows": "a graduate intake's term stays; the degree asked for goes"
+ },
+ {
+  "posted": "Lead Digital Engineering (DE) Process Engineer",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Boeing",
+   "factory": "Boeing Aerospace Composite Center",
+   "city": "Hazelwood",
+   "state": "MO"
+  },
+  "want": "Lead Digital Engineering (DE) Process Engineer",
+  "shows": "DE is digital engineering, not Delaware"
+ },
+ {
+  "posted": "General Machinist - N0309 South",
+  "about": {
+   "career": "CNC Machinist",
+   "company": "Boeing",
+   "factory": "BOEING AUBURN ALGONA WHSE",
+   "city": "ALGONA",
+   "state": "WA"
+  },
+  "want": "General Machinist - N0309 South",
+  "shows": "a building, not a requisition"
+ },
+ {
+  "posted": "Experienced Quality Engineer - F-15",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Boeing",
+   "factory": "Boeing St. Louis",
+   "city": "Berkeley",
+   "state": "MO"
+  },
+  "want": "Experienced Quality Engineer - F-15",
+  "shows": "an aircraft"
+ },
+ {
+  "posted": "Senior Systems Engineer – Seeker Testing - Patriot Advanced Capability-3 (PAC3)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Boeing",
+   "factory": "Boeing Huntsville",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": "Senior Systems Engineer – Seeker Testing – Patriot Advanced Capability-3 (PAC3)",
+  "shows": "a program with a number"
+ },
+ {
+  "posted": "Manufacturing Engineer (Experienced or Senior)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Boeing",
+   "factory": "Boeing St. Louis",
+   "city": "Berkeley",
+   "state": "MO"
+  },
+  "want": "Manufacturing Engineer (Experienced or Senior)",
+  "shows": "levels in a bracket"
+ },
+ {
+  "posted": "Senior Industrial Engineer - Millennium Space Systems",
+  "about": {
+   "career": "Industrial Engineer",
+   "company": "Boeing",
+   "factory": "Boeing El Segundo",
+   "city": "El Segundo",
+   "state": "CA"
+  },
+  "want": "Senior Industrial Engineer - Millennium Space Systems",
+  "shows": "a subsidiary that is not the job's company"
+ },
+ {
+  "posted": "U103 Inspector C",
+  "about": {
+   "career": "Quality Control Inspector",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Sunnyvale",
+   "city": "Sunnyvale",
+   "state": "CA"
+  },
+  "want": "U103 Inspector C",
+  "shows": "a code and a grade's letter"
+ },
+ {
+  "posted": "Manufacturing Engineer - Level 2 or Level 3",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Dulles Satellite Manufacturing Facility",
+   "city": "Dulles",
+   "state": "VA"
+  },
+  "want": "Manufacturing Engineer - Level 2 or Level 3",
+  "shows": "levels"
+ },
+ {
+  "posted": "2027 Associate Systems Engineer - Roy UT",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "2027 Associate Systems Engineer - Roy UT",
+  "shows": "left whole: \"Roy UT\" is written as \"Immersion UT\" is, and UT alone is not read as Utah"
+ },
+ {
+  "posted": "(Skillbridge) Mechanical Technician (Level 2)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "Northrop Grumman",
+   "factory": null,
+   "city": "Vandenberg AFB",
+   "state": "CA"
+  },
+  "want": "(Skillbridge) Mechanical Technician (Level 2)",
+  "shows": "a program for those leaving the service"
+ },
+ {
+  "posted": "CLS - F-35 Aircraft Mechanic 3/4 – Powerplants",
+  "about": {
+   "career": "Aircraft Mechanic",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN INC",
+   "city": "SAN DIEGO",
+   "state": "CA"
+  },
+  "want": "CLS - F-35 Aircraft Mechanic 3/4 - Powerplants",
+  "shows": "an aircraft and grades; one kind of dash"
+ },
+ {
+  "posted": "Principal Systems Engineer - Requirements & Verification",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "Northrop Grumman Palmdale (Air Force Plant 42)",
+   "city": "Palmdale",
+   "state": "CA"
+  },
+  "want": "Principal Systems Engineer - Requirements & Verification",
+  "shows": "\"Requirements\" is the work, not a note"
+ },
+ {
+  "posted": "Special Projects Electrician B",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Boeing",
+   "factory": "BOEING ISAACSON THOMPSON",
+   "city": "TUKWILA",
+   "state": "WA"
+  },
+  "want": "Special Projects Electrician B",
+  "shows": "a grade's letter"
+ },
+ {
+  "posted": "Production Worker 3",
+  "about": {
+   "career": "Production Operator",
+   "company": "Raytheon",
+   "factory": "RAYTHEON-HOLLISTER (ELECTRONIC WARFARE)",
+   "city": "GOLETA",
+   "state": "CA"
+  },
+  "want": "Production Worker 3",
+  "shows": "a grade's number"
+ },
+ {
+  "posted": "Senior Systems Engineer - MANTIS SEIT (Onsite)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Raytheon",
+   "factory": "RAYTHEON",
+   "city": "EL SEGUNDO",
+   "state": "CA"
+  },
+  "want": "Senior Systems Engineer - MANTIS SEIT",
+  "shows": "a program's name in capitals stays; onsite"
+ },
+ {
+  "posted": "Controls Technician-1",
+  "about": {
+   "career": "Controls Technician",
+   "company": "Flex",
+   "factory": "Flex Austin (Research Blvd campus)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "Controls Technician-1",
+  "shows": "a grade set against the word"
+ },
+ {
+  "posted": "Process Engineer - Plant 5 - Ti-Cast",
+  "about": {
+   "career": "Process Engineer",
+   "company": "Howmet Aerospace",
+   "factory": "HOWMET RESEARCH CENTER",
+   "city": "WHITEHALL",
+   "state": "MI"
+  },
+  "want": "Process Engineer - Plant 5 - Ti-Cast",
+  "shows": "a plant inside the site"
+ },
+ {
+  "posted": "Fitter/Welder - K Building",
+  "about": {
+   "career": "Metal Fabricator",
+   "company": "NOV",
+   "factory": "NOV Hydra Rig Fort Worth",
+   "city": "Fort Worth",
+   "state": "TX"
+  },
+  "want": "Fitter/Welder - K Building",
+  "shows": "a building inside the site"
+ },
+ {
+  "posted": "2027 Early Career Mechanical Engineer",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Anduril Industries",
+   "factory": "ANDURIL INDUSTRIES INC",
+   "city": "COSTA MESA",
+   "state": "CA"
+  },
+  "want": "2027 Early Career Mechanical Engineer",
+  "shows": "the year of an intake"
+ },
+ {
+  "posted": "New Grad 2027 - Thermal Engineer I",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Relativity Space",
+   "factory": "Relativity Space Wormhole",
+   "city": "Long Beach",
+   "state": "CA"
+  },
+  "want": "New Grad 2027 - Thermal Engineer I",
+  "shows": "the year of an intake"
+ },
+ {
+  "posted": "Test Engineer I - Early Career & New Graduate Rotation (2027 Starts)",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Launch Site One",
+   "city": "Van Horn",
+   "state": "TX"
+  },
+  "want": "Test Engineer I - Early Career & New Graduate Rotation (2027 Starts)",
+  "shows": "\"Rotation\" here is no shift"
+ },
+ {
+  "posted": "Manufacturing Engineer Intern (Summer 2027)",
+  "about": {
+   "career": "",
+   "company": "Saronic",
+   "factory": null,
+   "city": "Franklin",
+   "state": "LA"
+  },
+  "want": "Manufacturing Engineer Intern (Summer 2027)",
+  "shows": "an internship's term"
+ },
+ {
+  "posted": "2027 Co-op – Mechanical Engineer",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "General Motors",
+   "factory": "Rochester Operations",
+   "city": "Rochester",
+   "state": "NY"
+  },
+  "want": "2027 Co-op – Mechanical Engineer",
+  "shows": "a co-op's year"
+ },
+ {
+  "posted": "Part Time Student - Industrial Engineer - Waterloo, IA",
+  "about": {
+   "career": "",
+   "company": "John Deere",
+   "factory": null,
+   "city": "Waterloo",
+   "state": "IA"
+  },
+  "want": "Part Time Student - Industrial Engineer",
+  "shows": "\"Part Time Student\" is the job"
+ },
+ {
+  "posted": "Test Mechanics & Test Electricians - General Interest",
+  "about": {
+   "career": "Industrial Electrician",
+   "company": "Electric Boat",
+   "factory": "Electric Boat Groton",
+   "city": "Groton",
+   "state": "CT"
+  },
+  "want": "Test Mechanics & Test Electricians - General Interest",
+  "shows": "left as written"
+ },
+ {
+  "posted": "Automation Engineer (LAP)",
+  "about": {
+   "career": "Automation Engineer",
+   "company": "Ford",
+   "factory": "Kentucky Truck Plant",
+   "city": "Louisville",
+   "state": "KY"
+  },
+  "want": "Automation Engineer (LAP)",
+  "shows": "another plant's initials are not the job's"
+ },
+ {
+  "posted": "Supplier Quality Engineer (I, II, Senior I, Senior II) - PCBA",
+  "about": {
+   "career": "Quality Engineer",
+   "company": "Rocket Lab",
+   "factory": "Rocket Lab Headquarters and Production Complex",
+   "city": "Long Beach",
+   "state": "CA"
+  },
+  "want": "Supplier Quality Engineer (I, II, Senior I, Senior II) - PCBA",
+  "shows": "levels in a bracket"
+ },
+ {
+  "posted": "Aircraft Structural Technician (Beale AFB, CA), U-2 PDM - Level 4",
+  "about": {
+   "career": "Aircraft Structures Mechanic",
+   "company": "Lockheed Martin",
+   "factory": null,
+   "city": "Beale AFB",
+   "state": "CA"
+  },
+  "want": "Aircraft Structural Technician, U-2 PDM - Level 4",
+  "shows": "the base is cut, the aircraft and level stay"
+ },
+ {
+  "posted": "Facility Engineer",
+  "about": {
+   "career": "Facilities Engineer",
+   "company": "Howmet Aerospace",
+   "factory": "Howmet Wichita Falls Casting",
+   "city": "Wichita Falls",
+   "state": "TX"
+  },
+  "want": null,
+  "shows": "the singular of the career's title (Facilities Engineer)"
+ },
+ {
+  "posted": "Facility Engineer - ME Paint",
+  "about": {
+   "career": "Facilities Engineer",
+   "company": "Subaru of Indiana Automotive",
+   "factory": "Subaru of Indiana Automotive",
+   "city": "Lafayette",
+   "state": "IN"
+  },
+  "want": "Facility Engineer - ME Paint",
+  "shows": "neighbour: more than the career's words"
+ },
+ {
+  "posted": "Facilities Engineer II",
+  "about": {
+   "career": "Facilities Engineer",
+   "company": "Honeywell",
+   "factory": "HONEYWELL SENSING & CONTROL",
+   "city": "WOONSOCKET",
+   "state": "RI"
+  },
+  "want": "Facilities Engineer II",
+  "shows": "neighbour: a grade"
+ },
+ {
+  "posted": "3rd Shift Set Up Technician",
+  "about": {
+   "career": "Setup Technician",
+   "company": "Perrigo",
+   "factory": "PERRIGO NY",
+   "city": "BRONX",
+   "state": "NY"
+  },
+  "want": null,
+  "shows": "shift first; the career (Setup Technician) with a space more"
+ },
+ {
+  "posted": "Pipe Fitter",
+  "about": {
+   "career": "Pipefitter",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Huntsville Engine Factory",
+   "city": "Huntsville",
+   "state": "AL"
+  },
+  "want": null,
+  "shows": "the career (Pipefitter) with a space more"
+ },
+ {
+  "posted": "Pipe Fitter III",
+  "about": {
+   "career": "Pipefitter",
+   "company": "Blue Origin",
+   "factory": "Blue Origin Launch Site One",
+   "city": "Van Horn",
+   "state": "TX"
+  },
+  "want": "Pipe Fitter III",
+  "shows": "neighbour: a grade"
+ },
+ {
+  "posted": "Welder - Experienced or Formal Training",
+  "about": {
+   "career": "Welder",
+   "company": "Electric Boat",
+   "factory": "Electric Boat Quonset Point",
+   "city": "North Kingstown",
+   "state": "RI"
+  },
+  "want": null,
+  "shows": "a requirement; what is left is the career"
+ },
+ {
+  "posted": "PIPE FITTER - EXPERIENCED",
+  "about": {
+   "career": "Pipefitter",
+   "company": "Newport News Shipbuilding",
+   "factory": "Newport News Shipbuilding",
+   "city": "Newport News",
+   "state": "VA"
+  },
+  "want": "Pipe Fitter - Experienced",
+  "shows": "neighbour: \"Experienced\" alone is a grade"
+ },
+ {
+  "posted": "Senior Systems Engineer - Air Combat Training (ONSITE)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Collins Aerospace",
+   "factory": "Collins Aerospace Cedar Rapids",
+   "city": "Cedar Rapids",
+   "state": "IA"
+  },
+  "want": "Senior Systems Engineer - Air Combat Training",
+  "shows": "neighbour: training is the team's work"
+ },
+ {
+  "posted": "Building Maintenance Technician, Associates Degree (2027 New College Graduate)",
+  "about": {
+   "career": "Maintenance Technician",
+   "company": "GlobalFoundries",
+   "factory": "GlobalFoundries Fab 9",
+   "city": "Essex Junction",
+   "state": "VT"
+  },
+  "want": "Building Maintenance Technician (2027 New College Graduate)",
+  "shows": "the degree asked for; the intake and its year stay"
+ },
+ {
+  "posted": "Post-Fab Test Engineer (2027 New College Graduate)",
+  "about": {
+   "career": "Test Engineer",
+   "company": "GlobalFoundries",
+   "factory": "GlobalFoundries Fab 9",
+   "city": "Essex Junction",
+   "state": "VT"
+  },
+  "want": "Post-Fab Test Engineer (2027 New College Graduate)",
+  "shows": "neighbour: the intake"
+ },
+ {
+  "posted": "New College Grad Manufacturing Engineer (Bachelors/Masters - Austin, TX)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Applied Materials",
+   "factory": "Austin manufacturing campus (Harris Branch)",
+   "city": "Austin",
+   "state": "TX"
+  },
+  "want": "New College Grad Manufacturing Engineer",
+  "shows": "degrees and town in one bracket"
+ },
+ {
+  "posted": "Electrical/Radio Frequency Engineer II, New College Grad- Master's (Santa Clara, CA)",
+  "about": {
+   "career": "Electrical Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Electrical/Radio Frequency Engineer II, New College Grad",
+  "shows": "a degree after a dash; town"
+ },
+ {
+  "posted": "Career Accelerator Program - Systems Engineer - MS/PhD",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Texas Instruments",
+   "factory": "North Campus",
+   "city": "Dallas",
+   "state": "TX"
+  },
+  "want": "Career Accelerator Program - Systems Engineer",
+  "shows": "two degrees by their letters"
+ },
+ {
+  "posted": "Career Accelerator Program - Test Engineer - TMG",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Texas Instruments",
+   "factory": "North Campus",
+   "city": "Dallas",
+   "state": "TX"
+  },
+  "want": "Career Accelerator Program - Test Engineer - TMG",
+  "shows": "neighbour: a team's letters"
+ },
+ {
+  "posted": "Sentinel - Systems / Principal Systems Engineer - MS&A - 20105",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "Sentinel - Systems / Principal Systems Engineer - MS&A",
+  "shows": "neighbour: MS&A is a team, not a degree"
+ },
+ {
+  "posted": "Systems Engineer III - (E3) | Optics",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Systems Engineer III (E3) | Optics",
+  "shows": "the company's own dash before its grade's bracket"
+ },
+ {
+  "posted": "Sr. Manufacturing Engineer - (Body - Upperbody)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Rivian",
+   "factory": "Rivian Normal",
+   "city": "Normal",
+   "state": "IL"
+  },
+  "want": "Sr. Manufacturing Engineer (Body - Upperbody)",
+  "shows": "the dash inside the bracket stays"
+ },
+ {
+  "posted": "Mechanical Design Engineer – (EEEP02/EEEP03)",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN INC",
+   "city": "SAN DIEGO",
+   "state": "CA"
+  },
+  "want": "Mechanical Design Engineer (EEEP02/EEEP03)",
+  "shows": "an en dash before a bracket"
+ },
+ {
+  "posted": "Optical Manufacturing Engineer IV (E4)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Applied Materials",
+   "factory": "APPLIED MATERIALS, INC",
+   "city": "SANTA CLARA",
+   "state": "CA"
+  },
+  "want": "Optical Manufacturing Engineer IV (E4)",
+  "shows": "neighbour: as the company writes it elsewhere"
+ },
+ {
+  "posted": "Test Engineer III - HBR MC",
+  "about": {
+   "career": "Test Engineer",
+   "company": "Blue Origin",
+   "factory": "Honeybee Robotics Longmont",
+   "city": "Longmont",
+   "state": "CO"
+  },
+  "want": "Test Engineer III - HBR MC",
+  "shows": "left whole: codes nothing given explains"
+ },
+ {
+  "posted": "Manufacturing Engineer – NBRO Aftermarket (Onsite)",
+  "about": {
+   "career": "Manufacturing Engineer",
+   "company": "Pratt & Whitney",
+   "factory": "Pratt & Whitney North Berwick",
+   "city": "North Berwick",
+   "state": "ME"
+  },
+  "want": "Manufacturing Engineer – NBRO Aftermarket",
+  "shows": "onsite; NBRO is no initials of North Berwick"
+ },
+ {
+  "posted": "Schweißer (m/w/d)",
+  "about": {
+   "career": "Welder",
+   "company": "John Deere",
+   "factory": null,
+   "city": null,
+   "state": null
+  },
+  "want": "Schweißer",
+  "shows": "the mark for every gender; a title in another language is not translated"
+ },
+ {
+  "posted": "2027 Associate Mechanical Engineer / Mechanical Engineer - Roy UT",
+  "about": {
+   "career": "Mechanical Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP GRUMMAN SYSTEMS CORPORATION - ASBU CLEARFIELD, ACCE FACILITY",
+   "city": "CLEARFIELD",
+   "state": "UT"
+  },
+  "want": "2027 Associate Mechanical Engineer / Mechanical Engineer - Roy UT",
+  "shows": "left whole, as \"Immersion UT\" would be"
+ },
+ {
+  "posted": "Staff Systems Engineer (Redondo Beach CA)",
+  "about": {
+   "career": "Systems Engineer",
+   "company": "Northrop Grumman",
+   "factory": "NORTHROP AIRCRAFT, AU FACILITY",
+   "city": "EL SEGUNDO",
+   "state": "CA"
+  },
+  "want": "Staff Systems Engineer",
+  "shows": "neighbour: a town and a code that is no trade's"
+ }
+]

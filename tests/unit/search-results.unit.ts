@@ -58,3 +58,17 @@ test('a service the query names leads: its page is what was asked for', () => {
   };
   assert.deepEqual(drawn('navy', found), ['companies: U.S. Navy | Navy Pier Metals', 'factories: Navy Yard Plant']);
 });
+
+test('jobs never lead: a typed career is the career, and its jobs, named for it, stay last', () => {
+  // A job from a careers site is named exactly as its career, so "welder" is also every welder's job's name.
+  const job = (id: string, name: string, subtitle: string): SearchResultItem => ({ id, name, type: 'jobs', subtitle });
+  const found = {
+    companies: { count: 1, items: [company('Weldcraft')] },
+    occupations: { count: 2, items: [career('Welder'), career('MIG Welder')] },
+    skills: { count: 1, items: [{ id: 's', name: 'MIG Welding', type: 'skills' as const }] },
+    jobs: { count: 3, items: [job('1', 'Welder', 'John Deere · Kernersville, NC'), job('2', 'Welder', 'SpaceX · Starbase, TX'), job('3', 'Quality Engineer', 'John Deere · East Moline, IL')] },
+  };
+  assert.deepEqual(drawn('welder', found), ['occupations: Welder | MIG Welder', 'companies: Weldcraft', 'skills: MIG Welding', 'jobs: Welder | Welder | Quality Engineer']);
+  // With no career of that name, the groups keep the one order: a job's exact name moves nothing.
+  assert.deepEqual(drawn('welder', { companies: found.companies, jobs: found.jobs }), ['companies: Weldcraft', 'jobs: Welder | Welder | Quality Engineer']);
+});

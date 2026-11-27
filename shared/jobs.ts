@@ -54,3 +54,20 @@ export function readJobNumber(value: unknown): number | null {
   if (typeof value !== 'string' || !/^[1-9]\d{0,8}$/.test(value)) return null;
   return Number(value);
 }
+
+/**
+ * Whether a job's title already says its career, so that a row need not say it
+ * again: every word of the career's title is in the job's, in that order.
+ * A job from a careers site is named for its career ("Welder"), so it always
+ * does; a job a company titled by hand may ("Senior Welder", "CNC Machinist,
+ * 2nd shift") or may not ("Weld Shop, Nights").
+ */
+export function titleSaysCareer(title: string | null | undefined, career: string | null | undefined): boolean {
+  const words = (text: string | null | undefined) => (text ?? '').toLowerCase().replace(/&/g, ' and ').split(/[^a-z0-9]+/).filter(Boolean);
+  const wanted = words(career);
+  let found = 0;
+  for (const word of words(title)) {
+    if (found < wanted.length && word === wanted[found]) found += 1;
+  }
+  return found === wanted.length;
+}

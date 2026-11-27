@@ -30,11 +30,14 @@ export interface EmployerJob {
   serial: number;
   companyId: string;
   title: string;
+  /** Always null here: the jobs a company posted have no name beside the one their poster wrote. */
+  ownName?: string | null;
   status: JobStatus;
   postedAt: string;
   expiresAt: string;
   factoryName: string;
   city: string | null;
+  state?: string | null;
   /** With the number, what the job's address is written from. */
   companyName?: string;
   companySlug?: string | null;

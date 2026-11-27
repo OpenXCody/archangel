@@ -81,7 +81,7 @@ export default function FactoryView({ factory }: { factory: FactoryDetail }) {
       {/* Its open jobs, and the way to all of them */}
       {jobs.length > 0 && (
         <Section title="Open jobs">
-          <JobRows jobs={jobs} limit={4} />
+          <JobRows jobs={jobs} limit={4} said={{ factory: true }} />
           {openJobs > 4 && <ListLink to={`/jobs?plant=${factory.id}`}>All {openJobs.toLocaleString()} open jobs</ListLink>}
         </Section>
       )}

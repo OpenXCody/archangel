@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useMarkSeen } from '../../lib/account';
 import { isFinished, useUpdateApplication } from '../../lib/jobs';
-import { applicationStatusLabel, formatPlace } from '../../lib/jobFormat';
+import { applicationStatusLabel } from '../../lib/jobFormat';
+import { cityState } from '../../lib/places';
 import { useMyApplications, type MyApplication } from '../../lib/seeker';
 import {
   ApplicationStatusBadge,
@@ -62,7 +63,7 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
   const update = useUpdateApplication();
   const [confirming, setConfirming] = useState(false);
   const finished = isFinished(application.status);
-  const place = formatPlace(application.city, application.state);
+  const place = cityState(application.city, application.state);
   const jobRef = useRef<HTMLAnchorElement>(null);
   const withdrawRef = useRef<HTMLButtonElement>(null);
   // Where the focus goes once the confirm step has closed: back to Withdraw
@@ -109,6 +110,8 @@ function ApplicationRow({ application, email }: { application: MyApplication; em
           >
             {application.jobTitle}
           </Link>
+          {/* The opening's own name, where the job has one beside its title (lib/jobRow.ts). */}
+          {application.ownName && <p className="mt-0.5 line-clamp-2 break-words text-sm text-text-2">{application.ownName}</p>}
           <p className="mt-0.5 break-words text-sm text-text-2">
             {application.companyName}
             {place && ` · ${place}`}

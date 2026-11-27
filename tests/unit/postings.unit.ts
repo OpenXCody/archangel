@@ -27,7 +27,7 @@ import { countryOf, dayOf } from '../../scripts/ingest/postings/systems/successf
 // @ts-expect-error a plain script, no types
 import { listAll, unescapeHtml, webAddress } from '../../scripts/ingest/postings/systems/shared.mjs';
 // @ts-expect-error a plain script, no types
-import { beforeText, collect, inTurn, report, siteNames, stage } from '../../scripts/ingest/postings/jobs.mjs';
+import { beforeText, collect, inTurn, report, siteNames, stage, stillACareer } from '../../scripts/ingest/postings/jobs.mjs';
 // @ts-expect-error a plain script, no types
 import { TITLES_KEPT, titleKey, titleLines, titleTally } from '../../scripts/ingest/postings/titles.mjs';
 // @ts-expect-error a plain script, no types
@@ -753,6 +753,167 @@ test('where the text costs a request it is asked for only postings whose title i
   assert.equal(third.collected.stopped.outcome, 'cut');
   assert.equal(third.collected.complete, true, 'the listing itself was read to its end');
   assert.deepEqual([...third.collected.present], ['JR2026516085-1'], 'listed, so not gone');
+});
+
+test('a staged reading whose career the catalogue has dropped is not taken as it stands: read again, and not ours unless it is read as another', async () => {
+  // The fake reader of the test above, and a vocabulary that lists the careers there are: CNC Machinist is one, Meat Cutter is none.
+  const careers = new Map([['CNC Machinist', {}]]);
+  const reads = (kept: RegExp) => ({
+    loadVocabulary: () => ({ careers }),
+    readPosting: (posting: { title: string; location: string; text: string }) => ({
+      career: kept.test(posting.title) ? { title: 'CNC Machinist', how: 'close', matched: posting.title } : null,
+      level: null,
+      places: ['Auburn', 'Algona'].filter((city) => posting.location.includes(city)).map((city) => ({ city, state: 'WA' })),
+      skills: [], makes: [], requirements: {}, pay: null, unknown: [],
+    }),
+  });
+  const entry = { slug: 'boeing', employer: 'Boeing', company: 'Boeing', system: 'workday', board: 'https://boeing.wd1.myworkdayjobs.com/wday/cxs/boeing/EXTERNAL_CAREERS' };
+  const run = async (rows: unknown[], kept = /machinist/i, options: Record<string, unknown> = {}) => {
+    const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session('boeing', { pace: 0, ...options });
+    const db = Object.assign(async () => rows, { json: (value: unknown) => value });
+    return { collected: await collect(db, entry, { session, reader: reads(kept), vocab: { careers }, today: '2026-11-19' }), session };
+  };
+  const first = await run([]);
+  const record = first.collected.kept.get('JR2026516085-1');
+  assert.equal(record.facts.reading.career.title, 'CNC Machinist');
+  assert.deepEqual(first.collected.dropped, []);
+  const staged = (career: string) => ({ source_id: 'JR2026516085-1', hash: 'as it was read', payload: record.payload, facts: { ...record.facts, reading: { ...record.facts.reading, career: { title: career } } } });
+
+  // Staged under a career that still is one, its listing unchanged: as it was, and no text is asked for.
+  const same = await run([staged('CNC Machinist')]);
+  assert.equal(same.collected.counts.texts, 0);
+  assert.deepEqual(same.collected.kept.get('JR2026516085-1'), { same: true, hash: 'as it was read' });
+  assert.deepEqual(same.collected.dropped, []);
+
+  // Staged under a career the catalogue has dropped since: the listing has not changed, and it is read again all the same.
+  // Read as another career, it is kept as that one and is not dropped.
+  const again = await run([staged('Meat Cutter')]);
+  assert.equal(again.collected.counts.texts, 1, 'its text is asked for again');
+  assert.equal(again.collected.kept.get('JR2026516085-1').facts.reading.career.title, 'CNC Machinist');
+  assert.deepEqual(again.collected.dropped, []);
+
+  // Its title could be a career and its text cannot be asked for in this run (the ceiling): it is left for the next run
+  // and stands as it was until then. It is not known to be ours or not, so it is not dropped.
+  const later = await run([staged('Meat Cutter')], /machinist/i, { ceiling: 3 });
+  assert.deepEqual([...later.collected.deferred], ['JR2026516085-1']);
+  assert.deepEqual(later.collected.dropped, []);
+
+  // Read as no career now (the reader turns its title away, as it does every other posting's): it is not kept, and it is dropped.
+  const away = await run([staged('Meat Cutter'), { ...staged('Meat Cutter'), source_id: 'not-listed-any-more' }], /nothing is a career/);
+  assert.equal(away.collected.kept.size, 0);
+  assert.equal(away.collected.counts.texts, 0, 'a title that is turned away costs no text');
+  assert.deepEqual(away.collected.dropped, ['JR2026516085-1', 'not-listed-any-more'], 'listed or not: neither is a posting of ours');
+
+  // Staging: both stop standing in this run even though the listing was not read to its end, and nothing else is taken
+  // to be gone by a listing that was cut. posting_decide reads only the postings that stand, so neither gets a job or
+  // leaves a place waiting.
+  const stagedNow = [
+    { source_id: 'JR2026516085-1', hash: 'as it was read', gone: false },
+    { source_id: 'not-listed-any-more', hash: 'as it was read', gone: false },
+    { source_id: 'a-welder-the-cut-listing-did-not-reach', hash: 'h', gone: false },
+  ];
+  const sent: { sql: string; values: unknown[] }[] = [];
+  const db = Object.assign(async (strings: TemplateStringsArray, ...values: unknown[]) => {
+    const sql = strings.join('$');
+    sent.push({ sql, values });
+    return /SELECT source_id, hash, gone_run_id IS NOT NULL AS gone FROM intake_records/.test(sql) ? stagedNow : [];
+  }, { json: (value: unknown) => value });
+  const counts = await stage(db, 9, { ...away.collected, complete: false }, { log: () => {} });
+  const gone = sent.filter(({ sql }) => /UPDATE intake_records SET gone_run_id = \$/.test(sql));
+  assert.equal(gone.length, 1);
+  assert.deepEqual(gone[0].values, [9, 'postings-boeing', ['JR2026516085-1', 'not-listed-any-more']], 'marked in this run, by the run, and only they');
+  // Journalled as they stood, so undo puts staging back.
+  const journalled = sent.filter(({ sql }) => /INSERT INTO intake_changes[\s\S]*'posting'/.test(sql)).flatMap(({ values }) => values).find(Array.isArray);
+  assert.deepEqual(journalled, ['JR2026516085-1', 'not-listed-any-more']);
+  assert.equal(counts.gone, 2);
+  assert.equal(counts.dropped, 2);
+  assert.equal(counts.complete, false);
+
+  // A complete listing counts them among the gone, and says how many of the gone were not the listing's to lose.
+  sent.length = 0;
+  const whole = await stage(db, 10, { ...away.collected, complete: true }, { log: () => {} });
+  assert.equal(whole.gone, 3);
+  assert.equal(whole.dropped, 2);
+  const run10 = { id: 10, source: 'postings-boeing', source_name: 'Boeing job postings', system: 'workday', input: 'x', state: 'staged', note: null, counts: whole, timings: {} };
+  let asked = 0;
+  const one = Object.assign(async () => (asked++ === 0 ? [run10] : []), { json: (value: unknown) => value });
+  assert.match(await report(one, 10), /3 gone since the last complete listing \(2 of them not gone from the site: staged as a career that is no longer one of ours\)/);
+
+  // With the reader that ships: the four careers that left the catalogue are none of the vocabulary's, and its own are.
+  const vocab = reader.loadVocabulary(ROOT);
+  for (const title of ['Sanitation Technician', 'Meat Cutter', 'Slaughterer', 'Baker']) assert.equal(stillACareer(vocab, { reading: { career: { title } } }), false, title);
+  assert.equal(stillACareer(vocab, { reading: { career: { title: 'Welder' } } }), true);
+  assert.equal(stillACareer(vocab, { reading: {} }), false, 'a reading that names no career is none');
+  assert.equal(stillACareer({}, { reading: { career: { title: 'Anything' } } }), true, 'a stand-in with no list of careers is not asked');
+});
+
+test('a staged posting whose title now holds a word that makes it not ours leaves by the listing: not kept, no text asked for, gone at the next complete listing', async () => {
+  // The reader that ships, on a board whose texts cost a request (Workday) and on one whose listing carries them (Ashby).
+  // A word is put on the list after a posting with it in its title was staged, as "janitorial" was on Nov 26, 2026.
+  const vocab = reader.loadVocabulary(ROOT);
+  assert.ok(vocab.notOurs.length > 0, 'the vocabulary carries the list (data/careers/aliases.json, `notOurs`)');
+  const withWord = (word: string) => ({ ...vocab, notOurs: [...vocab.notOurs, { said: word, words: [word] }] });
+  const boards = [
+    { entry: { slug: 'townsites', employer: 'Townsites', company: 'Townsites Works', system: 'workday', board: TOWNSITES, sites: { Evendale: 'Evendale, OH', LYNN: 'Lynn, MA' } }, word: 'machinist', id: 'R5000002-1', texts: 4 },
+    { entry: { slug: 'saronic', employer: 'Saronic', company: 'Saronic', system: 'ashby', board: 'saronic' }, word: 'welder', id: 'bee16057-c1f1-43f1-aef8-e596108964b9', texts: 0 },
+  ];
+  for (const { entry, word, id, texts } of boards) {
+    const run = async (using: unknown, rows: unknown[] = [], passes: unknown[] = []) => {
+      const session: Session = createFetcher({ rewrite: rewriteTo(savedBase), pace: 0 }).session(entry.slug, { pace: 0 });
+      const db = Object.assign(async (strings: TemplateStringsArray) => {
+        const sql = strings.join('');
+        return sql.includes('FROM intake_records') ? rows : sql.includes('FROM posting_passes') ? passes : [];
+      }, { json: (value: unknown) => value });
+      return collect(db, entry, { session, reader, vocab: using, today: '2026-11-19' });
+    };
+    const first = await run(vocab);
+    assert.equal(first.counts.texts, texts, entry.slug);
+    const record = first.kept.get(id);
+    assert.match(record.facts.title, new RegExp(word, 'i'), `${entry.slug}: the posting's title holds the word`);
+    assert.ok(vocab.careers.has(record.facts.reading.career.title));
+    const staged = [...first.kept].map(([source_id, each]: [string, { hash: string; payload: unknown; facts: unknown }]) => ({ source_id, hash: each.hash, payload: each.payload, facts: each.facts }));
+    const passed = [...first.passes].map(([source_id, listing]) => ({ source_id, listing, read_on: '2026-11-19' }));
+
+    // The next run, the list as it was: the posting stands as it was read, and nothing is asked for.
+    const same = await run(vocab, staged, passed);
+    assert.ok(same.kept.has(id), entry.slug);
+    assert.equal(same.counts.kept, first.counts.kept);
+    assert.equal(same.counts.texts, 0);
+
+    // The next run, the word on the list: the title is turned away before anything else, so the posting is not kept
+    // and no text is asked for, though its listing has not changed and it was read a moment ago. Every other posting
+    // of the board is as it was.
+    const away = await run(withWord(word), staged, passed);
+    assert.ok(!away.kept.has(id), `${entry.slug}: not kept`);
+    assert.equal(away.counts.texts, 0, `${entry.slug}: a title that is turned away costs no text`);
+    assert.equal(away.counts.kept, first.counts.kept - 1);
+    assert.ok(away.counts.notCareer > first.counts.notCareer, 'it is counted with the titles that are not one of our careers');
+    assert.ok(!away.deferred.has(id) && !away.present.has(id), 'it is not left for a later run: it is not one of ours');
+    // Its career is still a career, so this is the listing's rule and not the catalogue's: it is not among the dropped.
+    assert.deepEqual(away.dropped, []);
+    assert.equal(stillACareer(withWord(word), record.facts), true);
+
+    // Staging: against a listing read to its end it is gone, like a posting the board took down, and the job it gave is
+    // closed by posting_apply after the second such listing. A listing that was cut says nothing of it.
+    const stagedNow = staged.map((row) => ({ source_id: row.source_id, hash: row.hash, gone: false }));
+    const marked = async (complete: boolean) => {
+      const sent: { sql: string; values: unknown[] }[] = [];
+      const db = Object.assign(async (strings: TemplateStringsArray, ...values: unknown[]) => {
+        const sql = strings.join('$');
+        sent.push({ sql, values });
+        return /SELECT source_id, hash, gone_run_id IS NOT NULL AS gone FROM intake_records/.test(sql) ? stagedNow : [];
+      }, { json: (value: unknown) => value });
+      const counts = await stage(db, 11, { ...away, complete }, { log: () => {} });
+      return { counts, gone: sent.filter(({ sql }) => /UPDATE intake_records SET gone_run_id = \$/.test(sql)).map(({ values }) => values[2]) };
+    };
+    const whole = await marked(true);
+    assert.deepEqual(whole.gone, [[id]], `${entry.slug}: gone at a complete listing, and only it`);
+    assert.equal(whole.counts.gone, 1);
+    assert.equal(whole.counts.dropped, undefined, 'none of the gone is the catalogue\'s doing');
+    const cut = await marked(false);
+    assert.deepEqual(cut.gone, [], `${entry.slug}: a cut listing takes nothing to be gone`);
+    assert.equal(cut.counts.gone, 0);
+  }
 });
 
 test('the titles turned away are the report\'s alone: staging writes none of them to the database', async () => {

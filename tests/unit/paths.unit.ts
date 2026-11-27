@@ -26,8 +26,15 @@ const PATHS = 'data/careers/paths.json';
 const CAREERS = 'data/careers/catalogue.json';
 const SKILLS = 'data/skills/catalogue.json';
 const TAXONOMY = 'data/skills/taxonomy.json';
-// The paths' latest migration. 0052 was the first and is as it was applied.
-const MIGRATION = 'migrations/0075_career_paths_2.sql';
+// The paths' latest migration. 0052 was the first and 0075 the second, each as it was applied.
+const MIGRATION = 'migrations/0086_career_paths_3.sql';
+const SECOND_MIGRATION = 'migrations/0075_career_paths_2.sql';
+// The careers that left the catalogue with 0084 (cleaning a plant, preparing food by hand), and the skills only
+// their paths held. No skill was removed with them: these nine stay in the catalogue, the taxonomy and the Atlas,
+// on no career's path until one takes them.
+const TAKEN_OUT = ['Sanitation Technician', 'Meat Cutter', 'Slaughterer', 'Baker'];
+const LEFT_WITHOUT_A_CAREER = ['Knife Sharpening and Steeling', 'Carcass Fabrication', 'Meat Deboning and Trimming', 'Humane Handling and Stunning', 'Carcass Dressing',
+  'Dough Mixing', 'Dough Fermentation and Proofing', 'Dough Makeup', 'Industrial Oven Baking'];
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const paths = read<PathsFile>(PATHS);
@@ -76,7 +83,7 @@ test('the paths migration is what the paths file generates', () => {
 test('the paths file passes its own check, and every career has one path', () => {
   const result = check(paths);
   assert.ok(result.ok, result.said);
-  assert.match(result.said, /valid\. 231 careers/);
+  assert.match(result.said, /valid\. 227 careers/);
   assert.deepEqual(paths.careers.map((career) => career.title), careers.map((career) => career.title), 'one entry per career, in the catalogue order');
 });
 
@@ -111,7 +118,12 @@ test('the skills added last round are on a path, so they show in the Skills list
   assert.equal(military.size, 66);
   const onMilitaryPath = new Set(read<{ careers: { skills: string[] }[] }>('data/careers/military/paths.json').careers.flatMap((career) => career.skills));
   for (const skill of military) assert.ok(onMilitaryPath.has(skill), `${skill} is on a military path`);
-  const unused = skills.map((skill) => skill.name).filter((skill) => !used.has(skill) && !military.has(skill));
+  // The nine the four careers left behind are on no path, civilian or military, and are named: any other skill off every path counts.
+  for (const skill of LEFT_WITHOUT_A_CAREER) {
+    assert.ok(skills.some((each) => each.name === skill), `${skill} is still a skill of the catalogue`);
+    assert.ok(!used.has(skill) && !onMilitaryPath.has(skill), `${skill} is on a path again: take it off the list of those left without a career`);
+  }
+  const unused = skills.map((skill) => skill.name).filter((skill) => !used.has(skill) && !military.has(skill) && !LEFT_WITHOUT_A_CAREER.includes(skill));
   assert.ok(unused.length <= 5, `${unused.length} skills are on no path: ${unused.join(', ')}`);
 });
 
@@ -143,7 +155,7 @@ test('the check refuses a paths file that is not whole', async (t) => {
   await refused('a lack the catalogue has', (file) => { file.careers[0].lacks = ['CNC Turning']; }, /says the catalogue lacks "CNC Turning", which is a skill in it/);
   await refused('a foundation pasted onto every career', (file) => {
     for (const career of file.careers) if (!career.skills.map(name).includes('Shop Safety Practices') && career.skills.length < 24) career.skills.push('Shop Safety Practices');
-  }, /"Shop Safety Practices" is on \d+ of 231 paths: more than half/);
+  }, /"Shop Safety Practices" is on \d+ of 227 paths: more than half/);
   await refused('a ladder that does not show in the skills', (file) => {
     // The machinist's path replaced by a painter's: nothing of the operator carries.
     entry(file, 'CNC Machinist').skills = [...entry(file, 'Industrial Painter').skills, 'CNC Milling'];
@@ -164,8 +176,10 @@ test('every acknowledged weak link is one, and each says why', () => {
     assert.ok(share < 1 / 3, `${link.from} to ${link.to} keeps ${share}`);
     assert.ok(link.why.length > 20);
   }
-  // Most of the ladders show in the skills.
-  assert.ok(paths.weakLinks.length <= links.size / 5, `${paths.weakLinks.length} of ${links.size} links are weak`);
+  // Most of the ladders show in the skills: no more than a fifth of the links are weak, to the whole link. The
+  // paths stood at that limit (39 of 195, then 38 of 190); the rung from Food Processing Operator to Food Safety
+  // and Quality Technician, added so that career still has one below it, is the 39th of 191.
+  assert.ok(paths.weakLinks.length <= Math.ceil(links.size / 5), `${paths.weakLinks.length} of ${links.size} links are weak`);
 });
 
 test('the migration finds by name, leaves an approved path alone, and writes exactly the file', () => {
@@ -205,8 +219,44 @@ test("the migration is in the runner's list after the makes'", () => {
   for (const before of ['0070_skills_catalogue_5.sql', '0071_skill_taxonomy_5.sql', '0072_skill_makes_3.sql', '0073_careers_catalogue_2.sql', '0074_career_lists_3.sql']) {
     assert.ok(list.indexOf('0075_career_paths_2.sql') > list.indexOf(before), `0075 comes after ${before}`);
   }
+  // The third right after the careers' third catalogue and the lists' fourth, which take four careers out before their paths are left out.
+  assert.deepEqual(list.slice(list.indexOf('0084_careers_catalogue_3.sql'), list.indexOf('0084_careers_catalogue_3.sql') + 3),
+    ['0084_careers_catalogue_3.sql', '0085_career_lists_4.sql', '0086_career_paths_3.sql']);
+  assert.ok(list.indexOf('0086_career_paths_3.sql') > list.indexOf('0075_career_paths_2.sql'));
   // After the careers catalogue (which stores the careers) and the skills catalogue and taxonomy (which store and place the skills).
   for (const before of ['0046_careers_catalogue.sql', '0048_skills_catalogue_2.sql', '0049_skill_taxonomy_2.sql', '0050_skill_makes.sql']) {
     assert.ok(list.indexOf('0052_career_paths.sql') > list.indexOf(before), `0052 comes after ${before}`);
   }
+});
+
+test('the third paths migration is the second without the four careers that left: no other path changes', () => {
+  const lines = (file: string) => {
+    const sql = readFileSync(file, 'utf8');
+    const rows = (from: string, to: string) => sql.slice(sql.indexOf(from), sql.indexOf(to)).split('\n').filter((line) => line.startsWith('  (')).map((line) => line.replace(/[,;]$/, ''));
+    return { careers: rows('INSERT INTO path_careers', 'INSERT INTO path_lines').map((line) => line.replace(/^ {2}\(\d+, /, '')), lines: rows('INSERT INTO path_lines', '-- Each name, found') };
+  };
+  const [before, after] = [lines(SECOND_MIGRATION), lines(MIGRATION)];
+  assert.equal(before.careers.length, 231);
+  assert.equal(after.careers.length, 227);
+  assert.equal(before.lines.length, 3739);
+  assert.equal(after.lines.length, 3699);
+  const ofTheFour = (line: string) => TAKEN_OUT.some((title) => line.startsWith(`  ('${title}', `));
+  // Nine, eight, fourteen and nine lines: the four paths, whole.
+  assert.equal(before.lines.filter(ofTheFour).length, 40);
+  assert.deepEqual(after.lines, before.lines.filter((line) => !ofTheFour(line)), 'every other line is as it was, in its place');
+  assert.deepEqual(after.careers, before.careers.filter((line) => !TAKEN_OUT.some((title) => line === `'${title}')`)));
+  for (const title of TAKEN_OUT) assert.ok(!paths.careers.some((career) => career.title === title), `${title} has no path in the file`);
+  // The one weak link that named one of them (Baker to Food Scientist) is acknowledged no longer, and one is new: the
+  // rung added to Food Processing Operator so that Food Safety and Quality Technician still has a career below it
+  // carries 6 of the operator's 20 skills, under a third, and says why.
+  assert.equal(paths.weakLinks.length, 39);
+  const rung = paths.weakLinks.find((link) => link.from === 'Food Processing Operator' && link.to === 'Food Safety and Quality Technician');
+  assert.ok(rung && rung.why.length > 40, 'the new rung is acknowledged as weak, with its reason');
+  const pathOf = (title: string) => paths.careers.find((career) => career.title === title)!.skills.map((skill) => (typeof skill === 'string' ? skill : skill.skill));
+  const [lower, upper] = [pathOf('Food Processing Operator'), new Set(pathOf('Food Safety and Quality Technician'))];
+  assert.deepEqual([lower.filter((skill) => upper.has(skill)).length, lower.length], [6, 20]);
+  for (const link of paths.weakLinks) assert.ok(!TAKEN_OUT.includes(link.from) && !TAKEN_OUT.includes(link.to), `${link.from} to ${link.to}`);
+  // The migration deletes no career: a path of a career the catalogue's own migration left standing (one with a goal,
+  // an application or a company's version) is "not in the file" and stays as it is.
+  assert.ok(!/DELETE FROM occupations\b/.test(readFileSync(MIGRATION, 'utf8')));
 });

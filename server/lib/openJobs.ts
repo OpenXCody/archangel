@@ -1,6 +1,7 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import { db, jobs, factories, occupations } from '../db/index.js';
 import { factoryInScope } from './scope.js';
+import { jobAsGiven } from './jobRows.js';
 
 /**
  * A job is open: its status says so and its expiry date has not passed. Takes
@@ -45,19 +46,30 @@ export async function countOpenJobs(where: SQL): Promise<number> {
 }
 
 export async function listOpenJobs(where: SQL, limit = 50) {
-  return db
+  const rows = await db
     .select({
       id: jobs.id,
       serial: jobs.serial,
       title: jobs.title,
+      // Read for the opening's own name and never given (jobAsGiven in jobRows.ts).
+      postedAs: jobs.postedAs,
+      // What the job states, and the day: a row says them where they tell openings apart.
+      employmentType: jobs.employmentType,
+      shift: jobs.shift,
       payMin: jobs.payMin,
       payMax: jobs.payMax,
       payPeriod: jobs.payPeriod,
+      postedAt: jobs.postedAt,
+      undated: jobs.undated,
       companyName: sql<string>`(SELECT name FROM companies WHERE companies.id = ${jobs.companyId})`,
       // With the number and the career's title, what a job's address is written from (shared/jobs.ts).
       companySlug: sql<string | null>`(SELECT slug FROM companies WHERE companies.id = ${jobs.companyId})`,
+      // For the company's mark beside its name in a row.
+      companyDomain: sql<string | null>`(SELECT domain FROM companies WHERE companies.id = ${jobs.companyId})`,
       factoryName: factories.name,
       city: factories.city,
+      // With the city, the place as it is written: "Ankeny, IA".
+      state: factories.state,
       occupationId: occupations.id,
       occupationTitle: occupations.title,
     })
@@ -67,4 +79,5 @@ export async function listOpenJobs(where: SQL, limit = 50) {
     .where(and(where, jobIsOpen(), factoryInScope()))
     .orderBy(jobsInOrder())
     .limit(limit);
+  return rows.map(jobAsGiven);
 }

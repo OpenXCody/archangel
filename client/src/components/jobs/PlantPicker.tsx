@@ -1,10 +1,9 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import { formatFactoryName } from '@shared/displayName';
-import { stateName } from '../../lib/places';
+import { cityState, stateName } from '../../lib/places';
 import { cn } from '@/lib/utils';
 import type { EmployerFactory } from '../../lib/employer';
-import { formatPlace } from '../../lib/jobFormat';
 import { KIND_ICON, fieldClass } from '../account/parts';
 
 /** A factory's name as it reads everywhere else: not the raw upper-case record. */
@@ -16,9 +15,7 @@ export function plantName(factory: Pick<EmployerFactory, 'name'>): string {
 export function plantWhere(factory: Pick<EmployerFactory, 'address' | 'city' | 'state'>): string {
   // In an address "ST" is Street, not the company the name formatter knows by those letters.
   const street = factory.address ? formatFactoryName(factory.address).replace(/\bST\b/g, 'St') : '';
-  // Cities arrive in capitals as often as not.
-  const city = factory.city ? formatFactoryName(factory.city) : null;
-  return [street, formatPlace(city, factory.state)].filter(Boolean).join(' · ');
+  return [street, cityState(factory.city, factory.state)].filter(Boolean).join(' · ');
 }
 
 /** Everything a factory can be found by, lower case. */

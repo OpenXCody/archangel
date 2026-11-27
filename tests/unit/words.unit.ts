@@ -95,6 +95,7 @@ const CODE: Record<string, Record<string, [times: number, why: string]>> = {
 /** Whole files whose strings are patterns over registry names, not words of ours. */
 const PATTERN_FILES: Record<string, string> = {
   'shared/addressStubFilter.ts': 'patterns that find "ASPHALT MIXING PLANT", "WASTEWATER PLANT", "FORMER PLANT" in registry names',
+  'shared/jobOwnName.ts': 'patterns over the titles employers post: the words that say what kind of site a title names ("Faribault Plant") are cut from a name, never shown',
 };
 
 const DIRS = ['client/src', 'server', 'shared', 'api'];

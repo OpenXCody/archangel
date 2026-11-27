@@ -58,6 +58,8 @@ export interface MyApplication {
   companySlug?: string | null;
   occupationTitle?: string;
   jobTitle: string;
+  /** The opening's own name beside its title. Null today on every application: only a job posted here takes them. */
+  ownName?: string | null;
   jobStatus: JobStatus;
   companyId: string;
   companyName: string;

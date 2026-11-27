@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Factory, Briefcase, ChevronRight } from 'lucide-react';
 import { type CareerJob, type OwnCareer } from '../../../lib/api';
 import { useMapStore } from '../../../stores/mapStore';
-import { formatCompanyName } from '@shared/displayName';
-import { formatPay } from '../../../lib/jobFormat';
+import { jobRow, type JobListSays } from '../../../lib/jobRow';
+import { jobRowLine } from '../../jobs/JobRow';
 import { ownCareerLine as careerLine } from '../../entity/RecordFacts';
 import { jobPath } from '@shared/jobs';
 
@@ -184,30 +184,42 @@ export function CareerRows({ careers, limit }: { careers: { id: string; title: s
   );
 }
 
-/** `company`: name the company on each row, where the panel is not about one. */
-export function JobRows({ jobs, limit, company = false }: { jobs: CareerJob[]; limit: number; company?: boolean }) {
+/**
+ * Open jobs in a panel. `said` is what the panel has already said of every job in the list (a career's panel its
+ * career, a company's its company, a factory's its factory, a state's its state). A row is drawn by the rule every
+ * list of jobs is drawn by (`jobRow` in lib/jobRow.ts): its first line is a job's name, always; the opening's own
+ * name is the next line where the first is the standard name; then the facts the panel has not said.
+ */
+export function JobRows({ jobs, limit, said }: { jobs: CareerJob[]; limit: number; said?: JobListSays }) {
   return (
     <RowList>
-      {jobs.slice(0, limit).map((job) => (
-        <Link
-          key={job.id}
-          to={jobPath(job)}
-          className={`${ROW} justify-between py-2.5`}
-        >
-          <span className="min-w-0">
-            <span className="block truncate text-[15px] text-text-1">{job.title}</span>
-            {/* The company where the panel is not one company's, then the pay where the posting states it: what is not said is not said. */}
-            {(() => {
-              const line = [
-                company && job.companyName ? formatCompanyName(job.companyName) : null,
-                job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null,
-              ].filter(Boolean);
-              return line.length > 0 ? <span className={`block truncate text-[13px] tabular-nums ${META_IN_ROW}`}>{line.join(' · ')}</span> : null;
-            })()}
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-text-3 transition-colors group-hover:text-text-1" aria-hidden="true" />
-        </Link>
-      ))}
+      {jobs.slice(0, limit).map((job) => {
+        const { head, second, facts } = jobRow(job, said);
+        // What is left to say, then the pay where the posting states it: what is not said is not said.
+        const line = jobRowLine(facts);
+        return (
+          <Link key={job.id} to={jobPath(job)} className={`${ROW} py-2.5`} data-job-head={head.kind}>
+            <span className="min-w-0 flex-1">
+              {/* A name is said whole: an opening's own name can be a sentence. */}
+              <span className="line-clamp-2 break-words text-[15px] leading-snug text-text-1" data-row-title>
+                {head.text}
+              </span>
+              {second && (
+                <span className="mt-0.5 line-clamp-2 break-words text-[15px] leading-snug text-text-2" data-row-second>
+                  {second}
+                </span>
+              )}
+              {/* As many lines as it takes: the pay at the end is never cut off. */}
+              {line && (
+                <span className={`mt-0.5 block break-words text-[13px] tabular-nums ${META_IN_ROW}`} data-row-line>
+                  {line}
+                </span>
+              )}
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-text-3 transition-colors group-hover:text-text-1" aria-hidden="true" />
+          </Link>
+        );
+      })}
     </RowList>
   );
 }

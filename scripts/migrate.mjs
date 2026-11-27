@@ -56,7 +56,13 @@ export const MIGRATIONS = ['0010_accounts_jobs.sql', '0011_austin_career_paths.s
   // were taken on other branches first (the list is ordered, not contiguous).
   '0081_posting_places_2.sql',
   // The Texas factories texas-hubs.json left waiting for a location, placed (data/employers/texas-hubs-2.json).
-  '0082_texas_hubs_2.sql'];
+  '0082_texas_hubs_2.sql',
+  // Cleaning a plant and preparing food by hand leave the catalogue (Sanitation Technician, Meat Cutter, Slaughterer,
+  // Baker), with their jobs and what the postings pipeline kept of them; then the lists and the paths without them.
+  '0084_careers_catalogue_3.sql', '0085_career_lists_4.sql', '0086_career_paths_3.sql',
+  // A job from a careers site is named by its career's title alone, held by the database; the title its employer posted it
+  // under is kept beside it (jobs.posted_as), out of sight.
+  '0088_job_names.sql'];
 
 export const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 

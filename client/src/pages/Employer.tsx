@@ -21,6 +21,7 @@ import { formatFactoryName } from '@shared/displayName';
 import { latestDraftCompany } from '../lib/jobDraft';
 import { useViewer } from '../lib/viewer';
 import { isExpired } from '../lib/jobFormat';
+import { titleCase } from '../lib/places';
 import CompanyRequestForm from '../components/account/CompanyRequestForm';
 import JobForm, { type JobFormCompany } from '../components/jobs/JobForm';
 import CompanyCareers from '../components/versions/CompanyCareers';
@@ -733,7 +734,7 @@ function openUntil(expiresAt: string): string {
 /** The factory a job is at, with its town when the factory's name does not already say it: "North Campus, Dallas". */
 function plantAndTown(job: EmployerJob): string {
   const plant = formatFactoryName(job.factoryName);
-  const town = job.city ? formatFactoryName(job.city) : null;
+  const town = job.city ? titleCase(job.city) : null;
   return town && !plant.toLowerCase().includes(town.toLowerCase()) ? `${plant}, ${town}` : plant;
 }
 
@@ -789,6 +790,8 @@ function CompanyJobs({ company, showCompanyName }: { company: EmployerCompany; s
             >
               <div className="min-w-0">
                 <p className={cn('break-words text-sm', state === 'Open' ? 'text-text-1' : 'text-text-2')}>{job.title}</p>
+                {/* The opening's own name, where the job has one beside its title (lib/jobRow.ts). */}
+                {job.ownName && <p className="mt-0.5 line-clamp-2 break-words text-sm text-text-2">{job.ownName}</p>}
                 <p className="mt-0.5 break-words text-sm text-text-2">
                   <span className={cn(state === 'Open' && 'text-text-1')} data-job-state={state.toLowerCase()}>
                     {state === 'Open' ? openUntil(job.expiresAt) : state}

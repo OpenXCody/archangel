@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
+import { factoryNameBesideCompany } from '@shared/factoryName';
 import { cn, focusRing } from '@/lib/utils';
 import { cityState } from '../../lib/places';
 import CompanyLogo from '../CompanyLogo';
@@ -67,12 +68,25 @@ export function CompanyTag({ company, ...rest }: { company: { id: string; slug?:
   return <RecordTag to={`/companies/${company.slug ?? company.id}`} kind="Company" lead={<CompanyLogo name={name} domain={company.domain} size={20} />} name={name} {...rest} />;
 }
 
-/** A factory, by its name and "City, ST". */
-export function FactoryTag({ factory }: { factory: { id: string; name: string; city?: string | null; state?: string | null } }) {
-  const name = formatFactoryName(factory.name);
+/**
+ * A factory, by its name and "City, ST". `beside` is the company whose tag stands before this one (a job's page):
+ * the factory is then named without the company a second time ("Des Moines Works · Ankeny, IA"), and by its place
+ * alone where its name says nothing more than the company and the town ("Bastrop, TX").
+ */
+export function FactoryTag({ factory, beside }: { factory: { id: string; name: string; city?: string | null; state?: string | null }; beside?: string | null }) {
   const place = cityState(factory.city, factory.state);
+  const name = beside ? factoryNameBesideCompany(factory, beside) : formatFactoryName(factory.name);
   // A factory named for its town alone says the town once.
-  return <RecordTag to={`/factories/${factory.id}`} kind="Factory" name={name} detail={place && place.toLowerCase() !== name.toLowerCase() ? place : undefined} />;
+  const said = name && name.toLowerCase() !== place.toLowerCase() ? name : null;
+  return (
+    <RecordTag
+      to={`/factories/${factory.id}`}
+      kind="Factory"
+      // With no town on record there is only the name to go by.
+      name={said ?? (factory.city?.trim() ? place : formatFactoryName(factory.name))}
+      detail={said && place ? place : undefined}
+    />
+  );
 }
 
 /** A career, by its title; `to` where the tag leads to a company's version of it. */

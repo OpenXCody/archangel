@@ -101,13 +101,18 @@ function fixAcronymsInPlace(name: string): string {
     .join('');
 }
 
+/** Whether a name shouts: most of its letters are capitals, as a registry writes them ("BOEING AVIONICS REPAIR FACILITY"). */
+export function shouts(name: string): boolean {
+  const letters = name.replace(/[^A-Za-z]/g, '');
+  if (letters.length === 0) return false;
+  return [...letters].filter((c) => c === c.toUpperCase()).length / letters.length >= 0.7;
+}
+
 function smartTitleCase(name: string): string {
   // Only title-case if the input is majority uppercase — otherwise respect
   // whatever the source already provided (but still fix known acronyms).
-  const letters = name.replace(/[^A-Za-z]/g, '');
-  if (letters.length === 0) return name;
-  const upperRatio = [...letters].filter((c) => c === c.toUpperCase()).length / letters.length;
-  if (upperRatio < 0.7) return fixAcronymsInPlace(name);
+  if (name.replace(/[^A-Za-z]/g, '').length === 0) return name;
+  if (!shouts(name)) return fixAcronymsInPlace(name);
   return name
     .split(/(\s+)/)
     .map((chunk, i) => (/^\s+$/.test(chunk) ? chunk : titleCaseWord(chunk, i === 0)))

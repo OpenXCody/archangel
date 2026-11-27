@@ -18,6 +18,7 @@
   { "from": "Battery Cell Formation Technician", "to": "Maintenance Technician", "why": "An operator who moves into maintenance changes trade: the plant and its lockout carry, the craft is new." },
   { "from": "Battery Pack Assembly Technician", "to": "Test Technician", "why": "From building the product to testing it: knowledge of the product carries and is not a catalogue skill; the two paths share the bench fundamentals." },
   { "from": "Food Processing Operator", "to": "Maintenance Technician", "why": "An operator who moves into maintenance changes trade: the plant and its lockout carry, the craft is new." },
+  { "from": "Food Processing Operator", "to": "Food Safety and Quality Technician", "why": "An operator who moves into the plant's quality checks: the food safety plan, the sanitation and allergen rules, the metal detector and the lot record carry; the laboratory's tests, the sampling and the charts are new." },
   { "from": "Beverage Production Operator", "to": "Maintenance Technician", "why": "An operator who moves into maintenance changes trade: the plant and its lockout carry, the craft is new." },
   { "from": "Packaging Line Operator", "to": "Maintenance Technician", "why": "An operator who moves into maintenance changes trade: the plant and its lockout carry, the craft is new." },
   { "from": "Quality Control Inspector", "to": "NDT Technician (Penetrant)", "why": "A change of method: the inspector brings the drawing, the record and the write-up; every testing skill is new." },
@@ -27,7 +28,6 @@
   { "from": "Electronics Assembler", "to": "Optical Technician", "why": "Optical assemblers start on an electronics bench: clean, careful hand work, ESD and the instruction carry; the optics are new." },
   { "from": "Sterilization Technician", "to": "Validation Specialist", "why": "Validation proves the cycles the technician runs: the sterilization methods and GMP carry; writing and executing qualification protocols, mapping and the statistics are new." },
   { "from": "Powertrain Test Technician", "to": "Test Engineer", "why": "The test engineer designs the tests and the stands the technician runs: the test methods and the data carry; designing the test equipment and the campaign is new. (Made weak by the earlier plan's change to Test Engineer's path.)" },
-  { "from": "Baker", "to": "Food Scientist", "why": "The scientist designs what the baker makes by hand: the formula, the ingredients and food safety carry, the hand skills do not." },
   { "from": "Plastics Process Technician", "to": "Process Engineer", "why": "The engineer owns the process across a plant and its scale-up; the technician brings the plastics processes and the data habits." },
   { "from": "Paper Machine Operator", "to": "Process Engineer", "why": "The engineer owns the process the crew runs: the papermaking and its chemistry carry, the engineering methods are new." },
   { "from": "Sawmill Operator", "to": "Millwright", "why": "Sawmills fill their millwright apprenticeships from the mill floor; the operator brings the machines, the mechanical trade is new." },
@@ -3576,70 +3576,6 @@
     "Wet End Chemistry Control"
    ],
    "lacks": ["mass and energy balances", "scale-up"]
-  },
-  {
-   "title": "Meat Cutter",
-   "basis": "The largest single job in food manufacturing (O*NET 51-3022, meat, poultry and fish cutters and trimmers, almost all of it in meat and poultry plants). Beef, pork and poultry packers and processors hire under this title and its station names (trimmer, boner, deboner).",
-   "skills": [
-    { "skill": "Lockout Tagout", "why": "Band saws, conveyors and trimmers are cleared under lockout." },
-    "Knife Sharpening and Steeling",
-    "Current Good Manufacturing Practice",
-    "HACCP Food Safety",
-    "Sanitation Procedures",
-    { "skill": "Lot Tracking", "why": "Every box and combo bin of trim carries its lot, so a positive pathogen sample traces back to the carcasses." },
-    "Carcass Fabrication",
-    "Meat Deboning and Trimming",
-    { "skill": "Vacuum and Modified Atmosphere Packaging", "why": "The floor ends in vacuum-packed subprimals, and cutters rotate onto the bag machines." }
-   ]
-  },
-  {
-   "title": "Slaughterer",
-   "basis": "This is O*NET 51-3023 (slaughterers and meat packers). Every beef, pork, lamb and poultry slaughter plant hires for the harvest floor, a department apart from fabrication with its own regulated work: humane handling under the Humane Methods of Slaughter Act, dressing held to USDA's zero tolerance, and the antimicrobial step.",
-   "skills": [
-    "Lockout Tagout",
-    "Knife Sharpening and Steeling",
-    "Current Good Manufacturing Practice",
-    { "skill": "HACCP Food Safety", "why": "The zero-tolerance trim and the final wash are control points at the slaughterer's own station." },
-    "Sanitation Procedures",
-    "Humane Handling and Stunning",
-    "Carcass Dressing",
-    "Carcass Antimicrobial Intervention"
-   ]
-  },
-  {
-   "title": "Baker",
-   "basis": "O*NET 51-3011 (bakers). Commercial and retail bakeries (NAICS 3118) are manufacturing and hire Baker, Production Baker, Mixer and Oven Operator. The trade is developing dough, fermenting it, making it up and baking it; AIB International trains industrial bakers.",
-   "skills": [
-    "Lockout Tagout",
-    { "skill": "Shop Math", "why": "Baker's percentages and the water temperature that brings a dough off at its target." },
-    "Current Good Manufacturing Practice",
-    "HACCP Food Safety",
-    "Sanitation Procedures",
-    "Allergen Changeover Cleaning",
-    { "skill": "Food Batching and Blending", "why": "The scaling half of it: ingredients weighed to the formula." },
-    "Dough Mixing",
-    "Dough Fermentation and Proofing",
-    "Dough Makeup",
-    "Industrial Oven Baking",
-    { "skill": "Industrial Frying", "why": "Doughnuts and fried pies." },
-    { "skill": "Food Forming and Depositing", "why": "Batters are deposited." },
-    { "skill": "Food Product Formulation", "why": "Food Product Formulation is the head baker's: adjusting a formula for a new flour crop or a new product." }
-   ]
-  },
-  {
-   "title": "Sanitation Technician",
-   "basis": "Every food plant has a sanitation department, usually a full night shift, and FDA and USDA rules make its work a written, verified program: sanitation SOPs, allergen cleans and the environmental pathogen program. It is taking apart and sanitizing food-contact machinery under lockout, and plants post it as Sanitation Technician or Sanitation Worker.",
-   "skills": [
-    "Lockout Tagout",
-    "Chemical Safety",
-    "Current Good Manufacturing Practice",
-    { "skill": "HACCP Food Safety", "why": "Sanitation is the prerequisite program the plan stands on." },
-    "Sanitation Procedures",
-    "Allergen Changeover Cleaning",
-    "Clean-in-Place Operation",
-    { "skill": "Environmental Monitoring", "why": "A Listeria-positive swab is answered by the crew finding and breaking the harborage." },
-    { "skill": "Cleaning Validation", "why": "Cleaning Validation is the sanitation lead's: proving a clean works before it becomes the procedure." }
-   ]
   },
   {
    "title": "Food Safety and Quality Technician",

@@ -12,12 +12,8 @@ export function stateName(code: string): string {
 /** "TX" for "Texas": the code of a state written out in full. */
 export const STATE_CODE_BY_NAME: Record<string, string> = Object.fromEntries(US_STATES.map((state) => [state.name, state.code]));
 
-/** "ROUND ROCK" as "Round Rock": the source data shouts its city names. */
-export function titleCase(text: string): string {
-  return text.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
-}
-
-/** "Austin, TX": the one way a place is written, from a city as the source data has it. */
-export function cityState(city: string | null | undefined, state: string | null | undefined): string {
-  return [city ? titleCase(city) : null, state].filter(Boolean).join(', ');
-}
+/**
+ * "ROUND ROCK" as "Round Rock", and "Austin, TX": the one way a place is written (shared/places.ts, which the
+ * server's search writes its lines with too). Every screen that prints a place does it through these.
+ */
+export { cityState, titleCase } from '@shared/places';

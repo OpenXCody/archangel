@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatPay } from '../../lib/jobFormat';
 import { type CareerJob, type MilitaryCareerRow } from '../../lib/api';
-import { formatCompanyName } from '@shared/displayName';
+import type { JobListSays } from '../../lib/jobRow';
 import { industryLabel, industryPath } from '@shared/industry';
 import { kindLine } from '@shared/military';
 import FootprintMap from './FootprintMap';
@@ -15,7 +14,7 @@ import {
   ShowAll,
   recordListClass,
 } from '../layout/Page';
-import { jobPath } from '@shared/jobs';
+import { JobRecordRow } from '../jobs/JobRow';
 import { labelClass } from '@/lib/utils';
 import { ShareRing } from '../path/HeldShare';
 import type { Share } from '@shared/route';
@@ -57,8 +56,13 @@ export function Footprint({ children, ...map }: React.ComponentProps<typeof Foot
   );
 }
 
-/** Open jobs at a company, a factory, for a career or asking for a skill. Drawn only when there is one. */
-export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs: CareerJob[]; showCareer?: boolean; total?: number; all?: string }) {
+/**
+ * Open jobs at a company, a factory, for a career or asking for a skill. Drawn only when there is one.
+ * `said` is what the page has already said of every job in the list (its career, its company, its factory): a row's
+ * first line is a job's name, always, with the opening's own name beside it, and it never repeats what the page has
+ * said (`JobRecordRow`; `jobRow` in lib/jobRow.ts is the rule).
+ */
+export function OpenJobsSection({ jobs, said, total, all }: { jobs: CareerJob[]; said?: JobListSays; total?: number; all?: string }) {
   // The page lists the newest few. When more are open, one link leads to all of them on Jobs.
   const more = all && typeof total === 'number' && total > jobs.length;
   return (
@@ -75,20 +79,7 @@ export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs
     >
       <RecordList>
         {jobs.map((job) => (
-          <RecordRow
-            key={job.id}
-            to={jobPath(job)}
-            title={job.title}
-            subtitle={[
-              // The career is said only when the job is not simply named after it.
-              showCareer ? (job.occupationTitle !== job.title ? job.occupationTitle : null) : formatCompanyName(job.companyName),
-              job.city ? titleCase(job.city) : null,
-              // A job from a company's careers site that states no pay says nothing about pay.
-              job.payMin !== null || job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          />
+          <JobRecordRow key={job.id} job={job} said={said} />
         ))}
       </RecordList>
     </DetailSection>

@@ -4,6 +4,7 @@
 // where that is even the answer is null.
 import { readCareerTitle, initialismOption, saysNothing, SAYS_NOTHING } from './career.mjs';
 import { assign } from './skills.mjs';
+import { notOursWord } from './vocabulary.mjs';
 
 // Departments none of the careers work in, and ones whose engineers are not ours
 // unless the text speaks of hardware.
@@ -33,6 +34,10 @@ export function decideCareer(posting, text, vocab) {
 
   const department = String(posting.department ?? '');
   if (OFFICE.test(department) || (INTERNS.test(department) && !FIRST_JOB.test(String(posting.title ?? '')))) return none(`department "${department.trim()}"`);
+  // A plain title filed under a department of work that is never ours ("Production Operator" in Sanitation,
+  // "Maintenance Technician" in Custodial Services) is that work: the same words as in a title, from the same list.
+  const never = notOursWord(department, vocab);
+  if (never) return none(`"${never}" in the department: not our work`);
   const { asking, found } = text();
 
   // What the text names of each career's path. A code that could be several skills
@@ -62,6 +67,16 @@ export function decideCareer(posting, text, vocab) {
     const scored = real.map((o) => ({ o, n: hits(o.career, real.filter((x) => x !== o).map((x) => x.career)) })).sort((a, b) => b.n - a.n);
     if (scored[0].n >= 2 && scored[0].n > scored[1].n) pick = scored[0].o;
     else return none(`could be ${real.map((o) => o.career).join(' or ')}`);
+  }
+
+  // A trade's general name for one of its branches ("production welder" for MIG Welder) holds while the text asks
+  // for nothing only the whole trade does: one telling skill of the trade's path that the branch's has not (TIG or
+  // stick welding, pipe) and the posting is the trade's, to be read as its own title would be.
+  if (pick.trade && vocab.careers.get(pick.trade)) {
+    const trade = vocab.careers.get(pick.trade);
+    const mine = new Set(pathOf(pick.career));
+    const has = named(pick.trade);
+    if (trade.path.some((s) => trade.telling.has(s) && !mine.has(s) && has.has(s))) pick = { career: pick.trade, how: 'close', matched: trade.title, kind: 'title' };
   }
 
   const onPath = hits(pick.career);

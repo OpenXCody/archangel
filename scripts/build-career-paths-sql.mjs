@@ -42,9 +42,10 @@
 //     skill's level from the trigger 0042 created), and the path is a draft.
 // Applied a second time it changes nothing.
 //
-// 0052 was the first and is as it was applied; 0075 writes the paths of the
-// careers 0073 added and the skills added to others. Only the latest is what this
-// script writes today.
+// 0052 was the first and 0075, which wrote the paths of the careers 0073 added
+// and the skills added to others, the second, each as it was applied; 0086 is
+// the file without the four careers 0084 took out of the catalogue (no other
+// path changes). Only the latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -56,7 +57,7 @@ const [
   careersFile = 'data/careers/catalogue.json',
   skillsFile = 'data/skills/catalogue.json',
   taxonomyFile = 'data/skills/taxonomy.json',
-  output = 'migrations/0075_career_paths_2.sql',
+  output = 'migrations/0086_career_paths_3.sql',
 ] = args.filter((arg) => !arg.startsWith('--'));
 
 /** The fewest and the most skills a path may have. The guide is 12 to 22; the floor is for careers the catalogue cannot yet describe. */

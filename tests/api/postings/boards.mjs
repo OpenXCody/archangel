@@ -1,6 +1,6 @@
 // Writes the made-up boards tests/api/postings.sh runs, in each system's own
 // shape, into a folder tests/api/postings/feeds.mjs serves.
-//   node tests/api/postings/boards.mjs <dir> one|two|three
+//   node tests/api/postings/boards.mjs <dir> one|two|three|four|five|six
 // The postings are written the way an employer writes one (an opening
 // paragraph, the qualifications as a list, the pay in a sentence), so the
 // reader that ships (scripts/ingest/postings/read/) is the one the suite
@@ -37,7 +37,11 @@ const machining = text('Our foundry machines its own castings.', [
 ], '<p>Salary range: $62,000 - $81,000 per year.</p>');
 const one = [
   job(101, 'Welder II', 'Postville, NV', { text: welding([28, 34]) }),
-  job(102, 'Senior CNC Machinist', 'Postville, NV', { department: 'Foundry', text: machining }),
+  // Titled as an employer titles one: a level in short, a requisition number, a team in brackets. The job is named
+  // "CNC Machinist", for its career alone (migration 0088); these words are kept as they were posted, and what a
+  // screen shows of them is the opening's own name (shared/jobOwnName.ts): here all of them, since none says what the
+  // job's page states elsewhere.
+  job(102, 'Sr. CNC Machinist - N0309 (Foundry)', 'Postville, NV', { department: 'Foundry', text: machining }),
   job(103, 'Maintenance Technician', 'Castings Gap, NV'),
   job(104, 'Quality Engineer', 'Carlin Flat, NV'),
   job(105, 'Production Operator', 'Nowhere Springs, NV'),
@@ -57,7 +61,19 @@ const two = [
   one[1], job(103, 'Maintenance Technician', 'Postville, NV'), ...one.slice(4),
   job(110, 'TIG Welder', 'Postville, NV', { posted: '2026-11-18T09:00:00.000+00:00' }),
 ];
-writeFileSync(`${dir}/ashby/e2e-acme.json`, JSON.stringify({ jobs: which === 'two' ? two : one }));
+// Another day: 101 states a level higher, and 102 is the same job under other words.
+const four = [
+  job(101, 'Welder III', 'Postville, NV', { text: welding([28, 34]) }),
+  job(102, 'Senior CNC Machinist (Foundry) - N0412', 'Postville, NV', { department: 'Foundry', text: machining }),
+  ...one.slice(2),
+];
+// And another: 103 is posted under a title that holds a word of work that is never ours, whatever career's name
+// follows it (data/careers/aliases.json, `notOurs`). Nothing else of the board has changed.
+const five = four.map((posting) => (posting.id === '103' ? job(103, 'Janitorial Maintenance Technician', 'Castings Gap, NV') : posting));
+// And one more: 101, a welder's posting until now, is titled as a production line titles the job. A production welder
+// is the MIG Welder, not the several-process Welder (data/careers/aliases.json): the same posting is another career's.
+const six = five.map((posting) => (posting.id === '101' ? job(101, 'Production Welder III', 'Postville, NV', { text: welding([28, 34]) }) : posting));
+writeFileSync(`${dir}/ashby/e2e-acme.json`, JSON.stringify({ jobs: { two, four, five, six }[which] ?? one }));
 
 // --- Workday: E2E Postings Works, a small board and a long one ---------------------
 const posting = (id, title, place, elsewhere = false) => ({

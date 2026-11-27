@@ -12,4 +12,11 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     'react-hooks/exhaustive-deps': 'warn',
   },
+  overrides: [
+    {
+      // A job's own name reads a title as an employer posted it: the control characters it clears are named in its patterns.
+      files: ['shared/jobOwnName.ts'],
+      rules: { 'no-control-regex': 'off' },
+    },
+  ],
 };

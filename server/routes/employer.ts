@@ -12,6 +12,7 @@ import { pageLimit } from '../lib/paging.js';
 import { companyRequestsRouter } from './companyRequests.js';
 import { recordAudit } from '../lib/audit.js';
 import { jobIsOpen } from '../lib/openJobs.js';
+import { jobAsGiven } from '../lib/jobRows.js';
 
 /**
  * The employer area. An employer is a signed-in person with an active
@@ -68,11 +69,15 @@ router.get(
             serial: jobs.serial,
             companyId: jobs.companyId,
             title: jobs.title,
+            // Read for the job's own name and never given (jobAsGiven in lib/jobRows.ts). The jobs listed here
+            // were posted here and have none: the row goes through the one helper all the same.
+            postedAs: jobs.postedAs,
             status: jobs.status,
             postedAt: jobs.postedAt,
             expiresAt: jobs.expiresAt,
             factoryName: factories.name,
             city: factories.city,
+            state: factories.state,
             // With the number, what the job's address is written from (shared/jobs.ts).
             companyName: sql<string>`(SELECT c.name FROM companies c WHERE c.id = ${jobs.companyId})`,
             companySlug: sql<string | null>`(SELECT c.slug FROM companies c WHERE c.id = ${jobs.companyId})`,
@@ -101,7 +106,7 @@ router.get(
         // For a declined request: when the person can ask again.
         askAgainAt: m.status === 'declined' && m.decidedAt ? askAgainAt(m.decidedAt) : null,
         factories: factoryRows.filter((f) => f.companyId === m.companyId),
-        jobs: jobRows.filter((j) => j.companyId === m.companyId),
+        jobs: jobRows.filter((j) => j.companyId === m.companyId).map(jobAsGiven),
         listedJobs: listed.find((row) => row.companyId === m.companyId)?.open ?? 0,
       })),
     });

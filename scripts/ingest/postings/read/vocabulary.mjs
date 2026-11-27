@@ -85,7 +85,50 @@ function buildCareers(root) {
     if (!byLast.has(last)) byLast.set(last, []);
     byLast.get(last).push(n);
   }
-  return { careers, names: titled, initialisms, byKey: new Map(titled.map((n) => [n.key, n])), byLast };
+  return { careers, names: titled, initialisms, byKey: new Map(titled.map((n) => [n.key, n])), byLast, notOurs: buildNotOurs(aliases) };
+}
+
+/**
+ * The words that make a title not ours, as the lists file writes them
+ * (data/careers/aliases.json, `notOurs`): each as the words a title is compared
+ * by. Janitorial, grounds and food-service work is no career of the product
+ * whatever career's name stands beside the word, and which words say so is
+ * decided there, never here.
+ */
+function buildNotOurs(aliases) {
+  const list = (aliases.notOurs?.words ?? [])
+    .map((said) => ({ said, words: titleWords(said, true) }))
+    .filter((entry) => entry.words.length > 0);
+  // Phrases a word of the list may stand in and not count (`exceptIn`): a "Proving Grounds Maintenance Technician".
+  list.exceptIn = (aliases.notOurs?.exceptIn ?? []).map((said) => titleWords(said, true)).filter((words) => words.length > 0);
+  return list;
+}
+
+/**
+ * The word of the list a title holds, or null: its words stand in the title
+ * side by side, whatever else the title says, a plural counting as its
+ * singular ("Custodians", "Food Services"). The whole title is looked at, its
+ * brackets and its parts after a dash or a comma too ("General Laborer -
+ * Sanitation"). A posting's department is looked at the same way (decide.mjs):
+ * a "Production Operator" of the Sanitation department is its sanitation crew.
+ */
+export function notOursWord(title, vocab) {
+  const list = vocab.notOurs ?? [];
+  if (!list.length) return null;
+  const words = titleWords(String(title ?? ''), true);
+  const same = (word, wanted) => word === wanted || word === `${wanted}s`;
+  const at = (wanted, from) => from >= 0 && from + wanted.length <= words.length && wanted.every((w, i) => same(words[from + i], w));
+  // A word that stands inside an excepted phrase is that phrase's ("proving grounds"), not the list's.
+  const excepted = (from, length) => (list.exceptIn ?? []).some((phrase) => {
+    for (let start = from - phrase.length + 1; start < from + length; start++) if (at(phrase, start)) return true;
+    return false;
+  });
+  for (const entry of list) {
+    for (let from = 0; from + entry.words.length <= words.length; from++) {
+      if (at(entry.words, from) && !excepted(from, entry.words.length)) return entry.said;
+    }
+  }
+  return null;
 }
 
 // --- Skills and makes ----------------------------------------------------------
