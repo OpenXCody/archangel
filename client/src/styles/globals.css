@@ -22,15 +22,18 @@
  * There are two surface levels and no third grey. Beside the eleven:
  * --danger (an error has to read as one), --logo-backing (a company's mark
  * is drawn for a white page) and --mask (the opaque stop of a mask: never
- * painted), the map's five and the Atlas's sixteen domain hues (--domain-*:
- * the Atlas alone is coloured, see its rules below).
- * tests/unit/theme.unit.ts holds the ink and the hues to 4.5:1 on both surfaces.
+ * painted), the map's five and the twelve hues of the Atlas's wheel, one a
+ * core group (--core-*: the Atlas alone is coloured, see its rules below).
+ * tests/unit/theme.unit.ts holds the ink and the wheel's twelve hues to
+ * 4.5:1 on both surfaces, and the hues to their own rules.
  */
 @layer base {
   :root {
     color-scheme: dark;
 
     --radius: 0.5rem;
+    /* The header's height with its hairline (components/layout/Layout.tsx): what holds under it, a Band, stands this far down. */
+    --header-height: 57px;
 
     --bg: #0e0e0f;
     --surface: #18181a;
@@ -53,26 +56,24 @@
     --map-border: var(--line-strong);
     --map-road: #333333;
 
-    /* The Atlas's sixteen domains (components/atlas/): the one place a kind of thing has a hue. A domain's
-       rim arc, its name and its leaves take it; a small swatch beside the domain's word in the Atlas's own
-       lists repeats it. Muted and near one lightness, neighbours on the plate far apart in hue and a step
-       apart in lightness; Safety, last, is the one with no hue. Each is held to 4.5:1 on both surfaces. */
-    --domain-materials: #dca8ae;
-    --domain-engineering: #a9a87a;
-    --domain-production: #88c4c8;
-    --domain-machining: #a99dc7;
-    --domain-fabrication: #dcaa9e;
-    --domain-assembly: #98ad84;
-    --domain-electronics: #8dc0d6;
-    --domain-automation: #b798bc;
-    --domain-semiconductor: #d6ae91;
-    --domain-battery: #87b093;
-    --domain-process: #9abbde;
-    --domain-test: #c295ad;
-    --domain-maintenance: #cbb48a;
-    --domain-quality: #7ab2a4;
-    --domain-ndt: #abb5e0;
-    --domain-safety: #999fa6;
+    /* The Atlas's wheel (components/atlas/wheel.ts, read by ink.ts): one hue for each of the twelve core groups,
+       the Fundamentals on the centre ring. A legend, not paint: a group's bar on the centre ring, the marks at
+       the rim of what is built on it, and the arcs of its fields. Eleven hues a twelfth of a turn apart (OKLCH
+       0.78 / 0.07) with the accent's own twelfth left empty: the two beside it stand 29 to 30 degrees of hue
+       from it, and far from it in strength. Neighbours on the ring are a third of a turn apart or more; Shop
+       safety has none (a grey). Each reaches 4.5:1 on both surfaces. */
+    --core-measurement-tools: #e1a7a1;
+    --core-part-inspection: #9cc49c;
+    --core-lot-control: #baafe0;
+    --core-controlled-environments: #dbac8d;
+    --core-electrical-fundamentals: #87c7b5;
+    --core-hazardous-energy: #cfa8d0;
+    --core-shop-basics: #ccb484;
+    --core-material-handling: #80c5cd;
+    --core-workplace-safety: #b7b7b7;
+    --core-hazardous-materials: #dda5ba;
+    --core-hand-tools: #b5bd8a;
+    --core-design-documentation: #8bbfde;
 
     --danger: #f87171;
     --logo-backing: #ffffff;
@@ -101,23 +102,19 @@
     --map-border: #cfcfcf;
     --map-road: #e5e5e5;
 
-    /* The Atlas's domains on white: the same hues as inks. */
-    --domain-materials: #87525a;
-    --domain-engineering: #5b5824;
-    --domain-production: #246f75;
-    --domain-machining: #5a4c78;
-    --domain-fabrication: #875448;
-    --domain-assembly: #485d31;
-    --domain-electronics: #2f6c83;
-    --domain-automation: #68476d;
-    --domain-semiconductor: #825938;
-    --domain-battery: #326143;
-    --domain-process: #42668b;
-    --domain-test: #72445e;
-    --domain-maintenance: #785f30;
-    --domain-quality: #1c6255;
-    --domain-ndt: #56608c;
-    --domain-safety: #4e5359;
+    /* The wheel's core groups on white: the same hues as inks (OKLCH 0.52 / 0.085). */
+    --core-measurement-tools: #945550;
+    --core-part-inspection: #48764a;
+    --core-lot-control: #6c5f95;
+    --core-controlled-environments: #8e5b36;
+    --core-electrical-fundamentals: #247966;
+    --core-hazardous-energy: #825784;
+    --core-shop-basics: #7f6528;
+    --core-material-handling: #117780;
+    --core-workplace-safety: #696969;
+    --core-hazardous-materials: #8f536b;
+    --core-hand-tools: #676f31;
+    --core-design-documentation: #307093;
 
     --danger: #b91c1c;
   }
@@ -459,12 +456,12 @@ input {
 }
 
 /*
- * Skill paths (components/path/, components/route/).
+ * Skill paths (components/path/, components/route/, components/layout/Tree.tsx).
  *
  * A tag is one skill; a group box holds a group's tags; a career's path is a
- * route, stops down one trunk. Lines are hairlines in the strong border
- * colour; what a person holds is lit and the rest is quiet. Nothing here
- * names a colour of its own.
+ * connector tree on its page and stops down the page in the employer's
+ * editor. Lines are hairlines in the strong border colour; what a person
+ * holds is lit and the rest is quiet. Nothing here names a colour of its own.
  */
 @layer components {
   /*
@@ -533,12 +530,11 @@ input {
   }
 
   /*
-   * The route (components/route/): a career's path as stops down one line,
-   * at every width. The trunk is one hairline through the centre of every
-   * mark: each line of the route draws the stretch beside itself, so it is
-   * whole however tall a row turns out, with nothing to measure. A mark is 44
-   * px square and stands on the trunk; --route-pad is the room above and
-   * under a line.
+   * The route (components/route/Route.tsx): a career's path cut into its
+   * stops, down the page, as the employer's editor of a company's version
+   * draws it. Its rows are switches (tags), so it has no trunk and nothing
+   * stands on one. --route-mark is a full finger; --route-pad is the room
+   * above and under a section's line.
    */
   .route {
     --route-mark: 44px;
@@ -551,28 +547,7 @@ input {
     min-width: 0;
     max-width: 35rem;
   }
-  /* The side column is the wide screen's; the block above the route is the narrow one's. */
-  .route-side {
-    display: none;
-  }
-  @media (min-width: 1024px) {
-    .route[data-route-two] {
-      grid-template-columns: minmax(0, 1fr) 288px;
-      column-gap: 4rem;
-      align-items: start;
-    }
-    .route[data-route-two] .route-next {
-      display: none;
-    }
-    .route[data-route-two] > .route-side {
-      display: block;
-      position: sticky;
-      top: 5.5rem;
-      min-width: 0;
-      padding-top: 14px;
-    }
-  }
-  /* A mark's glyph stands 12px inside its button: the stops are drawn that far left, so marks line up with the heading above them. */
+  /* A tag's box stands 12px inside its button: the stops are drawn that far left, so they line up with the heading above them. */
   .route-stops {
     margin: 0 0 0 -12px;
     padding: 0;
@@ -590,48 +565,7 @@ input {
     min-width: 0;
     padding: var(--route-pad) 0;
   }
-  .route-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: calc(var(--route-mark) / 2 - 0.5px);
-    width: 1px;
-    background-color: var(--line-strong);
-  }
-  .route-item[data-first]::before {
-    top: calc(var(--route-pad) + var(--route-mark) / 2);
-  }
-  .route-item[data-last]::before {
-    bottom: auto;
-    height: calc(var(--route-pad) + var(--route-mark) / 2);
-  }
-  .route-item[data-first][data-last]::before {
-    display: none;
-  }
-  /* What stands on the trunk: a mark, a section's ring, or a dot. Each covers the line behind it. */
-  .route-node {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex: none;
-    width: var(--route-mark);
-    height: var(--route-mark);
-    align-items: center;
-    justify-content: center;
-  }
-  .route-node > svg {
-    border-radius: 9999px;
-    background-color: var(--bg);
-  }
-  .route-dot {
-    width: 9px;
-    height: 9px;
-    border: 1.5px solid var(--text-3);
-    border-radius: 9999px;
-    background-color: var(--bg);
-  }
-  /* A section's line: the group's name in small capitals, a figure, the chevron. */
+  /* A section's line: the group's name, how many skills, the chevron. */
   .route-head {
     --route-pad: 6px;
   }
@@ -644,11 +578,9 @@ input {
     align-items: flex-start;
     gap: 10px;
     padding-right: 4px;
+    padding-left: 12px;
     border-radius: var(--radius);
     text-align: left;
-  }
-  .route-head-button > .route-node {
-    margin-right: -2px;
   }
   /* The chevron stands level with the group's name, on the first line. */
   .route-head-button > svg {
@@ -675,7 +607,7 @@ input {
   .route-head-count::before {
     content: ' ';
   }
-  /* One quiet line of the skills' names, two at most: secondary ink, a seeker's held ones in full ink. */
+  /* A closed section: one quiet line of its skills' names, two at most, in secondary ink. */
   .route-head-names {
     display: block;
     margin-top: 1px;
@@ -686,52 +618,385 @@ input {
   .route-head-names > [data-name] {
     overflow-wrap: anywhere;
   }
-  /* A skill's row: the name opens the skill's page, and wraps when it is long. */
-  .route-row-name {
-    display: flex;
-    flex: 1 1 auto;
+  /*
+   * The connector tree (components/layout/Tree.tsx): a root, and nodes
+   * joined to it by hairlines. Every line is the strong hairline, is whole,
+   * and ends on a node's mark, on a spine, or on the line a parent sends to
+   * its branch; nothing else is drawn.
+   *
+   * The measures every line is placed by: a node's row has --tree-pad before
+   * its mark, the mark stands in a box --tree-mark wide, and the middle of a
+   * node's first line is --tree-mid from its top (12px of room and a 20px
+   * line), so the lines meet a node there whatever wraps under it. A branch
+   * stands --tree-indent in from its parent's edge, its spine --tree-spine
+   * in: the root's branch across, in the room between the root and its
+   * column; down, and every nested branch at every width, under the parent's
+   * mark. An elbow runs from the spine to the edge of its node's ring.
+   */
+  .tree {
+    --tree-line: var(--line-strong);
+    --tree-pad: 8px;
+    --tree-mark: 16px;
+    --tree-gap: 10px;
+    --tree-mid: 22px;
+    --tree-ring: 9px;
+    --tree-dot: 11px;
+    --tree-reach: calc(var(--tree-pad) + (var(--tree-mark) - var(--tree-ring)) / 2);
+    --tree-text: calc(var(--tree-pad) + var(--tree-mark) + var(--tree-gap));
+    /* How far under the middle of a node's first line its mark ends: half a ring, half a seeker's mark. */
+    --tree-under: calc(var(--tree-ring) / 2);
     min-width: 0;
-    min-height: var(--route-mark);
-    flex-direction: column;
-    justify-content: center;
-    padding: 6px 8px 6px 8px;
-    font-size: 15px;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-    color: var(--text-1);
   }
-  .route-row[data-route-state='held'] .route-row-name,
-  .route-row[data-route-state='later'] .route-row-name {
-    color: var(--text-2);
+  .tree[data-layout='wide'] {
+    --tree-indent: 40px;
+    --tree-spine: 20px;
+    display: grid;
+    align-items: start;
+    column-gap: 0;
+    row-gap: 10px;
   }
-  .route-row[data-route-state='next'] .route-row-name {
-    font-weight: 600;
+  .tree[data-layout='stacked'] {
+    --tree-indent: 24px;
+    --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
   }
-  .route-row-word {
+
+  /*
+   * Across: a ladder is three columns, each side under its label when there
+   * are two sides, the career in the middle of what hangs off it. When a side
+   * runs past three careers (`data-top`), the career and both sides start on
+   * the first row instead, so each label stands straight over its first node
+   * and the career's line meets each spine at its top, as a career's skills
+   * do.
+   */
+  .tree[data-layout='wide'][data-shape='ladder'] {
+    align-items: center;
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-top] {
+    align-items: start;
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-before][data-after] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 1fr);
+    grid-template-areas: 'lb . la' 'before this after';
+  }
+  /* One side only: no labels (the section's heading says which side it is), so no row for them. */
+  .tree[data-layout='wide'][data-shape='ladder'][data-after]:not([data-before]) {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
+    grid-template-areas: 'this after';
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-before]:not([data-after]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
+    grid-template-areas: 'before this';
+  }
+  /*
+   * Across: a tree is its root, only as wide as its few words need, and its
+   * branch in the next column, level with the first node, its rows running
+   * to the frame's right edge as a ladder's do; what a node of it opens
+   * stands under that node, in the same column. Its lines are measured as a
+   * ladder's are, so the two read as one drawing.
+   */
+  .tree[data-layout='wide'][data-shape='tree'] {
+    grid-template-columns: fit-content(16rem) minmax(0, 1fr);
+    grid-template-areas: 'this after';
+  }
+  /* Two trees on one page (a military career's skills, then the careers they reach) keep their spines on one upright. */
+  .tree[data-layout='wide'][data-shape='tree'] .tree-root {
+    min-width: 7.5rem;
+  }
+  .tree[data-layout='wide'] .tree-this,
+  .tree[data-layout='wide'] .tree-side {
+    display: contents;
+  }
+  .tree[data-layout='wide'] .tree-root {
+    grid-area: this;
+  }
+  .tree[data-layout='wide'] .tree-side[data-side='before'] > .tree-branch {
+    grid-area: before;
+  }
+  .tree[data-layout='wide'] .tree-side[data-side='after'] > .tree-branch {
+    grid-area: after;
+  }
+
+  /* A column's label, over the marks, only across: down, a ladder's sides are nodes of their own (`TreeHeading`). */
+  .tree-label {
+    min-width: 0;
+  }
+  .tree[data-layout='wide'] .tree-label {
+    padding-left: var(--tree-reach);
+  }
+  .tree[data-layout='wide'] .tree-label[data-for='before'] {
+    grid-area: lb;
+  }
+  .tree[data-layout='wide'] .tree-label[data-for='after'] {
+    grid-area: la;
+    padding-left: calc(var(--tree-indent) + var(--tree-reach));
+  }
+
+  /* A mark, in its box: a ring, or the root's filled dot. A seeker's mark on a skill is the product's own. */
+  .tree-mark {
     display: flex;
     flex: none;
-    height: var(--route-mark);
+    width: var(--tree-mark);
+    height: 20px;
     align-items: center;
-    padding: 0 4px 0 8px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-1);
+    justify-content: center;
   }
-  /* The ladder: one label and the careers beside it, wrapping under it on a narrow screen. */
-  .route-ladder {
+  .tree-dot {
+    width: var(--tree-ring);
+    height: var(--tree-ring);
+    border: 1.5px solid var(--text-3);
+    border-radius: 9999px;
+  }
+  .tree-mark[data-mark='root'] .tree-dot {
+    width: var(--tree-dot);
+    height: var(--tree-dot);
+    border-color: var(--text-1);
+    background-color: var(--text-1);
+  }
+  /*
+   * Open and closed: a closed node is a quiet ring and its name at body
+   * weight; an open one is the same ring in full ink, heavier, and its name
+   * is heavier. Fill is never a node's state: a filled mark is the root, or a
+   * skill a seeker holds (the product's check), so an open skill is never
+   * taken for a held one. A seeker's own mark stays as it is either way. A
+   * node that only names its branch (`TreeHeading`) opens nothing, so its
+   * ring stays quiet.
+   */
+  .tree-item[data-open] > .tree-node .tree-row:not([data-tree-heading]) .tree-dot {
+    border-width: 2px;
+    border-color: var(--text-1);
+  }
+  .tree-item[data-open] > .tree-node .tree-name {
+    font-weight: 600;
+  }
+
+  /* The root: the filled dot and the name, with its line out to each branch. */
+  .tree-root {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
+    min-width: 0;
     align-items: flex-start;
-    gap: 0 16px;
+    gap: var(--tree-gap);
+    padding: 12px 0 12px var(--tree-pad);
+    text-wrap: balance;
   }
-  /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
-  .route[data-route-plain] .route-item::before {
+  /* Across, the line out runs from the name to the spine of the branch after it; the line in, from the spine before it to the dot. */
+  .tree[data-layout='wide'][data-after] .tree-root::after {
+    content: '';
+    flex: 1 1 12px;
+    min-width: 12px;
+    height: 0;
+    margin-top: 10px;
+    margin-right: calc(-1 * var(--tree-spine));
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='wide'][data-before] .tree-root::before {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: calc(-1 * var(--tree-spine));
+    width: calc(var(--tree-spine) + var(--tree-pad) + (var(--tree-mark) - var(--tree-dot)) / 2);
+    border-top: 1px solid var(--tree-line);
+  }
+  /* Down, the spine runs into the dot from above and on from under it. */
+  .tree[data-layout='stacked'][data-before] .tree-root::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--tree-spine);
+    height: calc(var(--tree-mid) - var(--tree-dot) / 2);
+    border-left: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='stacked'][data-after] .tree-root::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--tree-mid) + var(--tree-dot) / 2);
+    bottom: 0;
+    left: var(--tree-spine);
+    border-left: 1px solid var(--tree-line);
+  }
+
+  /* A branch: its nodes, each with its elbow and its length of the spine, from the first node's middle to the last's. */
+  .tree-branch {
+    position: relative;
+    min-width: 0;
+    padding-left: var(--tree-indent);
+  }
+  .tree-item,
+  .tree-node {
+    position: relative;
+    min-width: 0;
+  }
+  .tree-item::before {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: calc(var(--tree-spine) - var(--tree-indent));
+    width: calc(var(--tree-indent) - var(--tree-spine) + var(--tree-reach));
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--tree-spine) - var(--tree-indent));
+    border-left: 1px solid var(--tree-line);
+  }
+  .tree-item:last-child::after {
+    bottom: auto;
+    height: calc(var(--tree-mid) + 1px);
+  }
+  /*
+   * Across, the root's line meets its branch's spine at the first node; down,
+   * and in every nested branch, the parent's line comes into the spine from
+   * above.
+   */
+  .tree[data-layout='wide'] .tree-side > .tree-branch > .tree-item:first-child::after {
+    top: var(--tree-mid);
+  }
+  .tree[data-layout='wide'] .tree-side > .tree-branch > .tree-item:only-child::after {
     display: none;
   }
-  .route[data-route-plain] .route-head-button {
-    padding-left: 12px;
+  /* A nested branch, at every width: indented under its node, its spine straight under the node's mark. */
+  .tree-branch[data-nested] {
+    --tree-indent: 24px;
+    --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
+  }
+  /* On a phone each level steps in less, so a card three levels in keeps its width. */
+  @media (max-width: 639px) {
+    .tree[data-layout='stacked'],
+    .tree .tree-branch[data-nested] {
+      --tree-indent: 16px;
+    }
+  }
+  /*
+   * A ladder's side of one career stands level with the career: its first
+   * line on the career's own line, whatever wraps under it, so the elbow and
+   * the career's line are one straight stroke. (The side is centred on the
+   * career by the grid; the node is moved down by half of what its extra
+   * lines add.)
+   */
+  .tree[data-layout='wide'][data-shape='ladder']:not([data-top]) .tree-side > .tree-branch > .tree-item:only-child {
+    transform: translateY(calc(50% - var(--tree-mid)));
+  }
+  /* Across, a branch before the root is mirrored: each elbow leaves its node's right end for a spine on the right. */
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] {
+    padding-left: 0;
+    padding-right: var(--tree-indent);
+  }
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] > .tree-item::before {
+    left: 100%;
+    width: var(--tree-spine);
+  }
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] > .tree-item::after {
+    left: calc(100% + var(--tree-spine));
+  }
+  /* Down, a branch before the root runs on past its last node into the root under it. */
+  .tree[data-layout='stacked'] .tree-branch[data-side='before'] > .tree-item::after {
+    bottom: 0;
+    height: auto;
+  }
+  .tree[data-layout='stacked'] .tree-branch[data-side='before'] > .tree-item:first-child::after {
+    top: var(--tree-mid);
+  }
+
+  /*
+   * A node that is open, at every width: its line runs on down from under its
+   * mark to the foot of its row, where its branch's spine or its card's top
+   * edge takes it up. A seeker's mark is a little larger than a ring, so the
+   * line starts a little lower under it.
+   */
+  .tree-node:has(.tree-mark[data-mark='held'], .tree-mark[data-mark='learning']) {
+    --tree-under: 7px;
+  }
+  .tree-item[data-open] > .tree-node::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--tree-mid) + var(--tree-under));
+    bottom: 0;
+    left: calc(var(--tree-pad) + var(--tree-mark) / 2);
+    border-left: 1px solid var(--tree-line);
+  }
+
+  /*
+   * A node's row. Its fill under the pointer and its focus ring are one box
+   * that starts just after the mark, so the elbow runs up to the ring and
+   * stops there, and neither the fill nor the ring is ever laid over a line
+   * or the mark; the ring is the accent's 2px, drawn inside that box.
+   */
+  .tree-row {
+    position: relative;
+    isolation: isolate;
+  }
+  .tree-row::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 0 calc(var(--tree-pad) + var(--tree-mark) + 2px);
+    border-radius: 6px;
+    pointer-events: none;
+    transition: background-color 150ms;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    button.tree-row:hover::after,
+    a.tree-row:hover::after {
+      background-color: var(--surface-hover);
+    }
+  }
+  .tree-row:focus-visible {
+    outline: none;
+  }
+  .tree-row:focus-visible::after {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tree-row::after {
+      transition: none;
+    }
+  }
+
+  /*
+   * A node's card: what it is, opened straight under it as the node's body. A
+   * hairline frame of the lines' own strength with no fill, its left edge
+   * straight under the node's mark, so the line that runs down from the mark
+   * runs on as the card's edge: that corner is square, the other three 8px.
+   * Its words start under the node's name. It spans its row, to the frame's
+   * right edge; its words keep a reading measure (60 characters), and where
+   * it is wide enough its parts stand two abreast (`.tree-card-columns`).
+   */
+  .tree-card {
+    min-width: 0;
+    margin-left: calc(var(--tree-pad) + var(--tree-mark) / 2);
+    padding: 14px 16px 12px calc(var(--tree-gap) + var(--tree-mark) / 2 - 1px);
+    border: 1px solid var(--tree-line);
+    border-radius: 0 8px 8px 8px;
+    container-type: inline-size;
+  }
+  .tree[data-layout='stacked'] .tree-card {
+    padding-right: 12px;
+  }
+  .tree-card-body > p,
+  .tree-card-part {
+    max-width: 60ch;
+  }
+  .tree-card-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  @container (min-width: 40rem) {
+    .tree-card-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 32px;
+    }
+    .tree-card-columns > :only-child {
+      grid-column: 1 / -1;
+    }
+  }
+  /* The room under a card before the next node, inside the node's own item so its spine runs on through it. */
+  .tree-item:has(> .tree-card) {
+    padding-bottom: 12px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -742,487 +1007,179 @@ input {
 }
 
 /*
- * The Atlas of Manufacturing (components/atlas/): every skill in one radial
- * tree, drawn as an instrument: the skills are the picture, the structure a
- * whisper, colour a legend at the edge. The branches are one faint skeleton
- * of curves in ink; each domain's rim hairline and the tint of its leaves are
- * its hue (--domain-* in the token file, handed to whatever carries
- * `data-domain` as --domain-hue); the names are ink. The one accent marks a
- * career laid over it and the thing selected, and under a career the plate
- * steps back to ink so the accent reads alone, the domains the career reaches
- * keeping their hue on the rim. A person's own skills are bright ink. Lines
- * keep their width however far the plate is enlarged (non-scaling strokes);
- * the camera's move is one transform on one group, so turning and enlarging
- * re-renders nothing.
+ * The Atlas of Manufacturing (components/atlas/): one screen. The wheel is a
+ * canvas and a display (wheel.ts draws it in ink it reads from the tokens:
+ * ink.ts); the list beside it, under it on a phone, is the control, and
+ * whatever is chosen in the list is named on the wheel in the same words.
+ * Colour is a legend: one muted hue for each of the twelve core groups
+ * (--core-* in the token file), handed to whatever carries `data-core` as
+ * --core-hue: a field's small bars in the list and the ring of a core
+ * group's dot. The one accent is a career laid over the wheel; a person's own
+ * skills are bright ink.
+ *
+ * Here are the rules a class cannot say in the markup: the page's grid, which
+ * turns from stage over list to stage beside list, and the list's rails, dots
+ * and legend bars. Everything else is on the elements.
  */
-[data-domain='materials'] { --domain-hue: var(--domain-materials); }
-[data-domain='engineering'] { --domain-hue: var(--domain-engineering); }
-[data-domain='production'] { --domain-hue: var(--domain-production); }
-[data-domain='machining'] { --domain-hue: var(--domain-machining); }
-[data-domain='fabrication'] { --domain-hue: var(--domain-fabrication); }
-[data-domain='assembly'] { --domain-hue: var(--domain-assembly); }
-[data-domain='electronics'] { --domain-hue: var(--domain-electronics); }
-[data-domain='automation'] { --domain-hue: var(--domain-automation); }
-[data-domain='semiconductor'] { --domain-hue: var(--domain-semiconductor); }
-[data-domain='battery'] { --domain-hue: var(--domain-battery); }
-[data-domain='process'] { --domain-hue: var(--domain-process); }
-[data-domain='test'] { --domain-hue: var(--domain-test); }
-[data-domain='maintenance'] { --domain-hue: var(--domain-maintenance); }
-[data-domain='quality'] { --domain-hue: var(--domain-quality); }
-[data-domain='ndt'] { --domain-hue: var(--domain-ndt); }
-[data-domain='safety'] { --domain-hue: var(--domain-safety); }
-/* The domain's hue beside its word, in the Atlas's own lists: a short upright bar, a piece of its rim. */
-.domain-swatch {
-  display: inline-block;
-  flex: none;
-  width: 3px;
-  height: 0.875rem;
-  border-radius: 1.5px;
-  background: var(--domain-hue, var(--text-3));
-}
-.domain-swatch[data-tall] {
-  height: 1.125rem;
-}
-.atlas-plate {
-  display: block;
-  width: 100%;
-  height: auto;
+[data-core='measurement-tools'] { --core-hue: var(--core-measurement-tools); }
+[data-core='part-inspection'] { --core-hue: var(--core-part-inspection); }
+[data-core='lot-control'] { --core-hue: var(--core-lot-control); }
+[data-core='controlled-environments'] { --core-hue: var(--core-controlled-environments); }
+[data-core='electrical-fundamentals'] { --core-hue: var(--core-electrical-fundamentals); }
+[data-core='hazardous-energy'] { --core-hue: var(--core-hazardous-energy); }
+[data-core='shop-basics'] { --core-hue: var(--core-shop-basics); }
+[data-core='material-handling'] { --core-hue: var(--core-material-handling); }
+[data-core='workplace-safety'] { --core-hue: var(--core-workplace-safety); }
+[data-core='hazardous-materials'] { --core-hue: var(--core-hazardous-materials); }
+[data-core='hand-tools'] { --core-hue: var(--core-hand-tools); }
+[data-core='design-documentation'] { --core-hue: var(--core-design-documentation); }
+
+/* A working view like the map, never a scrolling document: the list scrolls inside itself. */
+:root:has([data-atlas-page]) body {
   overflow: hidden;
-  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+/* Stage over list on a phone, as tall as the screen is wide at most; side by side from a tablet lying down. */
+.atlas-main {
+  display: grid;
+  grid-template-rows: minmax(0, min(100vw, 50%)) minmax(0, 1fr);
+  min-height: 0;
+}
+/* A phone held upright: the wheel takes all the list's first rows can spare (Fundamentals, the word over the
+   fields and two of them: 190px), so under the header and the tab row it stands as large as it does alone. */
+@media (max-width: 559px) and (orientation: portrait) {
+  .atlas-main {
+    grid-template-rows: minmax(0, min(100vw, max(50%, calc(100% - 190px)))) minmax(0, 1fr);
+  }
+}
+.atlas-stage {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-.atlas-plate path,
-.atlas-plate circle,
-.atlas-plate line {
-  vector-effect: non-scaling-stroke;
-}
-.atlas-camera {
-  transition: transform 0.7s cubic-bezier(0.3, 0.1, 0.2, 1);
-}
-.atlas-plate[data-still] .atlas-camera {
-  transition: none;
-}
-/* The branches from the centre to the groups: a hairline in ink, well behind the skills. */
-.atlas-skeleton {
-  fill: none;
-  stroke: var(--text-2);
-  stroke-opacity: 0.2;
-  stroke-width: 0.75px;
-}
-.atlas-root {
-  fill: var(--bg);
-  stroke: var(--text-2);
-  stroke-opacity: 0.5;
-  stroke-width: 1px;
-}
-/* A skill: a small mark tinted with its domain's hue, brighter the more careers use it (its opacity is drawn with it). */
-.atlas-leaf {
-  fill: var(--domain-hue, var(--text-2));
-}
-/* The rim: one hairline per domain, in its hue. The legend the names are set over. */
-.atlas-ring {
-  fill: none;
-  stroke: var(--domain-hue, var(--line-strong));
-  stroke-width: 1.5px;
-}
-/* A career is laid over the atlas: the plate is ink again, and only the accent and the reached domains' rims are coloured. */
-.atlas-base[data-dim] [data-domain] {
-  --domain-hue: initial;
-}
-.atlas-base {
-  transition: opacity 0.3s ease;
-}
-/* A career is laid over the atlas: everything else steps back. */
-.atlas-base[data-dim] {
-  opacity: 0.42;
-}
-/* A person's own marks are the bright ones: the plate under them is a little quieter. */
-.atlas-base[data-marked]:not([data-dim]) {
-  opacity: 0.72;
-}
-/*
- * A domain is open: the plate steps back to a whisper and the domain is drawn
- * again over it at full strength (OpenDomain), so nothing is veiled by a
- * shape and no edge is drawn across the plate. An open group's skills are
- * drawn again over the rest of the domain, which steps back a little.
- */
-.atlas-plate:not([data-atlas-view='whole']) .atlas-base {
-  opacity: 0.09;
-}
-.atlas-open-domain {
-  animation: atlas-arrive 0.3s ease both;
-}
-.atlas-plate[data-still] .atlas-open-domain {
-  animation: none;
-}
-.atlas-open-domain[data-group] .atlas-open-rest {
-  opacity: 0.45;
-}
-.atlas-open-leaf {
-  fill: var(--domain-hue, var(--text-2));
-}
-/* An open group's own branches, on from its tip to each of its skills. */
-.atlas-stems {
-  fill: none;
-  stroke: var(--text-2);
-  stroke-opacity: 0.55;
-  stroke-width: 0.75px;
-  animation: atlas-arrive 0.3s ease 0.3s both;
-}
-.atlas-plate[data-still] .atlas-stems {
-  animation: none;
-}
-/* The domains' names on the rim: ink. The hairline under each is its colour. */
-.atlas-name {
-  fill: var(--text-2);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  transition: fill 0.2s ease;
-}
-.atlas-name[data-off] {
-  fill: var(--text-3);
-}
-.atlas-name[data-on] {
-  fill: var(--text-1);
-}
-.atlas-names[data-away] {
-  opacity: 0;
-}
-.atlas-names {
-  transition: opacity 0.3s ease;
-}
-.atlas-hover {
-  fill: var(--text-1);
-  fill-opacity: 0.045;
-  pointer-events: none;
-}
-/* The names beside an open domain: level, in one column right of the rim. */
-.atlas-label {
-  fill: var(--text-2);
-  font-weight: 500;
-}
-.atlas-label[data-atlas-label='skill'] {
-  fill: var(--text-1);
-}
-/* A career is laid over the atlas: its skills are the bright ones, the group's others plain. */
-.atlas-plate[data-atlas-over] .atlas-label[data-atlas-label='skill']:not([data-lit]):not([data-on]) {
-  fill: var(--text-2);
-}
-.atlas-label[data-step],
-.atlas-label[data-quiet] {
-  fill: var(--text-3);
-}
-.atlas-label[data-on] {
-  fill: var(--text-1);
-  font-weight: 600;
-}
-.atlas-label[data-lit] {
-  fill: var(--accent);
-}
-.atlas-leader {
-  fill: none;
-  stroke: var(--text-3);
-  stroke-opacity: 0.55;
-  stroke-width: 0.75px;
-}
-.atlas-leader[data-step] {
-  stroke-opacity: 0.3;
-}
-.atlas-leader[data-on] {
-  stroke: var(--accent);
-  stroke-opacity: 1;
-  stroke-width: 1px;
-}
-/* Enlarged, the plate runs past the frame on the left: its edges fade out instead of being cut. */
-.atlas-plate:not([data-atlas-view='whole']) {
-  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.25rem, var(--mask) calc(100% - 1.25rem), transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.25rem, var(--mask) calc(100% - 1.25rem), transparent);
-  mask-composite: intersect;
-}
-.atlas-labels {
-  animation: atlas-arrive 0.3s ease 0.45s both;
-}
-.atlas-plate[data-still] .atlas-labels {
-  animation: none;
-}
-@keyframes atlas-arrive {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-/* A career laid over the atlas: its branches, smooth curves from the centre, and its skills, in the accent. */
-.atlas-lit {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.25px;
-  stroke-linecap: round;
-}
-/* A second career: its own branches thinner and quieter, solid; its skills open rings. */
-.atlas-lit[data-second] {
-  stroke-width: 1px;
-  stroke-opacity: 0.55;
-}
-.atlas-lit[data-shared] {
-  stroke-width: 2px;
-}
-.atlas-lit-dot {
-  fill: var(--accent);
-  stroke: var(--bg);
-  stroke-width: 0.75px;
-}
-/* The second career's own skills: the same accent, as an open ring. */
-.atlas-lit-dot[data-second] {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 1.5px;
-}
-/* What both careers share: the disc inside the ring. */
-.atlas-lit-halo {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.25px;
-}
-/* A person's own skills: the product's mark, held filled and bright, learning half. */
-.atlas-mark {
-  fill: var(--text-1);
-  stroke: var(--bg);
-  stroke-width: 1px;
-}
-.atlas-mark[data-status='learning'] {
-  fill: var(--bg);
-  stroke: var(--text-1);
-  stroke-width: 1.25px;
-}
-.atlas-mark[data-lit] {
-  stroke: var(--accent);
-  stroke-width: 1.75px;
-}
-.atlas-mark-half {
-  fill: var(--text-1);
-}
-.atlas-chosen {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5px;
-}
-.atlas-chosen-arc {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2.5px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .atlas-camera,
-  .atlas-base,
-  .atlas-names,
-  .atlas-name {
-    transition: none;
-  }
-  .atlas-labels,
-  .atlas-open-domain,
-  .atlas-stems {
-    animation: none;
-  }
-}
-/* On a phone the drawing runs out to the screen's edges. On a wide screen it is as large as fits the window under the page's tabs. */
-.atlas-frame {
-  width: auto;
-  margin-inline: -0.75rem;
-}
-@media (min-width: 640px) {
-  .atlas-frame {
-    width: 100%;
-    margin-inline: auto;
-  }
-}
-@media (min-width: 1024px) {
-  .atlas-frame {
-    max-width: max(30rem, calc(100dvh - 16rem));
-  }
-}
-
-/*
- * A career, part walked (components/atlas/: the Walk layer, GoalPlate).
- * While a seeker fills the one career laid over the atlas in, a skill of it
- * still ahead is an open mark in the accent; the way from the
- * centre out to each held one is drawn bright over the career's branches;
- * and the centre is the ring of how much is held, which closes when the
- * career is whole. Bright is the person; the accent is the career.
- */
-.atlas-lit-dot[data-ahead] {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 1.25px;
-}
-/* The career's own branches step back a little under the walked ones. */
-.atlas-plate[data-atlas-walking] .atlas-lit {
-  stroke-opacity: 0.8;
-}
-.atlas-walked {
-  fill: none;
-  stroke: var(--text-1);
-  stroke-width: 1.5px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-/*
- * What moves is a drawing of its own over the plate (`.atlas-moving`, under
- * the same camera), so a frame of its motion paints a handful of elements and
- * never the plate. The way to the skill just marked is drawn in from the
- * centre (dashes need the stroke in the drawing's units), its mark arrives as
- * the line gets there, and one ring opens from the leaf and is gone. The
- * lasting line and mark on the plate wait unseen until then.
- */
-.atlas-stack {
-  position: relative;
-}
-.atlas-moving {
+.atlas-stage canvas {
   position: absolute;
   inset: 0;
+  display: block;
   width: 100%;
+  max-width: none;
   height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  will-change: transform;
 }
-.atlas-moving[data-still] .atlas-camera {
-  transition: none;
+.atlas-panel {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  border-top: 1px solid var(--line);
+  padding-block: 8px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.atlas-moving path,
-.atlas-moving circle {
-  vector-effect: non-scaling-stroke;
-}
-.atlas-moving .atlas-walk-in {
-  vector-effect: none;
-  fill: none;
-  stroke: var(--text-1);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  animation: atlas-walk-in 0.42s cubic-bezier(0.4, 0, 0.6, 1) both;
-}
-.atlas-walked[data-arriving],
-.atlas-mark-at[data-arriving] {
-  opacity: 0;
-}
-.atlas-mark-in {
-  fill: var(--text-1);
-  stroke: var(--bg);
-  stroke-width: 1px;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: atlas-mark-in 0.22s ease-out 0.34s both;
-}
-.atlas-pulse {
-  fill: none;
-  stroke: var(--text-1);
-  stroke-width: 1px;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: atlas-pulse 0.6s ease-out 0.38s both;
-}
-@keyframes atlas-walk-in {
-  from {
-    stroke-dashoffset: 1;
+@media (min-width: 560px) and (max-width: 899px) and (orientation: landscape) and (max-height: 560px) {
+  .atlas-main {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) min(360px, 46vw);
   }
-  to {
-    stroke-dashoffset: 0;
+  .atlas-panel {
+    border-top: 0;
+    border-left: 1px solid var(--line);
   }
 }
-@keyframes atlas-mark-in {
-  from {
-    opacity: 0;
-    transform: scale(0.4);
+@media (min-width: 900px) {
+  .atlas-main {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) 420px;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes atlas-pulse {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  15% {
-    opacity: 0.7;
-  }
-  to {
-    opacity: 0;
-    transform: scale(2.6);
+  .atlas-panel {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    padding: 16px 24px 48px;
   }
 }
-/* The ring at the centre: the same one the career's page carries, in the plate's own units so it can move. */
-.atlas-share-bed {
-  fill: var(--bg);
+/* The list's rows hang by rails from the row they are built on: straight past a row, an elbow into one, both where more follow. */
+.atlas-rail {
+  position: relative;
+  flex: none;
+  width: 18px;
 }
-.atlas-moving .atlas-share-track,
-.atlas-moving .atlas-share {
-  vector-effect: none;
-  fill: none;
+.atlas-rail[data-rail='v']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8px;
+  border-left: 1px solid var(--line-strong);
 }
-.atlas-share-track {
-  stroke: var(--line-strong);
+.atlas-rail[data-rail^='e']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8px;
+  width: 10px;
+  height: 50%;
+  border-bottom: 1px solid var(--line-strong);
+  border-left: 1px solid var(--line-strong);
+  border-bottom-left-radius: 5px;
 }
-.atlas-share {
-  stroke: var(--text-1);
-  transition: stroke-dasharray 0.36s cubic-bezier(0.3, 0.1, 0.2, 1), opacity 0.2s ease;
+.atlas-rail[data-rail='et']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  left: 8px;
+  border-left: 1px solid var(--line-strong);
 }
-.atlas-share-whole {
-  animation: atlas-arrive 0.3s ease 0.2s both;
+/* A row's dot: a group; a core group, a ring in its hue; under a career, whether its skills there are all had, some, or none. */
+.atlas-dot {
+  display: grid;
+  flex: none;
+  width: 18px;
+  place-items: center;
 }
-.atlas-moving[data-still] .atlas-share-whole {
-  animation: none;
+.atlas-dot > span {
+  display: block;
+  box-sizing: border-box;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-3);
 }
-.atlas-share-whole circle {
-  fill: var(--text-1);
+.atlas-dot > span[data-dot='need'] {
+  background: var(--accent);
 }
-.atlas-moving .atlas-share-whole path {
-  vector-effect: none;
-  fill: none;
-  stroke: var(--bg);
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.atlas-dot > span[data-dot='gap'] {
+  border: 2px solid var(--accent);
+  background: var(--bg);
 }
-/* Enlarged, the moving drawing runs past the frame as the plate does, and fades at the same edges. */
-.atlas-moving:not([data-atlas-view='whole']) {
-  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
-  mask-composite: intersect;
+.atlas-dot > span[data-dot='part'] {
+  border: 2px solid var(--accent);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--bg), inset 0 0 0 5px var(--accent);
 }
-/* With motion off nothing arrives: the line and the mark are simply there, and the ring is where it should be. */
-@media (prefers-reduced-motion: reduce) {
-  .atlas-moving [data-atlas-arriving] {
-    display: none;
-  }
-  .atlas-walked[data-arriving],
-  .atlas-mark-at[data-arriving] {
-    opacity: 1;
-  }
-  .atlas-share-whole {
-    animation: none;
-  }
-  .atlas-share,
-  .atlas-moving .atlas-camera {
-    transition: none;
-  }
+.atlas-dot > span[data-dot='root'] {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--core-hue, var(--text-3));
+  background: var(--bg);
 }
-/* Walked, a skill of the career is the person's: bright, with no rim of the career's colour left on it. */
-.atlas-plate[data-atlas-walking] .atlas-mark[data-lit][data-status='held'] {
-  stroke: var(--bg);
-  stroke-width: 1px;
+/* A field's legend: one short upright bar for each core group it stands on, in that group's hue. */
+.atlas-sw {
+  display: block;
+  width: 3px;
+  height: 15px;
+  border-radius: 1.5px;
+  background: var(--core-hue, var(--text-3));
 }
 
 /*
- * A career as a small plate (GoalPlate): the size of a thumb. Lines and dots
- * keep their width at any size; the accent is the career, bright is what the
- * person holds of it.
+ * A career as a small plate (GoalPlate): the wheel at rest at the size of a
+ * thumb. Its ground is the five rings as hairlines; the career's route is the
+ * accent, from the centre ring out to the rim; what the person holds of it is
+ * bright over that. Lines keep their width at any size.
  */
 .goal-plate {
   display: block;
@@ -1230,42 +1187,22 @@ input {
   overflow: visible;
 }
 .goal-plate path,
-.goal-plate-ring,
-.goal-plate-root {
+.goal-plate-ring {
   vector-effect: non-scaling-stroke;
   fill: none;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   stroke-linejoin: round;
 }
 .goal-plate-ring {
   stroke: var(--text-3);
-  stroke-opacity: 0.55;
-  stroke-width: 1px;
-  stroke-linecap: butt;
-}
-.goal-plate-root {
-  stroke: var(--text-3);
-  stroke-opacity: 0.7;
-  stroke-width: 1px;
+  stroke-opacity: 0.4;
+  stroke-width: 0.75px;
 }
 .goal-plate-career {
   stroke: var(--accent);
-  stroke-opacity: 0.85;
-  stroke-width: 0.75px;
-}
-.goal-plate-walked {
-  stroke: var(--text-1);
-  stroke-width: 1.25px;
-}
-.goal-plate-ahead {
-  stroke: var(--accent);
-  stroke-width: 2.5px;
-}
-.goal-plate-learning {
-  stroke: var(--text-2);
-  stroke-width: 3px;
+  stroke-width: 1px;
 }
 .goal-plate-held {
   stroke: var(--text-1);
-  stroke-width: 3.5px;
+  stroke-width: 1.25px;
 }

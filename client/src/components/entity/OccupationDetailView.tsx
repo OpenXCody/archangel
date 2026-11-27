@@ -1,7 +1,6 @@
-import { useId, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ErrorNote } from '../account/parts';
-import { signInPath } from '../../lib/account';
 import { type CareerService, type OccupationDetail } from '../../lib/api';
 import { cn, focusRing } from '@/lib/utils';
 import { serviceShortName } from '@shared/military';
@@ -11,54 +10,55 @@ import CompanyLogo from '../CompanyLogo';
 import { versionLine } from '../../lib/versions';
 import { cityState } from '../../lib/places';
 import { DetailHeader, DetailSection, RecordList, RecordRow, ShowAll } from '../layout/Page';
-import { shareOf } from '../path/model';
 import { CivilianReach } from '../reach/CivilianReach';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { Route } from '../route/Route';
-import { RouteAlone } from '../route/RouteLadder';
-import { type Head, OpenJobsSection, MilitaryCareerRows, SkillsHeading } from './parts';
+import { CareerLadderSection } from '../route/CareerLadder';
+import { SkillGroups } from '../route/SkillGroups';
+import { type Head, OpenJobsSection, MilitaryCareerRows } from './parts';
 
 /**
  * Career (occupation) detail. One story, told once, the same for a civilian
- * and a military career:
+ * and a military career, in the contained system (`components/layout/Panel.tsx`):
  *
  * 1. What it is: the way back, the kind above the name, the name, and one or
  *    two sentences. Nothing else stands in the heading block. A military
  *    career's kind says its service, with the service's mark, and the
  *    service's word is the way to its page ("Air Force specialty · 2A7X1");
  *    its name is the service's own title for the job.
- * 2. Its skills, straight after: the path by skill group, each group one line
- *    that opens ("Arc welding · 4"), closed to begin with, and "Open all".
- *    A seeker's held skills carry the tick, the sections holding their next
- *    skills are open on arrival, and the heading's line says quietly how many
- *    they hold ("5 of 33 held"), only when they hold one. A civilian career's
- *    ladder stands at the route's two ends: where it comes from, and where it
- *    leads next.
- * 3. What else a person can do with it. A military career: the civilian
- *    careers within reach (`CivilianReach`). A civilian career: its open
- *    jobs, the companies with their own version of it, the factories that
- *    have it on record, and last the military careers that reach it. A
- *    section with nothing in it is not drawn, and nothing is listed twice.
+ * 2. Its skills, straight after (`SkillGroups`): one frame holding a
+ *    connector tree (`Tree`): the career as the root, an elbow to each skill
+ *    group, every group closed when the page arrives; a group opens its own
+ *    branch of skills, and a skill opens what it is under itself
+ *    (`SkillPreview`). A seeker's count stands beside the heading once they
+ *    hold a skill. Nothing asks anyone to sign in.
+ * 3. Where it leads (a civilian career on a ladder): one frame, where people
+ *    come from, this career, where it leads, as the same connector tree
+ *    (`CareerLadder`).
+ * 4. What else a person can do with it. A military career: the civilian
+ *    careers within reach (`CivilianReach`), the same connector tree, each
+ *    civilian career a node that opens to what it asks that this path does
+ *    not. A civilian career: its open jobs, the companies with their own
+ *    version of it, the factories that have it on record, and last the
+ *    military careers that reach it. Each a panel of rows. A section with
+ *    nothing in it is not drawn, and nothing is listed twice.
  *
+ * The page's name is said once, in its heading: no tree's root says it again.
+ * No section carries a sentence about itself: a heading, then what it heads.
  * The page reads a person's marks and changes none: setting a goal and
  * marking a skill are done on Profile, never here.
  */
 
 export default function OccupationDetailView({ data, head }: { data: OccupationDetail; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same skills without them.
-  const { marks, canSignIn, error: markError } = useSkillMarks();
-  const { pathname, search } = useLocation();
-  const headingId = useId();
+  const { marks, error: markError } = useSkillMarks();
 
-  const skills = data.skills ?? [];
+  const skills = useMemo(() => data.skills ?? [], [data.skills]);
   const jobs = data.jobs ?? [];
   const plants = data.factories ?? [];
   const counted = plants.some((plant) => (plant.headcount ?? 0) > 0);
   // Any career with skills has a path to draw, whether or not anyone has written one for it. Whether a
   // person has reviewed it (`pathStatus`) is said inside the admin's editor, behind Edit, never on the page.
   // The skills arrive in the route's order.
-  const held = marks && !marks.pending && skills.length > 0 ? shareOf(skills, marks) : null;
-  const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
   // Companies that say how this career is done with them: each row opens that company's version.
   const versions = data.versions ?? [];
   // Where people come to this career from the services: computed from the two paths, never stored.
@@ -67,7 +67,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // A military career: the service it belongs to, and the civilian careers its path covers.
   const service = data.service ?? null;
   const withinReach = data.withinReach ?? [];
-
 
   return (
     <>
@@ -85,49 +84,33 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       {/* What it takes: its skills, by group, straight after what it is. */}
       {skills.length === 0 ? (
         <DetailSection id="skills" title="Skills">
-          {onLadder ? (
-            // No skills to lay out yet, but the career still has its place between others.
-            <RouteAlone comesFrom={data.comesFrom} leadsTo={data.leadsTo}>
-              None yet.
-            </RouteAlone>
-          ) : (
-            <p className="text-sm text-text-2">None yet.</p>
-          )}
+          <p className="text-sm text-text-2">None yet.</p>
         </DetailSection>
       ) : (
-        <section id="skills" aria-labelledby={headingId} className="mt-12 scroll-mt-20">
-          {marks && <ErrorNote error={markError} className="mb-3" />}
-          <Route
-            grouped
-            skills={skills}
-            marks={marks}
-            comesFrom={data.comesFrom}
-            leadsTo={data.leadsTo}
-            keepAs={data.id}
-            heading={<SkillsHeading id={headingId} held={held} />}
-          />
-          {canSignIn && (
-            <p className="mt-4 text-sm text-text-3">
-              <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
-                Sign in
-              </Link>{' '}
-              to see which of these skills you have.
-            </p>
-          )}
-        </section>
+        <SkillGroups skills={skills} marks={marks} keepAs={data.id} before={marks && <ErrorNote error={markError} className="mb-3" />} />
       )}
 
+      {/* Where it stands among careers: where people come to it from, and where it leads. */}
+      <CareerLadderSection comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
+
       {/* A military career: what else its skills are for, the civilian careers they reach. */}
-      {service && <CivilianReach key={data.id} careers={withinReach} />}
+      {service && <CivilianReach careers={withinReach} keepAs={data.id} />}
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
       {/* The newest five; "All N" leads to the rest on Jobs. */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs.slice(0, JOBS_SHOWN)} total={data.openJobCount ?? jobs.length} all={`/jobs?career=${data.id}`} />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs.slice(0, JOBS_SHOWN)} said={{ career: true }} total={data.openJobCount ?? jobs.length} all={`/jobs?career=${data.id}`} />}
 
       {/* Companies with their own version of this career: the page stays the standard, and says where it differs. */}
       {versions.length > 0 && (
-        <DetailSection id="companies" title="Companies" description="Each says how this career is done there.">
-          <RecordList data-career-versions="">
+        <DetailSection id="companies" title="Companies">
+          <RecordList
+            data-career-versions=""
+            footer={
+              versions.length > VERSIONS_SHOWN && (
+                <ShowAll open={showAllVersions} total={versions.length} onToggle={() => setShowAllVersions((value) => !value)} />
+              )
+            }
+          >
             {(showAllVersions ? versions : versions.slice(0, VERSIONS_SHOWN)).map((version) => {
               const company = formatCompanyName(version.company.name);
               return (
@@ -142,9 +125,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
               );
             })}
           </RecordList>
-          {versions.length > VERSIONS_SHOWN && (
-            <ShowAll open={showAllVersions} total={versions.length} onToggle={() => setShowAllVersions((value) => !value)} />
-          )}
         </DetailSection>
       )}
 
@@ -177,7 +157,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
 
       {/* Last, and only when some do: the military careers whose path covers a third or more of this one's. */}
       {reachedBy.length > 0 && (
-        <DetailSection id="military" title="Military careers that reach this" description="How much of this career's skills each already has.">
+        <DetailSection id="military" title="Military careers that reach this">
           <MilitaryCareerRows careers={reachedBy} data-reached-by="" />
         </DetailSection>
       )}

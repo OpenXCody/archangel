@@ -57,11 +57,6 @@ export function applicationStatusLabel(status: string): string {
   return STATUS_LABELS[status as ApplicationStatus] ?? status;
 }
 
-/** "Austin, TX", or whichever part exists. */
-export function formatPlace(city: string | null, state: string | null): string | null {
-  return [city, state].filter(Boolean).join(', ') || null;
-}
-
 /** Whether a job that is still marked open has run past its 60 days. */
 export function isExpired(expiresAt: string): boolean {
   return new Date(expiresAt).getTime() <= Date.now();

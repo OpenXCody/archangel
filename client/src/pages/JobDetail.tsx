@@ -11,10 +11,10 @@ import { ApiError } from '../lib/http';
 import { accountKeys } from '../lib/queryKeys';
 import { useApplicantList, useDeleteJob, useExtendJob } from '../lib/employerJobs';
 import { useViewer } from '../lib/viewer';
-import { formatPay } from '../lib/jobFormat';
-import { cityState } from '../lib/places';
-import { formatCompanyName, formatFactoryName } from '@shared/displayName';
-import { jobPath, readJobNumber } from '@shared/jobs';
+import type { JobListSays } from '../lib/jobRow';
+import { jobPageTitle, jobTabTitle } from '../lib/jobTitle';
+import { formatCompanyName } from '@shared/displayName';
+import { readJobNumber } from '@shared/jobs';
 import { isUuid } from '../lib/validation';
 import {
   ApplicationStatusBadge,
@@ -36,23 +36,36 @@ import JobFacts from '../components/jobs/JobFacts';
 import JobSkills, { jobSectionClass } from '../components/jobs/JobSkills';
 import { SourcedApply, SourcedView } from '../components/jobs/SourcedJob';
 import ConfirmDialog from '../components/layout/ConfirmDialog';
-import { DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, RecordRow, detailActionClass, sectionLinkClass } from '../components/layout/Page';
+import { JobRecordRow } from '../components/jobs/JobRow';
+import { DetailHeader, DetailSection, EmptyState, PageContainer, RecordList, detailActionClass, sectionLinkClass } from '../components/layout/Page';
 import { CareerTag, CompanyTag, FactoryTag, RecordTags } from '../components/layout/RecordTag';
 import { versionPath, versionTitle } from '@shared/versions';
 
 /*
  * A job's page, top to bottom:
  *
- * 1. the title, and under it the company, the factory and the career as tags;
+ * 1. the title, and under it the company, the factory and the career as tags.
+ *    A job from a careers site is an opening for a career as one company does
+ *    it, and its title says whose: the company's variant of the career, as a
+ *    company's version of a career is titled ("SpaceX Welder", `versionTitle`
+ *    in shared/versions.ts; the job's stored title stays the career's). The
+ *    opening's own name stands directly under it, in secondary ink ("Pipe
+ *    Welder (Starship)": `ownName`, what the employer called the posting), and
+ *    the third tag is the standard career ("Standard Welder"). A job posted
+ *    here keeps the title its poster wrote, and its career as the tag;
  * 2. the facts the job states (pay where it is stated, level, type, shift, the
  *    day, what it asks for);
  * 3. the one action: Apply. On a job from the company's careers site it opens
  *    the company's page; on a job posted here it is the form;
- * 4. the skills: the path of the job's career (the skills the company chose,
- *    for a job posted here), by level and group, with one line above them for
- *    a seeker ("You hold 5 of 14") and for a visitor (the way to sign in);
- * 5. the equipment the posting names;
- * 6. other open jobs for this career at this company, and at this factory.
+ * 4. the skills. A job from a careers site: the skills its posting names, as
+ *    rows, then one closed line for the rest of its career's range ("Welder
+ *    career · 19 more"), which opens to that range by skill group. A job
+ *    posted here: the skills the company chose, by group. One line above them
+ *    for a seeker ("You hold 2 of 5": the job's own skills); a visitor reads
+ *    the skills with nothing above them, and nothing there asks them to sign in;
+ * 5. the equipment the posting names, each make beside its skill;
+ * 6. other open jobs for this career at this company, each by its own name,
+ *    and at this factory.
  *
  * The people who manage the job see the company's view first (its state, what
  * can be done with it, the applicants) and the listing under it.
@@ -79,10 +92,13 @@ export default function JobDetail() {
   // choose to apply to it themselves.
   const [applyAsManager, setApplyAsManager] = useState(false);
 
-  const title = job.data?.job.title;
+  // The tab is the page's title, then the opening's own name where it has one: "SpaceX Welder · Pipe Welder (Starship)".
+  // A job posted here is named as running text names it: "Line Lead at Acme". The page names itself (Layout leaves a
+  // job's tab alone), so the title holds when an older address is replaced by the job's own.
+  const tab = job.data ? jobTabTitle(job.data.job) : null;
   useEffect(() => {
-    if (title) document.title = `${title} · Archangel`;
-  }, [title]);
+    document.title = tab ? `${tab} · Archangel` : 'Jobs · Archangel';
+  }, [tab, location.pathname]);
 
   // The address the job has today, in place of an older or a mistaken one. The
   // answer is kept under the number as well, so the page does not ask twice.
@@ -211,15 +227,27 @@ export default function JobDetail() {
         // The number is the company's own count of its jobs: said to the people who manage it.
         // (A job from the company's careers site is not one of the jobs it posted here: no number.)
         kind={managesPosted ? `Job #${data.job.serial}` : 'Job'}
-        title={data.job.title}
+        title={jobPageTitle(data.job)}
+        // What the employer called this opening, as plain text under the name the page gives it: not a tag, not a label.
+        qualifier={
+          data.job.ownName ? (
+            <p className="mt-2 max-w-prose break-words text-[15px] leading-snug text-text-2" data-job-own-name>
+              {data.job.ownName}
+            </p>
+          ) : undefined
+        }
       >
         {/* Whose job it is, where, and for which career: each opens its own page. */}
         <RecordTags data-job-tags="">
           <CompanyTag company={company} />
-          <FactoryTag factory={{ id: data.job.factoryId, name: data.job.factoryName, city: data.job.city, state: data.job.state }} />
-          {/* Where the company has its own version of the career, the job leads to that. */}
+          {/* The company is named by the tag before it: the factory's tag does not say it again. */}
+          <FactoryTag factory={{ id: data.job.factoryId, name: data.job.factoryName, city: data.job.city, state: data.job.state }} beside={company.name} />
           {data.job.hasVersion ? (
+            // Where the company has its own version of the career, the job leads to that.
             <CareerTag career={{ id: career.id, title: versionTitle(company.name, career.title) }} to={versionPath(career.id, company)} data-job-version="" />
+          ) : sourced ? (
+            // The title is the company's variant of the career: the tag is the standard it varies, as on a version's page.
+            <CareerTag career={{ id: career.id, title: career.title }} data-job-standard="" />
           ) : (
             <CareerTag career={career} />
           )}
@@ -285,14 +313,16 @@ export default function JobDetail() {
         title={`More ${career.title} jobs at ${formatCompanyName(company.name).replace(/\.$/, '')}`}
         list={data.others?.career}
         all={`/jobs?company=${company.id}&career=${career.id}`}
-        line={(other) => [formatFactoryName(other.factoryName), other.city ? cityState(other.city, null) : null]}
+        // The heading names the career and the company: a row leads with the opening's own name, then where it is and its day.
+        said={{ career: true, company: true }}
       />
       <OtherJobs
         id="more-at-factory"
         title="Other jobs at this factory"
         list={data.others?.factory}
         all={`/jobs?plant=${data.job.factoryId}`}
-        line={(other) => [other.occupationTitle !== other.title ? other.occupationTitle : null]}
+        // The factory and its company stand in the tags above: a row is the job's name, and the opening's own under it.
+        said={{ factory: true }}
       />
     </PageContainer>
   );
@@ -335,14 +365,14 @@ function OtherJobs({
   title,
   list,
   all,
-  line,
+  said,
 }: {
   id: string;
   title: string;
   list: { jobs: CareerJob[]; total: number } | undefined;
   all: string;
-  /** What a row says under the job's title, before its pay. */
-  line: (job: CareerJob) => (string | null | undefined)[];
+  /** What the heading and the page have already said of every job in the list: a row does not say it again. */
+  said: JobListSays;
 }) {
   if (!list || list.jobs.length === 0) return null;
   return (
@@ -360,12 +390,7 @@ function OtherJobs({
     >
       <RecordList>
         {list.jobs.map((job) => (
-          <RecordRow
-            key={job.id}
-            to={jobPath(job)}
-            title={job.title}
-            subtitle={[...line(job), job.payMin !== null || job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null].filter(Boolean).join(' · ')}
-          />
+          <JobRecordRow key={job.id} job={job} said={{ ...said, among: list.jobs }} />
         ))}
       </RecordList>
     </DetailSection>

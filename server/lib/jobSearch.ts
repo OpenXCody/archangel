@@ -26,10 +26,37 @@ function stem(word: string): string {
  * somewhere in the job: its title, its company, its career, its shift, or the
  * city or state of its factory. Null when nothing usable was typed.
  *
+ * A job from a careers site is named for its career, and the title its
+ * employer posted it under is kept beside it (`jobs.posted_as`, migration
+ * 0088): a word the employer wrote ("nuclear", "Starship", "senior", a
+ * requisition number) still finds the job. It is matched here and nowhere
+ * given: a row says the opening's own name, read from it (`ownName`,
+ * server/lib/jobRows.ts), which shows most of the words it was found by.
+ *
  * The condition names the tables as the list query joins them: jobs,
  * companies, occupations, factories.
  */
 export function jobTextFilter(raw: unknown): SQL | null {
+  return typedCondition(raw, true);
+}
+
+/**
+ * For the order of a list narrowed by what was typed: 0 for a job whose
+ * standard name, company, career, shift or place says every typed word, 1 for
+ * one found only by the title its employer posted it under (the row's own name
+ * usually says the word; a requisition number or a note it cut is said nowhere).
+ * The jobs that are what was typed come first ("welder" lists welders before
+ * a quality engineer posted under "... - Weld"). Null when
+ * nothing usable was typed. It is a function of the row alone, so a page of
+ * the list still never repeats or skips a job.
+ */
+export function jobTextRank(raw: unknown): SQL | null {
+  const shown = typedCondition(raw, false);
+  return shown ? sql`(CASE WHEN ${shown} THEN 0 ELSE 1 END)` : null;
+}
+
+/** Every typed word found in the job: in what its row says, and, with `posted`, in the title it was posted under. */
+function typedCondition(raw: unknown, posted: boolean): SQL | null {
   if (typeof raw !== 'string') return null;
   const text = raw.trim().toLowerCase().slice(0, 80);
   if (!text) return null;
@@ -54,10 +81,9 @@ export function jobTextFilter(raw: unknown): SQL | null {
   const parts: SQL[] = states.map((code) => sql`factories.state = ${code}`);
   for (const word of words) {
     const like = containing(stem(word));
-    parts.push(sql`(
-      jobs.title ILIKE ${like} OR companies.name ILIKE ${like} OR occupations.title ILIKE ${like}
-      OR factories.city ILIKE ${like} OR jobs.shift ILIKE ${like}
-    )`);
+    const shown = sql`jobs.title ILIKE ${like} OR companies.name ILIKE ${like} OR occupations.title ILIKE ${like}
+      OR factories.city ILIKE ${like} OR jobs.shift ILIKE ${like}`;
+    parts.push(posted ? sql`(${shown} OR jobs.posted_as ILIKE ${like})` : sql`(${shown})`);
   }
   return sql.join(parts, sql` AND `);
 }

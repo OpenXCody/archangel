@@ -55,6 +55,19 @@ const linesOf = (posting) => (posting.locations?.length ? posting.locations : [p
 export const locationLine = (posting) => linesOf(posting).join('; ');
 
 /**
+ * Whether the career a staged reading names is still one of the careers. The
+ * catalogue can drop a career after its postings were read (data/careers/
+ * catalogue.json, `removed`): what staging holds of them then names a career
+ * that is none, and posting_decide, which looks the career up by its title,
+ * finds no one to give the job to. Such a reading is not taken as it stands:
+ * the posting is read again like a new one, and unless that reading keeps it
+ * as another career it leaves staging as a posting that is not one of ours.
+ * A reader whose vocabulary lists no careers (a test's stand-in) cannot say,
+ * and is not asked.
+ */
+export const stillACareer = (vocab, facts) => !(vocab?.careers instanceof Map) || vocab.careers.has(facts?.reading?.career?.title);
+
+/**
  * The board's sites as its line in the registry writes them out (`sites`): a
  * location line that is one of them ("Evendale", in any letter case) is the
  * place a person wrote beside it ("Evendale, OH", or the `place` of a site
@@ -199,6 +212,11 @@ async function resumeOf(db, source, adapter) {
  *   spared      read at an earlier run and not kept, their listing as it was: not asked about again
  *   complete    the listing was read to its end. Only then is a posting that is missing counted as missing
  *
+ * `dropped` is the staged postings whose reading names a career the catalogue
+ * has dropped since (stillACareer) and which this run did not read anew as
+ * another, nor left to be read at a later run: stage() takes them out of what
+ * stands, however the listing went.
+ *
  * `titles` is the titles counted under notCareer, by what the job is (titles.mjs): for the run's report only.
  *
  * A listing that is cut short (a refusal, a site that stopped answering, the
@@ -230,15 +248,16 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   const tools = { get: session.get, post: session.post, today };
   const sites = siteNames(entry);
 
-  // What staging holds: to tell a listing that has not changed, and to keep its reading. And the postings
+  // What staging holds: to tell a listing that has not changed, and to keep its reading; and, whatever the
+  // system, to find the readings that name a career the catalogue has since dropped. And the postings
   // whose text was read before and which were not kept: they are not asked about again while their listing stands.
   const previous = new Map();
   const passedBefore = new Map();
   const passes = new Map();
+  for (const row of await db`SELECT source_id, hash, payload, facts FROM intake_records WHERE source = ${source.slug} AND gone_run_id IS NULL`) {
+    previous.set(row.source_id, row);
+  }
   if (adapter.text) {
-    for (const row of await db`SELECT source_id, hash, payload, facts FROM intake_records WHERE source = ${source.slug} AND gone_run_id IS NULL`) {
-      previous.set(row.source_id, row);
-    }
     for (const row of await db`SELECT source_id, listing, read_on::text AS read_on FROM posting_passes WHERE source = ${source.slug}`) {
       passedBefore.set(row.source_id, row);
     }
@@ -318,7 +337,8 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
         ...(sites.key && !posting.locations?.length ? { sites: sites.key } : {}),
       }));
       const staged = previous.get(posting.id);
-      const fresh = staged && staged.payload?.listing === listing && !again &&
+      // A reading that names a career the catalogue no longer has is never as good as new: it is read again.
+      const fresh = staged && stillACareer(vocab, staged.facts) && staged.payload?.listing === listing && !again &&
         Date.parse(today) - Date.parse(staged.facts?.readOn ?? '1970-01-01') < reread;
       if (fresh) {
         // As it was read: the record is the same, and no request is made.
@@ -441,6 +461,11 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   }
   counts.kept = kept.size;
 
+  // Staged as a career that is no longer one, and not read anew as another in this run: not ours, listed or not.
+  // One whose title could still be a career and whose text was left for a later run is not known to be either:
+  // it stands as it was until it is read.
+  const dropped = [...previous].filter(([id, row]) => !stillACareer(vocab, row.facts) && !kept.get(id)?.payload && !deferred.has(id)).map(([id]) => id);
+
   // Every posting of ours the listing has shown, over as many runs as the listing took.
   const present = new Set([...(from?.seen ?? []), ...kept.keys(), ...deferred]);
   const resume = complete || !adapter.resumes || !next ? null : { next, seen: [...present] };
@@ -448,7 +473,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   log(`fetch: ${entry.employer}: ${counts.read.toLocaleString('en-US')} postings listed${complete ? '' : ' (the listing was cut short)'}, ` +
     `${counts.kept.toLocaleString('en-US')} kept, ${session.requests} requests in ${seconds(started)} s`);
   return {
-    source, kept, deferred, present, passes, today, complete, resume, resumed: Boolean(from), stopped, counts,
+    source, kept, deferred, present, dropped, passes, today, complete, resume, resumed: Boolean(from), stopped, counts,
     states: scope ? scope.states : null,
     unknown: commonest(unknown, UNKNOWN_KEPT), unplaced: commonest(unplaced, UNPLACED_KEPT),
     titles: titles.summary(), requests: session.requests, seconds: seconds(started),
@@ -571,9 +596,17 @@ export async function closeRun(db, runId, entry, { outcome, why, requests = 0, t
  * was cut, refused or could not be reached is no evidence of anything it did
  * not list: nothing is marked gone, and (posting_apply reads `complete` from
  * the run) no job is closed and no job's last sighting is moved.
+ *
+ * The one exception is not the listing's to say: a staged posting whose
+ * career the catalogue has dropped (`collected.dropped`) is a posting that is
+ * not one of ours, and stops standing in this run whether the listing reached
+ * it or not, so posting_decide neither gives it a job nor leaves its place
+ * waiting for a person. It is marked as one that left is (and journalled, so
+ * undo puts it back); the career's own migration deletes such rows outright.
  */
 export async function stage(db, runId, collected, { log = console.log } = {}) {
   const { source, kept, deferred, present, complete, counts } = collected;
+  const dropped = new Set(collected.dropped ?? []);
   const started = Date.now();
   const previous = new Map();
   for (const row of await db`SELECT source_id, hash, gone_run_id IS NOT NULL AS gone FROM intake_records WHERE source = ${source.slug}`) {
@@ -584,9 +617,12 @@ export async function stage(db, runId, collected, { log = console.log } = {}) {
   // Listed and not read in this run (left for the next, or seen by the run this listing was taken up from): as it
   // was, whatever that was.
   for (const id of present) if (!incoming.has(id) && previous.has(id) && !previous.get(id).gone) incoming.set(id, previous.get(id).hash);
+  // Staged as a career that is no longer one: it does not stand, listed or not (collect leaves out the ones read anew).
+  for (const id of dropped) if (!kept.get(id)?.payload) incoming.delete(id);
   const diff = diffRun(previous, incoming);
-  // What a listing that stopped short did not show is not gone: it was not looked at.
-  if (!complete) diff.gone = [];
+  // What a listing that stopped short did not show is not gone: it was not looked at. What the catalogue dropped is.
+  if (!complete) diff.gone = diff.gone.filter((id) => dropped.has(id));
+  const notOurs = diff.gone.filter((id) => dropped.has(id)).length;
   // A record kept as it was read before cannot be new or changed; one that came back unread is read on the next run.
   const fresh = diff.fresh.filter((id) => kept.get(id)?.payload);
   const changed = diff.changed.filter((id) => kept.get(id)?.payload);
@@ -652,10 +688,13 @@ export async function stage(db, runId, collected, { log = console.log } = {}) {
     new: fresh.length, changed: changed.length, same: diff.same.length, back: diff.back.length, gone: diff.gone.length,
     // Where new jobs were ported from in this run, and the budget the run's platform had (what makes a cut run a turn: inTurn).
     ...(collected.states ? { states: collected.states } : {}), ...(collected.budget ? { budget: collected.budget } : {}),
+    // Of the gone, the ones the catalogue dropped rather than the listing: only when there are some.
+    ...(notOurs ? { dropped: notOurs } : {}),
   };
   await note(db, runId, { state: 'staged', counts: staged, timings: { fetch: collected.seconds, write: seconds(started) } });
   log(`stage: run ${runId}: ${counts.read.toLocaleString('en-US')} postings listed${complete ? '' : ', not to the end'}, ${counts.kept.toLocaleString('en-US')} kept ` +
-    `(${fresh.length} new, ${changed.length} changed, ${diff.same.length} the same, ${diff.back.length} back, ${diff.gone.length} gone${deferred.size ? `, ${deferred.size} left for the next run` : ''})`);
+    `(${fresh.length} new, ${changed.length} changed, ${diff.same.length} the same, ${diff.back.length} back, ${diff.gone.length} gone` +
+    `${notOurs ? `, ${notOurs} of them staged as a career that is no longer one` : ''}${deferred.size ? `, ${deferred.size} left for the next run` : ''})`);
   return staged;
 }
 
@@ -713,6 +752,7 @@ export async function report(db, runId, { everything = false, rehearsal = false,
       `; kept ${n(c.kept)}${c.texts ? `; ${n(c.texts)} texts asked for` : ''}` +
       `${c.spared ? `; ${n(c.spared)} read before and not ours, not asked about again` : ''}`);
     out.push(`  staged: ${n(c.new)} new, ${n(c.changed)} changed, ${n(c.same)} the same, ${n(c.back)} back, ${n(c.gone)} gone since the last complete listing` +
+      `${c.dropped ? ` (${n(c.dropped)} of them not gone from the site: staged as a career that is no longer one of ours)` : ''}` +
       `${c.deferred ? `; ${n(c.deferred)} left to be read at a later run` : ''}`);
   }
   if (c.placed !== undefined) {

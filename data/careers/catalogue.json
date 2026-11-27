@@ -1,5 +1,5 @@
 {
-  "note": "The careers the product lists, and the only place they are decided. A career is a real job at the grain of a trade or role. Each has a `title`, a `home` (the slug of one domain in data/skills/taxonomy.json), `what` (one or two sentences, stored as its description), `leadsTo` (up to three titles from this file: the next rungs, in the order shown; no chain of them may come back to where it started) and `was` (titles the product used to list separately: finer tasks, single machines, products, an employer's or a program's words, certification levels. Each is folded into this career and kept as another name for it). `dropAliases` are other names a folded title carries that must not follow it here, because they mean a different job; where one belongs to another career it is listed for that career in data/careers/aliases.json. A name that is now a career's own title is never kept as another name. `note` is for whoever writes the career's path and is shown nowhere. `removed` are titles that are not manufacturing careers and are deleted, each group with its reason. Careers are in the taxonomy's domain order. A title appears once in the whole file, in any letter case. Loaded by scripts/build-careers-sql.mjs (--check validates and writes nothing) into a migration (0046 first; 0073, which added the trades of the industries the catalogue lacked, is the latest); a change here goes out as a new generated migration. The careers typical of each industry are in data/careers/industries.json and name these titles.",
+  "note": "The careers the product lists, and the only place they are decided. A career is a real job at the grain of a trade or role. Each has a `title`, a `home` (the slug of one domain in data/skills/taxonomy.json), `what` (one or two sentences, stored as its description), `leadsTo` (up to three titles from this file: the next rungs, in the order shown; no chain of them may come back to where it started) and `was` (titles the product used to list separately: finer tasks, single machines, products, an employer's or a program's words, certification levels. Each is folded into this career and kept as another name for it). `dropAliases` are other names a folded title carries that must not follow it here, because they mean a different job; where one belongs to another career it is listed for that career in data/careers/aliases.json. A name that is now a career's own title is never kept as another name. `note` is for whoever writes the career's path and is shown nowhere. `removed` are titles that are not careers of the product (work that is not manufacturing, or that people do not come to the product for) and are deleted, each group with its reason; a removed career's jobs go with it, and the reader turns its postings away. Careers are in the taxonomy's domain order. A title appears once in the whole file, in any letter case. Loaded by scripts/build-careers-sql.mjs (--check validates and writes nothing) into a migration (0046 first; 0073 added the trades of the industries the catalogue lacked; 0084, which took out the cleaning and food preparation careers, is the latest); a change here goes out as a new generated migration. The careers typical of each industry are in data/careers/industries.json and name these titles.",
   "careers": [
     {
       "title": "Production Operator",
@@ -735,7 +735,7 @@
         "polisher",
         "Oven Operator Food"
       ],
-      "note": "Twenty-four stations of one department, none with a full path. Together they cover Phosphate Pretreatment, E-Coat Operation, Seam Sealer Application, Spray Gun Painting, Robotic Paint Application, Color Matching, Paint Defect Identification, Paint Defect Repair, Paint Film Thickness Measurement and Paint Appearance Measurement. Aliases to move: Polishing Operator carries 'deburrer', 'polisher' and 'finisher', and Oven Operator carries 'Oven Operator Food', none of which belong to a paint shop."
+      "note": "Twenty-four stations of one department, none with a full path. Together they cover Phosphate Pretreatment, E-Coat Operation, Seam Sealer Application, Spray Gun Painting, Robotic Paint Application, Color Matching, Paint Defect Identification, Paint Defect Repair, Paint Film Thickness Measurement and Paint Appearance Measurement. Aliases to move: Polishing Operator carries 'deburrer', 'polisher' and 'finisher', and Oven Operator carries 'Oven Operator Food', none of which belong to a paint shop. 'Oven Operator' itself is taken back from this career in data/careers/aliases.json (`not`): a bakery's oven operator carries the same title, and baking is no career of ours."
     },
     {
       "title": "Paint Process Engineer",
@@ -2014,8 +2014,8 @@
       "what": "Makes food to the recipe: weighs and blends the batch, runs the cooking, forming, drying or sterilising equipment, and keeps the line clean and its safety records true.",
       "leadsTo": [
         "Maintenance Technician",
-        "Baker",
-        "Cheesemaker"
+        "Cheesemaker",
+        "Food Safety and Quality Technician"
       ],
       "was": [
         "Food Batch Operator",
@@ -2185,42 +2185,6 @@
         "Chemical Engineer"
       ],
       "note": "Present path is five unrelated skills; rewrite around P&ID Reading, Statistical Process Control, Process Capability Analysis, Design of Experiments, Process Validation, Root Cause Analysis. Discrete-part processes belong to Manufacturing Engineer."
-    },
-    {
-      "title": "Meat Cutter",
-      "home": "process",
-      "what": "Breaks chilled beef, pork, lamb or poultry carcasses into cuts on a plant's fabrication floor, then bones and trims them to the customer's specification with a knife, a powered trimmer and a band saw, at line speed.",
-      "leadsTo": [
-        "Food Safety and Quality Technician"
-      ],
-      "was": []
-    },
-    {
-      "title": "Slaughterer",
-      "home": "process",
-      "what": "Works the harvest floor of a meat or poultry plant: moves and stuns the animals humanely, bleeds, dresses and eviscerates the carcass, splits it and trims it clean, and sends it washed to the cooler.",
-      "leadsTo": [
-        "Food Safety and Quality Technician"
-      ],
-      "was": []
-    },
-    {
-      "title": "Baker",
-      "home": "process",
-      "what": "Makes bread, buns, cakes, cookies or crackers at production scale: scales and mixes the dough to temperature, ferments and proofs it, runs the make-up line and the oven to the bake profile, and judges each stage by eye and hand.",
-      "leadsTo": [
-        "Food Scientist"
-      ],
-      "was": []
-    },
-    {
-      "title": "Sanitation Technician",
-      "home": "process",
-      "what": "Cleans and sanitizes a food plant's production equipment between runs and through the night: locks out and takes the line apart, dry-cleans, foams, scrubs, rinses and sanitizes it to the written procedure, reassembles it and has it inspected before production starts.",
-      "leadsTo": [
-        "Food Safety and Quality Technician"
-      ],
-      "was": []
     },
     {
       "title": "Food Safety and Quality Technician",
@@ -3044,6 +3008,15 @@
       "why": "Marine vessel maintenance (a rocket-recovery ship), not manufacturing.",
       "titles": [
         "Drone Ship Technician"
+      ]
+    },
+    {
+      "why": "Cleaning a plant and preparing food by hand: real jobs in a food plant, and not the making or maintaining work people come to the product for. The owner's decision of Nov 26, 2026, on seeing a sanitation job lead the Jobs board. The food and drink careers that run process equipment stay (Food Processing Operator, Beverage Production Operator, Packaging Line Operator, the brewer, the cheesemaker, the miller and the rest), and so does every skill these four had on their paths.",
+      "titles": [
+        "Sanitation Technician",
+        "Meat Cutter",
+        "Slaughterer",
+        "Baker"
       ]
     }
   ]

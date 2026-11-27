@@ -139,9 +139,23 @@ check "a number no job has"           404 "$(req anon GET /jobs/by-number/200000
 check "a number that is not one"      404 "$(req anon GET /jobs/by-number/abc)"
 check "zero is no job's number"       404 "$(req anon GET /jobs/by-number/0)"
 expect "the jobs list carries what an address is written from" true "$(req anon GET "/jobs?companyId=$CA" | j "jobs.every(x => typeof x.serial === 'number' && 'companySlug' in x && typeof x.occupationTitle === 'string')")"
+# A job's own name (`ownName`) is what its employer called the posting, beside its standard name: every job row the
+# API gives carries the key. A job posted here by hand has no posted title, so its own name is null and its title is
+# what its poster wrote; the title a job was posted under is in no answer (tests/api/postings.sh has a job that has one).
+expect "a job posted by hand has no own name: on its page, in the list, beside another job" "null true true" "$(printf '%s' "$BYNUM" | j "job.ownName") $(req anon GET "/jobs?companyId=$CA" | j "jobs.length > 0 && o.jobs.filter(x => x.id === '$JOB').every(x => 'ownName' in x && x.ownName === null)") $(printf '%s' "$BYNUM" | j "others.career.jobs.concat(o.others.factory.jobs).every(x => 'ownName' in x)")"
+expect "every list of jobs carries the own name" "true true true true true" "$(req anon GET "/jobs?limit=200" | j "jobs.length > 0 && o.jobs.every(x => 'ownName' in x)") $(req anon GET "/companies/$CA" | j "jobs.length > 0 && o.jobs.every(x => 'ownName' in x)") $(req anon GET "/factories/$FA" | j "jobs.length > 0 && o.jobs.every(x => 'ownName' in x)") $(req anon GET "/occupations/$OCC" | j "jobs.length > 0 && o.jobs.every(x => 'ownName' in x)") $(req emp GET /employer | j "companies.flatMap(c => c.jobs).length > 0 && o.companies.flatMap(c => c.jobs).every(x => x.ownName === null)")"
+GIVEN=''
+for path in "/jobs?limit=200" "/jobs/$JOB" "/jobs/by-number/$SERIAL" "/companies/$CA" "/factories/$FA" "/occupations/$OCC" "/search?q=Line+Lead" "/map/states/$(sql "SELECT state FROM factories WHERE id='$FA'")/overview"; do
+  req anon GET "$path" | grep -q 'posted_as\|postedAs' && GIVEN="$GIVEN $path"
+done
+req emp GET /employer | grep -q 'posted_as\|postedAs' && GIVEN="$GIVEN /employer"
+expect "no answer carries the title a job was posted under" '' "$GIVEN"
+expect "the header's search gives a job's own name too" "true" "$(req anon GET "/search?q=Line+Lead" | j "results.jobs.items.length > 0 && o.results.jobs.items.every(x => 'ownName' in x && x.ownName === null)")"
 # A renamed career changes the words, never the number: the old address still finds the job.
 sql "UPDATE occupations SET title = title || ' Renamed' WHERE id='$OCC'" >/dev/null
 expect "a renamed career gives the address new words, the same number" "true true" "$(req anon GET /jobs/by-number/$SERIAL | j "job.href.endsWith('-renamed/$SERIAL') + ' ' + (o.job.href !== '$HREF')")"
+# A job posted here by hand is named by its company: the career's new title does not rename it (only a job from a careers site is named for its career, migration 0088).
+expect "a job posted by hand keeps the title its company typed" "Line Lead II|" "$(sql "SELECT title || '|' || coalesce(posted_as, '') FROM jobs WHERE id='$JOB'")"
 sql "UPDATE occupations SET title = regexp_replace(title, ' Renamed$', '') WHERE id='$OCC'" >/dev/null
 check "a signed-in holder is told"    200 "$(req s1 PUT /me/skills/$X1 '{"status":"held"}')"
 expect "the path says which skills the reader holds" "$X1" "$(req s1 GET /jobs/by-number/$SERIAL | j "path.skills.filter(s => s.held).map(s => s.id).join(',')")"
@@ -235,6 +249,7 @@ check "move to reviewing"             200 "$(req emp PATCH /jobs/applications/$A
 check "the same stage again"          200 "$(req emp PATCH /jobs/applications/$APP3 '{"status":"reviewing"}')" '"status":"reviewing"'
 check "decline"                       200 "$(req emp PATCH /jobs/applications/$APP3 '{"status":"declined"}')" '"status":"declined"'
 check "applicant sees declined"       200 "$(req s3 GET /me/applications)" '"status":"declined"'
+expect "an application names its job as every list does: the own name beside the title, never the posted title" "true false" "$(req s3 GET /me/applications | j "applications.length > 0 && o.applications.every(a => 'ownName' in a && a.ownName === null && typeof a.jobTitle === 'string')") $(req s3 GET /me/applications | grep -q 'posted_as\|postedAs' && echo true || echo false)"
 check "declined applicant cannot withdraw" 409 "$(req s3 PATCH /jobs/applications/$APP3 '{"status":"withdrawn"}')"
 check "declined applicant cannot undo it" 403 "$(req s3 PATCH /jobs/applications/$APP3 '{"status":"reviewing"}')"
 check "another company cannot undo it" 403 "$(req other PATCH /jobs/applications/$APP3 '{"status":"reviewing"}')"

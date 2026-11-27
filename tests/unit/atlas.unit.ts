@@ -1,352 +1,374 @@
-// The arithmetic of the Atlas (client/src/components/atlas/layout.ts) and its
-// address (state.ts), over the curated taxonomy itself.
+// The Atlas's address (client/src/components/atlas/state.ts) and its reading
+// against the wheel (view.ts), over the curated taxonomy and the Atlas's
+// structure themselves. The wheel's own arithmetic is atlas-wheel.unit.ts, its
+// structure atlas-data.unit.ts, a career as a small plate career-atlas.unit.ts.
 // `npm run test:unit`. No browser, no database.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import {
-  GEOMETRY,
-  START,
-  TAU,
-  WHOLE,
-  between,
-  branchPath,
-  cameraOn,
-  cameraWhole,
-  layoutAtlas,
-  leafRadius,
-  leafWeight,
-  locate,
-  linkPath,
-  placeLabels,
-  point,
-  project,
-  skeletonPath,
-  spread,
-  spreadRound,
-  spreadWithin,
-  turn,
-  unproject,
-} from '../../client/src/components/atlas/layout';
-import { atlasHref, readAtlasState, skillsListHref } from '../../client/src/components/atlas/state';
+import { ATLAS } from '../../shared/atlas';
+import type { Taxonomy } from '../../client/src/lib/api';
+import { NOTHING, chosen, modeOf, type Mode, type Selection } from '../../client/src/components/atlas/camera';
+import { TAU, buildAtlas, isCore, layOver } from '../../client/src/components/atlas/model';
+import { atlasHref, readAtlasState, skillsListHref, type AtlasState } from '../../client/src/components/atlas/state';
+import { addressOf, domainSelection, leadingField, onlySkillMoved, viewOf } from '../../client/src/components/atlas/view';
 
-interface FileSkill {
-  name: string;
-  level: 1 | 2 | 3;
-}
 interface FileTaxonomy {
-  domains: { slug: string; name: string; what: string; groups: { slug: string; name: string; what: string; skills: FileSkill[] }[] }[];
+  domains: { slug: string; name: string; groups: { slug: string; name: string; skills: { name: string; level: 1 | 2 | 3 }[] }[] }[];
 }
 
+// The taxonomy as the API serves it, from the curated file: every skill with an id of its own.
 const file = JSON.parse(readFileSync('data/skills/taxonomy.json', 'utf8')) as FileTaxonomy;
-// The file in the shape the API serves it: a skill's id here is its name, and it is used by one more career than the last.
-let careers = 0;
-const taxonomy = {
+const idOf = (name: string) => `id:${name}`;
+const taxonomy: Taxonomy = {
+  levels: [],
   domains: file.domains.map((domain) => ({
     slug: domain.slug,
     name: domain.name,
-    description: domain.what,
+    description: '',
     groups: domain.groups.map((group) => ({
       slug: group.slug,
       name: group.name,
-      description: group.what,
-      // As the API orders them: by level, then the file's order.
-      skills: group.skills
-        .map((skill, order) => ({ skill, order }))
-        .sort((a, b) => a.skill.level - b.skill.level || a.order - b.order)
-        .map(({ skill }) => ({ id: skill.name, name: skill.name, level: skill.level, careers: (careers++ % 40) + 1 })),
+      description: '',
+      skills: group.skills.map((skill) => ({ id: idOf(skill.name), name: skill.name, level: skill.level, careers: 1, makes: [] })),
     })),
   })),
 };
-const layout = layoutAtlas(taxonomy);
-const total = file.domains.reduce((sum, domain) => sum + domain.groups.reduce((n, group) => n + group.skills.length, 0), 0);
-const near = (a: number, b: number, epsilon = 1e-9) => Math.abs(a - b) <= epsilon;
+const model = buildAtlas(taxonomy, ATLAS);
+const state = (query: string): AtlasState => readAtlasState(new URLSearchParams(query));
+const read = (query: string) => viewOf(model, taxonomy, state(query));
+/** An address as the page would write it back: read, set against the wheel, written. */
+const cleaned = (query: string): string => atlasHref(read(query).address);
+const g = (slug: string) => model.groupBySlug.get(slug) as number;
+const f = (slug: string) => model.fieldBySlug.get(slug) as number;
+const s = (name: string) => model.skillById.get(idOf(name)) as number;
+/** A skill's id as a query holds it. */
+const q = (name: string) => new URLSearchParams({ x: idOf(name) }).toString().slice(2);
 
-test('every skill, group and domain of the taxonomy is on the plate once', () => {
-  assert.equal(layout.leaves.length, total);
-  assert.equal(layout.leafById.size, total);
-  assert.equal(layout.domains.length, file.domains.length);
-  assert.equal(layout.groups.length, file.domains.reduce((sum, domain) => sum + domain.groups.length, 0));
-  // In the taxonomy's order, and each group and domain holds one unbroken run of leaves.
-  assert.deepEqual(layout.domains.map((domain) => domain.slug), file.domains.map((domain) => domain.slug));
-  let next = 0;
-  for (const group of layout.groups) {
-    assert.equal(group.first, next, `${group.slug} starts where the last group ended`);
-    assert.ok(group.last >= group.first);
-    for (let i = group.first; i <= group.last; i++) assert.equal(layout.leaves[i].group, group.index);
-    next = group.last + 1;
-  }
-  assert.equal(next, total);
-  for (const domain of layout.domains) {
-    assert.equal(domain.first, layout.groups[domain.firstGroup].first);
-    assert.equal(domain.last, layout.groups[domain.lastGroup].last);
+// What the checks below stand on: a field, a group in it, a skill of that group, and the core group the field is built on.
+const WELDING = 'welding';
+const ARC = 'arc-welding';
+const TIG = 'TIG Welding';
+const SAFETY = 'workplace-safety';
+const weldingRoot = model.G[model.fields[f(WELDING)].roots[0]].slug;
+
+test('what the checks stand on is on the wheel', () => {
+  assert.ok(f(WELDING) >= 0 && g(ARC) >= 0 && s(TIG) >= 0 && g(SAFETY) >= 0);
+  assert.equal(model.G[g(ARC)].field, f(WELDING));
+  assert.equal(model.skillGroup[s(TIG)], g(ARC));
+  assert.ok(isCore(model, g(SAFETY)) && !isCore(model, g(ARC)));
+  assert.ok(isCore(model, g(weldingRoot)));
+});
+
+// ---- writing an address (atlasHref) ---------------------------------------------------------------------------------
+
+test('the address says what is open: the whole wheel, Fundamentals, a field, a group, a skill', () => {
+  assert.equal(atlasHref({}), '/atlas');
+  assert.equal(atlasHref({ fundamentals: false, field: null, group: null, skill: null, domain: null, career: null, at: null, from: null }), '/atlas');
+  assert.equal(atlasHref({ fundamentals: true }), '/atlas?fundamentals=1');
+  assert.equal(atlasHref({ field: WELDING }), `/atlas?field=${WELDING}`);
+  assert.equal(atlasHref({ group: ARC }), `/atlas?group=${ARC}`);
+  assert.equal(atlasHref({ skill: 'abc' }), '/atlas?skill=abc');
+});
+
+test('one of them is written, the most specific: a skill says its group, a group its field or Fundamentals', () => {
+  assert.equal(atlasHref({ group: ARC, skill: 'abc' }), '/atlas?skill=abc');
+  assert.equal(atlasHref({ fundamentals: true, group: SAFETY }), `/atlas?group=${SAFETY}`);
+  assert.equal(atlasHref({ fundamentals: true, group: SAFETY, skill: 'abc' }), '/atlas?skill=abc');
+  // A field open and Fundamentals open cannot both be: the field is the one written.
+  assert.equal(atlasHref({ fundamentals: true, field: WELDING }), `/atlas?field=${WELDING}`);
+});
+
+test('a core group reached from inside an open field keeps that field beside it', () => {
+  assert.equal(atlasHref({ group: SAFETY, field: WELDING }), `/atlas?group=${SAFETY}&field=${WELDING}`);
+  assert.equal(atlasHref({ skill: 'abc', field: WELDING }), `/atlas?skill=abc&field=${WELDING}`);
+  assert.equal(atlasHref({ skill: 'abc', group: SAFETY, field: WELDING, fundamentals: true }), `/atlas?skill=abc&field=${WELDING}`);
+});
+
+test("the Skills list's domain is written only when nothing more is said", () => {
+  assert.equal(atlasHref({ domain: 'quality' }), '/atlas?domain=quality');
+  assert.equal(atlasHref({ domain: 'quality', field: WELDING }), `/atlas?field=${WELDING}`);
+  assert.equal(atlasHref({ domain: 'quality', group: ARC }), `/atlas?group=${ARC}`);
+  assert.equal(atlasHref({ domain: 'quality', skill: 'abc' }), '/atlas?skill=abc');
+  assert.equal(atlasHref({ domain: 'quality', fundamentals: true }), '/atlas?fundamentals=1');
+  assert.equal(atlasHref({ domain: 'quality', career: 'c1' }), '/atlas?domain=quality&career=c1');
+});
+
+test('a career laid over the wheel, a company\'s version of it and a military career under it are kept beside what is open', () => {
+  assert.equal(atlasHref({ career: 'c1' }), '/atlas?career=c1');
+  assert.equal(atlasHref({ career: 'c1', at: 'boeing' }), '/atlas?career=c1&at=boeing');
+  assert.equal(atlasHref({ career: 'c1', from: 'm1' }), '/atlas?career=c1&from=m1');
+  assert.equal(atlasHref({ career: 'c1', at: 'boeing', from: 'm1' }), '/atlas?career=c1&at=boeing&from=m1');
+  // What is open comes first, then what is laid over it.
+  assert.equal(atlasHref({ fundamentals: true, career: 'c1' }), '/atlas?fundamentals=1&career=c1');
+  assert.equal(atlasHref({ field: WELDING, career: 'c1', at: 'boeing' }), `/atlas?field=${WELDING}&career=c1&at=boeing`);
+  assert.equal(atlasHref({ group: ARC, career: 'c1', from: 'm1' }), `/atlas?group=${ARC}&career=c1&from=m1`);
+  assert.equal(atlasHref({ skill: 'abc', career: 'c1', at: 'boeing', from: 'm1' }), '/atlas?skill=abc&career=c1&at=boeing&from=m1');
+  assert.equal(atlasHref({ group: SAFETY, field: WELDING, career: 'c1' }), `/atlas?group=${SAFETY}&field=${WELDING}&career=c1`);
+  // Without a career there is nothing for a company to have a version of, and nothing to lie under.
+  assert.equal(atlasHref({ at: 'boeing' }), '/atlas');
+  assert.equal(atlasHref({ from: 'm1' }), '/atlas');
+  assert.equal(atlasHref({ field: WELDING, at: 'boeing', from: 'm1' }), `/atlas?field=${WELDING}`);
+  // A career does not lie under itself.
+  assert.equal(atlasHref({ career: 'c1', from: 'c1' }), '/atlas?career=c1');
+  // A value is written so that it reads back whatever it holds.
+  assert.equal(state(atlasHref({ career: 'c1', at: 'a&b=c d' }).split('?')[1]).at, 'a&b=c d');
+});
+
+// ---- reading an address (readAtlasState) ----------------------------------------------------------------------------
+
+test('an address is read word for word, and nothing it does not say is made up', () => {
+  const nothing: AtlasState = { fundamentals: false, field: null, group: null, skill: null, domain: null, career: null, at: null, from: null };
+  assert.deepEqual(state(''), nothing);
+  assert.deepEqual(state('fundamentals=1'), { ...nothing, fundamentals: true });
+  assert.deepEqual(state(`field=${WELDING}`), { ...nothing, field: WELDING });
+  assert.deepEqual(state(`group=${ARC}`), { ...nothing, group: ARC });
+  assert.deepEqual(state('skill=abc'), { ...nothing, skill: 'abc' });
+  assert.deepEqual(state(`group=${SAFETY}&field=${WELDING}`), { ...nothing, group: SAFETY, field: WELDING });
+  assert.deepEqual(state('domain=quality'), { ...nothing, domain: 'quality' });
+  assert.deepEqual(state('career=c1'), { ...nothing, career: 'c1' });
+  assert.deepEqual(state('career=c1&at=boeing'), { ...nothing, career: 'c1', at: 'boeing' });
+  assert.deepEqual(state('career=c1&from=m1'), { ...nothing, career: 'c1', from: 'm1' });
+  assert.deepEqual(state('skill=abc&career=c1&at=boeing&from=m1'), { ...nothing, skill: 'abc', career: 'c1', at: 'boeing', from: 'm1' });
+  // Fundamentals is open only when the address says exactly so.
+  for (const other of ['fundamentals=0', 'fundamentals=true', 'fundamentals=', 'fundamentals']) assert.equal(state(other).fundamentals, false, other);
+  // A company and a military career mean something only beside a career.
+  assert.deepEqual(state('at=boeing&from=m1'), nothing);
+  assert.deepEqual(state(`field=${WELDING}&at=boeing`), { ...nothing, field: WELDING });
+  // An older Atlas's second career, a career page's old view and anything else are not read.
+  assert.deepEqual(state('career=c1&with=c2'), { ...nothing, career: 'c1' });
+  assert.deepEqual(state('with=c2&path=atlas&tab=skills&view=whole'), nothing);
+});
+
+test('an address the Atlas writes reads back as itself', () => {
+  for (const address of [
+    '/atlas',
+    '/atlas?fundamentals=1',
+    `/atlas?field=${WELDING}`,
+    `/atlas?group=${ARC}`,
+    '/atlas?skill=abc',
+    `/atlas?group=${SAFETY}&field=${WELDING}`,
+    `/atlas?skill=abc&field=${WELDING}`,
+    '/atlas?domain=quality',
+    '/atlas?career=c1',
+    '/atlas?career=c1&at=boeing',
+    '/atlas?career=c1&from=m1',
+    `/atlas?field=${WELDING}&career=c1&at=boeing&from=m1`,
+    '/atlas?fundamentals=1&career=c1',
+    '/atlas?domain=quality&career=c1&at=boeing',
+  ]) {
+    assert.equal(atlasHref(state(address.split('?')[1] ?? '')), address);
   }
 });
 
-test('the angles sum to the circle', () => {
-  const groupGaps = layout.groups.length - layout.domains.length;
-  const steps = total + groupGaps * GEOMETRY.groupGap + layout.domains.length * GEOMETRY.domainGap;
-  assert.ok(near(steps * layout.step, TAU), 'the leaves and the gaps between them take one full turn');
-  // The seam between the last domain and the first is centred on the start angle, and the angles run on from it unwrapped.
-  const first = layout.leaves[0];
-  const last = layout.leaves[total - 1];
-  assert.ok(near(first.angle - layout.step / 2 - START, (GEOMETRY.domainGap / 2) * layout.step));
-  assert.ok(near(START + TAU - (last.angle + layout.step / 2), (GEOMETRY.domainGap / 2) * layout.step));
-  for (let i = 1; i < total; i++) assert.ok(layout.leaves[i].angle > layout.leaves[i - 1].angle);
-});
+// ---- an address read against the wheel (viewOf) -------------------------------------------------------------------
 
-test('Safety, the last domain, is never at the top: it ends at the lower left, and the trades hold the top', () => {
-  assert.equal(GEOMETRY.start, START);
-  const clock = (slug: string) => {
-    const domain = layout.domainBySlug.get(slug);
-    assert.ok(domain, slug);
-    return { from: turn(domain.from), to: turn(domain.to), middle: turn(domain.angle) };
-  };
-  const lastDomain = layout.domains[layout.domains.length - 1];
-  assert.equal(lastDomain.slug, 'safety', 'the taxonomy ends in Safety');
-  // Safety lies wholly in the lower left quarter: between six and nine o'clock.
-  const safety = clock('safety');
-  assert.ok(safety.from > Math.PI && safety.to < Math.PI * 1.5, `Safety runs from ${safety.from.toFixed(2)} to ${safety.to.toFixed(2)}`);
-  // Twelve o'clock, where the eye starts, is one of the making trades.
-  const top = locate(layout, 0);
-  assert.ok(top && ['machining', 'fabrication', 'assembly'].includes(top.domain.slug), `the top of the plate is ${top?.domain.slug}`);
-  // Machining, Fabrication and Assembly are all in the upper half; the first domain opens on the left.
-  for (const slug of ['machining', 'fabrication', 'assembly']) assert.ok(Math.cos(clock(slug).middle) > 0, `${slug} is in the upper half`);
-  assert.ok(Math.sin(turn(layout.domains[0].angle)) < 0, 'the first domain is on the left');
-  // No domain's middle is nearer the top than Safety's is to the bottom-left seam... and Safety is the furthest domain from the top but for its neighbours.
-  const fromTop = (angle: number) => Math.abs(between(angle, 0));
-  assert.ok(fromTop(safety.middle) > Math.PI * 0.6);
-});
-
-test('no two leaves overlap', () => {
-  for (let i = 1; i < total; i++) {
-    const gap = layout.leaves[i].angle - layout.leaves[i - 1].angle;
-    assert.ok(gap >= layout.step - 1e-9, `${layout.leaves[i].name} has its own step of angle`);
+test('what the wheel shows follows from the address: rest, the core, a core group, a field', () => {
+  const modes: [string, Selection, Mode][] = [
+    ['', NOTHING, 'rest'],
+    ['fundamentals=1', { ...NOTHING, core: true }, 'core'],
+    [`field=${WELDING}`, { ...NOTHING, field: f(WELDING) }, 'field'],
+    // A group is inside its field; a core group is inside Fundamentals.
+    [`group=${ARC}`, { core: false, field: f(WELDING), group: g(ARC), skill: -1 }, 'field'],
+    [`group=${SAFETY}`, { core: true, field: -1, group: g(SAFETY), skill: -1 }, 'coreGroup'],
+    // A skill is in its group.
+    [`skill=${q(TIG)}`, { core: false, field: f(WELDING), group: g(ARC), skill: s(TIG) }, 'field'],
+  ];
+  for (const [query, selection, mode] of modes) {
+    assert.deepEqual(read(query).selection, selection, query || '(nothing)');
+    assert.equal(modeOf(model, read(query).selection), mode, query || '(nothing)');
+    assert.equal(cleaned(query), query ? `/atlas?${query}` : '/atlas');
   }
-  // Nor two marks: any two leaves near each other round the plate are further apart than two of the smallest marks are wide (radius 0.0052).
-  for (let i = 0; i < total; i++) {
-    for (let j = i + 1; j < Math.min(total, i + 12); j++) {
-      const a = layout.leaves[i];
-      const b = layout.leaves[j];
-      const [ax, ay] = point(a.angle, a.radius);
-      const [bx, by] = point(b.angle, b.radius);
-      assert.ok(Math.hypot(ax - bx, ay - by) > 0.0052 * 2, `${a.name} and ${b.name} are apart`);
+  // A core group's skill is inside Fundamentals too.
+  const first = model.S[model.G[g(SAFETY)].skills[0]];
+  assert.deepEqual(read(`skill=${q(first.name)}`).selection, { core: true, field: -1, group: g(SAFETY), skill: s(first.name) });
+});
+
+test('a skill says more than a group, a group more than a field, a field more than Fundamentals', () => {
+  // A skill named beside another group is in its own group.
+  assert.deepEqual(read(`skill=${q(TIG)}&group=${SAFETY}`).selection, { core: false, field: f(WELDING), group: g(ARC), skill: s(TIG) });
+  assert.equal(cleaned(`skill=${q(TIG)}&group=${SAFETY}`), `/atlas?skill=${q(TIG)}`);
+  // Beside a group that is not a core group the field says nothing the group does not.
+  assert.equal(cleaned(`group=${ARC}&field=machining`), `/atlas?group=${ARC}`);
+  assert.equal(cleaned(`group=${ARC}&fundamentals=1`), `/atlas?group=${ARC}`);
+  assert.equal(cleaned(`field=${WELDING}&fundamentals=1`), `/atlas?field=${WELDING}`);
+  assert.equal(cleaned(`fundamentals=1&domain=quality`), '/atlas?fundamentals=1');
+});
+
+test('a core group reached from inside an open field keeps the field beside it, and only then', () => {
+  const welding = model.fields[f(WELDING)];
+  const kept = read(`group=${weldingRoot}&field=${WELDING}`);
+  assert.deepEqual(kept.selection, { core: false, field: f(WELDING), group: g(weldingRoot), skill: -1 });
+  // The wheel turns to the core group all the same; the list stays on the field.
+  assert.equal(modeOf(model, kept.selection), 'coreGroup');
+  assert.equal(atlasHref(kept.address), `/atlas?group=${weldingRoot}&field=${WELDING}`);
+  // Its skill, chosen there, keeps the field too.
+  const skill = model.S[model.G[g(weldingRoot)].skills[0]];
+  const inside = read(`skill=${q(skill.name)}&field=${WELDING}`);
+  assert.deepEqual(inside.selection, { core: false, field: f(WELDING), group: g(weldingRoot), skill: s(skill.name) });
+  assert.equal(atlasHref(inside.address), `/atlas?skill=${q(skill.name)}&field=${WELDING}`);
+  // A core group the field does not stand on is in Fundamentals, and the field leaves the address.
+  const other = model.core.map((i) => model.G[i].slug).find((slug) => !welding.roots.includes(g(slug))) as string;
+  assert.ok(other, 'welding stands on every core group');
+  assert.deepEqual(read(`group=${other}&field=${WELDING}`).selection, { core: true, field: -1, group: g(other), skill: -1 });
+  assert.equal(cleaned(`group=${other}&field=${WELDING}`), `/atlas?group=${other}`);
+  // Every field's own core groups can be opened inside it.
+  for (const field of model.fields) {
+    for (const root of field.roots) {
+      const view = read(`group=${model.G[root].slug}&field=${field.slug}`);
+      assert.deepEqual(view.selection, { core: false, field: field.f, group: root, skill: -1 }, `${field.slug} > ${model.G[root].slug}`);
     }
   }
-  // A domain's rim arc ends before the next one's begins, all the way round.
-  layout.domains.forEach((domain, i) => {
-    const following = layout.domains[(i + 1) % layout.domains.length];
-    assert.ok(between(following.from, domain.to) > 0, `${domain.slug} and ${following.slug} do not touch`);
-    assert.ok(domain.from < domain.a0 && domain.to > domain.a1);
+});
+
+test('a career, a company and a military career stay in the address beside whatever is open', () => {
+  assert.equal(cleaned('career=c1'), '/atlas?career=c1');
+  assert.equal(cleaned(`group=${ARC}&career=c1&at=boeing`), `/atlas?group=${ARC}&career=c1&at=boeing`);
+  assert.equal(cleaned(`field=${WELDING}&career=c1&from=m1`), `/atlas?field=${WELDING}&career=c1&from=m1`);
+  assert.equal(cleaned(`group=${weldingRoot}&field=${WELDING}&career=c1&at=boeing&from=m1`), `/atlas?group=${weldingRoot}&field=${WELDING}&career=c1&at=boeing&from=m1`);
+  // They say nothing about what the wheel shows.
+  assert.deepEqual(read(`field=${WELDING}&career=c1&at=boeing&from=m1`).selection, read(`field=${WELDING}`).selection);
+});
+
+test('what the address names that is not there is cleaned from it', () => {
+  assert.equal(cleaned('group=no-such-group'), '/atlas');
+  assert.equal(cleaned('field=no-such-field'), '/atlas');
+  assert.equal(cleaned('skill=no-such-skill'), '/atlas');
+  assert.equal(cleaned('skill=no-such-skill&career=c1'), '/atlas?career=c1');
+  // What it also names that is there is kept.
+  assert.equal(cleaned('field=no-such-field&fundamentals=1'), '/atlas?fundamentals=1');
+  assert.equal(cleaned(`skill=no-such-skill&group=${ARC}`), `/atlas?group=${ARC}`);
+  assert.equal(cleaned(`group=no-such-group&field=${WELDING}`), `/atlas?field=${WELDING}`);
+  // An older Atlas's second career is dropped, with or without a first.
+  assert.equal(cleaned(`field=${WELDING}&career=c1&with=c2`), `/atlas?field=${WELDING}&career=c1`);
+  assert.equal(cleaned('with=c2'), '/atlas');
+  // A career that turned out not to exist leaves with what hung on it; a company with no version, or a career that
+  // is not a military one, leaves alone.
+  const laid = state(`field=${WELDING}&career=c1&at=boeing&from=m1`);
+  assert.equal(atlasHref(viewOf(model, taxonomy, laid, { at: true }).address), `/atlas?field=${WELDING}&career=c1&from=m1`);
+  assert.equal(atlasHref(viewOf(model, taxonomy, laid, { from: true }).address), `/atlas?field=${WELDING}&career=c1&at=boeing`);
+  assert.equal(atlasHref(viewOf(model, taxonomy, laid, { career: true }).address), `/atlas?field=${WELDING}`);
+  assert.equal(atlasHref(viewOf(model, taxonomy, laid, {}).address), `/atlas?field=${WELDING}&career=c1&at=boeing&from=m1`);
+});
+
+test('an older address that names a domain opens the field that holds most of its groups', () => {
+  assert.equal(taxonomy.domains.length, 16);
+  for (const domain of taxonomy.domains) {
+    const opened = domainSelection(model, taxonomy, domain.slug);
+    assert.ok(opened, `${domain.slug} opens nothing`);
+    assert.equal(opened.group, -1);
+    assert.equal(opened.skill, -1);
+    const per = new Map<number, number>();
+    for (const group of domain.groups) {
+      const field = model.G[g(group.slug)].field;
+      if (field >= 0) per.set(field, (per.get(field) ?? 0) + 1);
+    }
+    // A domain whose groups all stand on the centre ring is in Fundamentals.
+    if (per.size === 0) assert.deepEqual(opened, { ...NOTHING, core: true });
+    else {
+      assert.ok(opened.field >= 0 && !opened.core);
+      const most = Math.max(...per.values());
+      assert.equal(per.get(opened.field), most, `${domain.slug} opens ${model.F[opened.field].slug}`);
+      // Of equals, the first round the wheel.
+      assert.equal(opened.field, model.order.find((field) => per.get(field) === most), `${domain.slug}: the first of its largest fields`);
+    }
+    // The domain is replaced in the address by what it opened, and a career beside it stays.
+    const address = read(`domain=${domain.slug}&career=c1`).address;
+    assert.ok(!address.domain && (address.field || address.fundamentals), `${domain.slug} stays in the address`);
+    assert.equal(address.career, 'c1');
+    assert.deepEqual(read(`domain=${domain.slug}`).selection, opened);
+    assert.doesNotMatch(cleaned(`domain=${domain.slug}`), /domain=/);
+  }
+  assert.equal(domainSelection(model, taxonomy, 'no-such-domain'), null);
+  assert.equal(cleaned('domain=no-such-domain'), '/atlas');
+  // A domain says less than anything else the address names.
+  assert.equal(cleaned(`domain=quality&group=${ARC}`), `/atlas?group=${ARC}`);
+  assert.equal(cleaned(`domain=quality&field=${WELDING}`), `/atlas?field=${WELDING}`);
+});
+
+test('every choice the wheel can make is an address that reads back as the same choice', () => {
+  let checked = 0;
+  const back = (selection: Selection) => {
+    const href = atlasHref(addressOf(model, selection));
+    assert.deepEqual(read(href.split('?')[1] ?? '').selection, selection, href);
+    checked += 1;
+  };
+  back(NOTHING);
+  back(chosen(model, { f: -1, g: -1, s: -1, core: true }));
+  model.G.forEach((group, i) => {
+    const hit = { f: group.field, g: i, s: -1 };
+    back(chosen(model, hit));
+    for (const skill of group.skills) back(chosen(model, { ...hit, s: skill }));
+    // In the list a core group is also a row of each field that stands on it.
+    if (isCore(model, i)) {
+      for (const field of model.fields) {
+        if (!field.roots.includes(i)) continue;
+        back({ core: false, field: field.f, group: i, skill: -1 });
+        back({ core: false, field: field.f, group: i, skill: group.skills[0] });
+      }
+    }
   });
-  // Groups: a gap between two of one domain, a wider one between two domains.
-  for (let i = 1; i < layout.groups.length; i++) {
-    const before = layout.groups[i - 1];
-    const group = layout.groups[i];
-    const gap = (group.a0 - before.a1) / layout.step - 1;
-    assert.ok(near(gap, group.domain === before.domain ? GEOMETRY.groupGap : GEOMETRY.domainGap, 1e-6));
-  }
+  model.fields.forEach((field) => back({ ...NOTHING, field: field.f }));
+  assert.ok(checked > 2 + model.N + model.S.length + model.fields.length);
 });
 
-test('a level maps to its band: Fundamentals nearest the centre, Advanced at the rim', () => {
-  for (const level of [1, 2, 3] as const) {
-    const band = GEOMETRY.bands[level];
-    assert.equal(leafRadius(GEOMETRY, level, 0), band.from);
-    assert.equal(leafRadius(GEOMETRY, level, band.rows - 1), band.to);
-    assert.equal(leafRadius(GEOMETRY, level, band.rows), band.from, 'the rows are taken in turn');
-  }
-  const reach = { 1: [Infinity, -Infinity], 2: [Infinity, -Infinity], 3: [Infinity, -Infinity] };
-  const rows = { 1: new Set<number>(), 2: new Set<number>(), 3: new Set<number>() };
-  for (const leaf of layout.leaves) {
-    const band = GEOMETRY.bands[leaf.level];
-    assert.ok(leaf.radius >= band.from - 1e-9 && leaf.radius <= band.to + 1e-9, `${leaf.name} is in its level's band`);
-    reach[leaf.level][0] = Math.min(reach[leaf.level][0], leaf.radius);
-    reach[leaf.level][1] = Math.max(reach[leaf.level][1], leaf.radius);
-    rows[leaf.level].add(Number(leaf.radius.toFixed(6)));
-  }
-  // Every row of every band is used.
-  for (const level of [1, 2, 3] as const) assert.equal(rows[level].size, GEOMETRY.bands[level].rows);
-  // The three bands do not meet, and all of them lie between the groups' tips and the rim.
-  assert.ok(GEOMETRY.group < reach[1][0]);
-  assert.ok(reach[1][1] < reach[2][0]);
-  assert.ok(reach[2][1] < reach[3][0]);
-  assert.ok(reach[3][1] < GEOMETRY.ring && GEOMETRY.ring < 1);
-  assert.ok(GEOMETRY.root < GEOMETRY.domain && GEOMETRY.domain < GEOMETRY.group);
+test('a skill chosen or let go inside its group is no step for Back; anything else is', () => {
+  const a: Selection = { core: false, field: f(WELDING), group: g(ARC), skill: -1 };
+  assert.equal(onlySkillMoved(a, { ...a, skill: s(TIG) }), true);
+  assert.equal(onlySkillMoved({ ...a, skill: s(TIG) }, a), true);
+  assert.equal(onlySkillMoved({ ...a, skill: s(TIG) }, { ...a, skill: model.G[g(ARC)].skills.find((each) => each !== s(TIG)) as number }), true);
+  assert.equal(onlySkillMoved(a, a), false);
+  assert.equal(onlySkillMoved(a, { ...a, group: -1 }), false);
+  assert.equal(onlySkillMoved(a, { ...a, group: g(weldingRoot), skill: s(TIG) }), false);
+  assert.equal(onlySkillMoved(NOTHING, { ...NOTHING, core: true }), false);
+  assert.equal(onlySkillMoved(NOTHING, { ...NOTHING, field: f(WELDING) }), false);
 });
 
-test('a skill more careers use is a stronger mark', () => {
-  assert.equal(leafWeight(0, 196), 0);
-  assert.equal(leafWeight(1, 196), 0);
-  assert.equal(leafWeight(196, 196), 1);
-  assert.ok(leafWeight(2, 196) > 0 && leafWeight(2, 196) < leafWeight(15, 196) && leafWeight(15, 196) < leafWeight(100, 196));
-  assert.equal(leafWeight(3, 1), 0);
-  assert.equal(layout.maxCareers, 40);
+test('a career picked opens the field that holds most of its skills', () => {
+  const need = [...model.G[g(ARC)].skills, model.G[g('cnc-setup')].skills[0], ...model.G[g(SAFETY)].skills];
+  const laid = layOver(model, need, null);
+  assert.equal(leadingField(laid.fields), f(WELDING));
+  // A career wholly inside Fundamentals reaches no field.
+  assert.equal(leadingField(layOver(model, model.G[g(SAFETY)].skills, null).fields), -1);
+  assert.equal(leadingField([]), -1);
+  // Of equals, the first round the wheel.
+  assert.equal(leadingField([{ f: 4, n: 2 }, { f: 9, n: 2 }]), 4);
+  assert.equal(leadingField([{ f: 4, n: 2 }, { f: 9, n: 3 }, { f: 11, n: 3 }]), 9);
 });
 
-test('a branch is a curve that leaves its parent and reaches its child along the radius', () => {
-  // On one angle it is a straight run.
-  assert.match(linkPath(1, 0.1, 1, 0.3, 500), /^M[-\d. ]+L[-\d. ]+$/);
-  // Across angles, a cubic whose two control points stand on the parent's angle and the child's, at the middle radius.
-  const d = linkPath(1, 0.2, 1.3, 0.6, 500);
-  const numbers = d.replace(/[MC]/g, ' ').trim().split(/\s+/).map(Number);
-  assert.equal(numbers.length, 8);
-  const at = (i: number) => [numbers[i] / 500, numbers[i + 1] / 500];
-  const [c1, c2, end] = [at(2), at(4), at(6)];
-  const [p1, p2, p3] = [point(1, 0.4), point(1.3, 0.4), point(1.3, 0.6)];
-  for (const [got, want] of [[c1, p1], [c2, p2], [end, p3]]) assert.ok(near(got[0], want[0], 0.01) && near(got[1], want[1], 0.01));
-  // Going on from where the pen is: no move.
-  assert.ok(linkPath(1, 0.2, 1.3, 0.6, 500, true).startsWith('C'));
-});
+// ---- the Skills list and the Atlas: one switch between two views --------------------------------------------------
 
-test('the plate draws its branches as far as the groups; a career draws them on to its skills, each once', () => {
-  // The skeleton: a trunk per domain and a curve per group, and no stem to any skill.
-  const skeleton = skeletonPath(layout, 500);
-  assert.equal((skeleton.match(/M/g) ?? []).length, layout.domains.length + layout.groups.length);
-  // Each one a single run: straight up a trunk (or to a group that stands on its domain's own angle), else a curve.
-  assert.equal((skeleton.match(/[LC]/g) ?? []).length, layout.domains.length + layout.groups.length);
-  assert.ok((skeleton.match(/L/g) ?? []).length >= layout.domains.length);
-  const leaf = layout.leaves[Math.floor(total / 2)];
-  const one = branchPath(layout, [leaf.index], 500);
-  assert.equal((one.match(/M/g) ?? []).length, 3, "its own curve, its group's and its domain's trunk");
-  assert.equal((one.match(/[LC]/g) ?? []).length, 3, 'three runs, the first the straight trunk');
-  assert.match(one.slice(one.lastIndexOf('M')), /^M[-\d. ]+L[-\d. ]+$/, 'the trunk is a straight run');
-  assert.ok(!/A/.test(one), 'no arcs: the way is curves');
-  // Two skills of one group share the group's curve and the trunk.
-  const group = layout.groups.find((candidate) => candidate.last > candidate.first);
-  assert.ok(group);
-  const two = branchPath(layout, [group.first, group.last], 500);
-  assert.equal((two.match(/M/g) ?? []).length, 4);
-  // Every skill at once: every leaf, every group, every domain.
-  const all = branchPath(layout, layout.leaves.map((l) => l.index), 500);
-  assert.equal((all.match(/M/g) ?? []).length, total + layout.groups.length + layout.domains.length);
-  assert.equal(branchPath(layout, [], 500), '');
-  assert.equal(branchPath(layout, [total + 5], 500), '');
-});
-
-test('a point on the plate finds its domain, group and skill', () => {
-  for (const leaf of layout.leaves) {
-    const hit = locate(layout, leaf.angle);
-    assert.ok(hit);
-    assert.equal(hit.leaf.index, leaf.index);
-    assert.equal(hit.group.index, leaf.group);
-    assert.equal(hit.domain.index, leaf.domain);
-  }
-  // The seam is shared: just clockwise of it is the first domain, just before it the last, whatever turn the angle is given in.
-  assert.equal(locate(layout, START + 0.0001)?.domain.index, 0);
-  assert.equal(locate(layout, START - 0.0001)?.domain.index, layout.domains.length - 1);
-  assert.equal(locate(layout, START + TAU * 3 + 0.0001)?.domain.index, 0);
-  assert.equal(locate(layout, START - TAU * 2 - 0.0001)?.domain.index, layout.domains.length - 1);
-  // A point of the screen comes back as an angle in [0, 2π): every leaf is still found from there.
-  for (const leaf of layout.leaves) assert.equal(locate(layout, turn(leaf.angle))?.leaf.index, leaf.index);
-  assert.equal(locate(layoutAtlas({ domains: [] }), 1), null);
-});
-
-test('labels are spread so none sits on another, and moved no further than they must be', () => {
-  assert.deepEqual(spread([], []), []);
-  assert.deepEqual(spread([1, 5, 9], [2, 2, 2]), [1, 5, 9]);
-  const crowded = spread([10, 10, 10], [2, 2, 2]);
-  assert.deepEqual(crowded, [8, 10, 12]);
-  const mixed = spread([0, 1, 1.5, 20], [2, 4, 2, 2]);
-  for (let i = 1; i < mixed.length; i++) assert.ok(mixed[i] - mixed[i - 1] >= ([2, 4, 2, 2][i] + [2, 4, 2, 2][i - 1]) / 2 - 1e-9);
-  assert.equal(mixed[3], 20);
-});
-
-test('names set round a ring make room for each other across the seam too', () => {
-  // Room for all: nothing moves.
-  const easy = spreadRound([1, 3, 5], [0.5, 0.5, 0.5]);
-  assert.deepEqual(easy.placed, [1, 3, 5]);
-  assert.equal(easy.overlap, 0);
-  // The last and the first are neighbours: two names either side of the seam part from each other.
-  const seam = spreadRound([0.05, 3, TAU - 0.05], [0.6, 0.6, 0.6]);
-  assert.equal(seam.overlap, 0);
-  assert.ok(seam.placed[0] + TAU - seam.placed[2] >= 0.6 - 1e-9);
-  assert.ok(Math.abs(seam.placed[1] - 3) < 1e-9, 'a name with room stays where it is');
-  // The domains' own names at a phone's size of plate: one row is too short, which the answer says.
-  const sizes = layout.domains.map((domain) => (domain.name.length * 6 + 11) / 160);
-  const crowded = spreadRound(layout.domains.map((domain) => domain.angle), sizes);
-  assert.equal(crowded.placed.length, layout.domains.length);
-  assert.ok(crowded.overlap > 0, 'sixteen names do not fit one row round a phone');
-  // On a desktop's they do, and then every name is clear of the next, round the seam as well.
-  const wide = sizes.map((size) => size * 0.45);
-  const fits = spreadRound(layout.domains.map((domain) => domain.angle), wide);
-  assert.equal(fits.overlap, 0);
-  fits.placed.forEach((angle, i) => {
-    const j = (i + 1) % fits.placed.length;
-    assert.ok(turn(fits.placed[j] - angle) >= (wide[i] + wide[j]) / 2 - 1e-9, `${layout.domains[i].name} is clear of ${layout.domains[j].name}`);
-  });
-});
-
-test('rows set in a span stay inside it, keep their order and do not meet', () => {
-  assert.deepEqual(spreadWithin([], [], 0, 1), []);
-  // Room for all: nothing moves.
-  assert.deepEqual(spreadWithin([0.2, 0.5, 0.8], [0.1, 0.1, 0.1], 0, 1), [0.2, 0.5, 0.8]);
-  // Asked for past the ends: brought inside.
-  const pushed = spreadWithin([-1, -1, 5], [0.2, 0.2, 0.2], 0, 1);
-  assert.ok(pushed[0] - 0.1 >= -1e-9 && pushed[2] + 0.1 <= 1 + 1e-9);
-  for (let i = 1; i < pushed.length; i++) assert.ok(pushed[i] - pushed[i - 1] >= 0.2 - 1e-9);
-  // More than fit: set closer, still inside and in order.
-  const tight = spreadWithin([0.5, 0.5, 0.5, 0.5], [0.4, 0.4, 0.4, 0.4], 0, 1);
-  assert.ok(tight[0] >= 0.125 - 1e-9 && tight[3] <= 0.875 + 1e-9);
-  for (let i = 1; i < tight.length; i++) assert.ok(tight[i] - tight[i - 1] >= 0.25 - 1e-9);
-});
-
-test('an open domain names its groups level in a column, an open group its skills in its place', () => {
-  const rows = { group: 0.05, skill: 0.05, top: -1, bottom: 1 };
-  for (const domain of layout.domains) {
-    const camera = cameraOn(domain.angle, 2.2, GEOMETRY.ring, 0.2);
-    const labels = placeLabels(layout, domain, null, camera, rows);
-    assert.equal(labels.length, domain.lastGroup - domain.firstGroup + 1, `${domain.slug}: one name per group, and none of another domain`);
-    assert.ok(labels.every((label) => label.kind === 'group' && layout.groups[label.index].domain === domain.index));
-    for (let i = 1; i < labels.length; i++) assert.ok(labels[i].y - labels[i - 1].y >= rows.group - 1e-9, `${domain.slug}: rows in order and apart`);
-    assert.ok(labels.every((label) => label.y >= rows.top + rows.group / 2 - 1e-9 && label.y <= rows.bottom - rows.group / 2 + 1e-9), `${domain.slug}: inside the frame`);
-    // A name stands level with its group's place on the rim, as near as its neighbours let it.
-    const middle = labels[Math.floor(labels.length / 2)];
-    const [, rimY] = project(camera, middle.from, GEOMETRY.ring);
-    assert.ok(Math.abs(middle.y - rimY) <= rows.group * labels.length, `${domain.slug}: near its place`);
-    const open = layout.groups[domain.firstGroup];
-    const withSkills = placeLabels(layout, domain, open, camera, rows);
-    const skills = withSkills.filter((label) => label.kind === 'skill');
-    assert.equal(skills.length, open.last - open.first + 1);
-    assert.equal(withSkills.length, labels.length - 1 + skills.length);
-    for (let i = 1; i < withSkills.length; i++) assert.ok(withSkills[i].y - withSkills[i - 1].y >= rows.group - 1e-9);
-  }
-});
-
-test('the camera turns a domain to three o\'clock by the shortest way, and a point of the frame can be read back', () => {
-  assert.deepEqual(unproject(WHOLE, 0, -0.5), { angle: 0, radius: 0.5 });
-  let turned = 0;
-  for (const domain of layout.domains) {
-    const camera = cameraOn(domain.angle, 2.5, GEOMETRY.ring, 0.1, turned);
-    assert.ok(Math.abs(camera.rotate - turned) <= Math.PI + 1e-9, 'never the long way round');
-    turned = camera.rotate;
-    // The domain's middle, on the outer ring, is where it was asked to be.
-    const seen = unproject(camera, 0.1, 0);
-    assert.ok(near(seen.radius, GEOMETRY.ring, 1e-9));
-    assert.ok(Math.abs(between(seen.angle, domain.angle)) < 1e-9);
-    // And a point of the plate is projected back to where it is seen.
-    const [x, y] = project(camera, domain.angle, GEOMETRY.ring);
-    assert.ok(near(x, 0.1, 1e-9) && near(y, 0, 1e-9));
-    const [px, py] = project(camera, domain.a0, 0.6);
-    const back = unproject(camera, px, py);
-    assert.ok(near(back.radius, 0.6, 1e-9) && Math.abs(between(back.angle, domain.a0)) < 1e-9);
-  }
-  const back = cameraWhole(turned);
-  assert.equal(back.scale, 1);
-  assert.ok(near(back.rotate % TAU, 0) || near(Math.abs(back.rotate % TAU), TAU));
-  assert.ok(Math.abs(back.rotate - turned) <= Math.PI + 1e-9);
-});
-
-test('the address says what is open, most specific first, and keeps the careers', () => {
-  assert.equal(atlasHref({}), '/atlas');
-  assert.equal(atlasHref({ domain: 'quality' }), '/atlas?domain=quality');
-  assert.equal(atlasHref({ domain: 'quality', group: 'calibration' }), '/atlas?group=calibration');
-  assert.equal(atlasHref({ domain: 'quality', group: 'calibration', skill: 'abc' }), '/atlas?skill=abc');
-  assert.equal(atlasHref({ group: 'calibration', career: 'c1', with: 'c2' }), '/atlas?group=calibration&career=c1&with=c2');
-  // A second career with no first is the first; a career is not compared with itself.
-  assert.equal(atlasHref({ with: 'c2' }), '/atlas?career=c2');
-  assert.equal(atlasHref({ career: 'c1', with: 'c1' }), '/atlas?career=c1');
-  assert.deepEqual(readAtlasState(new URLSearchParams('skill=abc&career=c1&with=c2')), { domain: null, group: null, skill: 'abc', career: 'c1', with: 'c2', at: null });
+test('the Skills list narrowed to a group opens the Atlas on that group, and the Atlas on a group the list narrowed to it', () => {
   assert.equal(skillsListHref(), '/explore?tab=skills');
+  assert.equal(skillsListHref('quality'), '/explore?tab=skills&domain=quality');
   assert.equal(skillsListHref('quality', 'calibration'), '/explore?tab=skills&domain=quality&group=calibration');
+  // A group is one of a domain's: alone it narrows nothing.
   assert.equal(skillsListHref(null, 'calibration'), '/explore?tab=skills');
+  // Every group of the taxonomy is a place on the Atlas the list can lead to, and every domain opens something there.
+  for (const domain of taxonomy.domains) {
+    assert.doesNotMatch(cleaned(atlasHref({ domain: domain.slug }).split('?')[1]), /domain=/, domain.slug);
+    for (const group of domain.groups) {
+      const href = atlasHref({ group: group.slug });
+      assert.equal(cleaned(href.split('?')[1]), href, `${group.slug} is not on the wheel`);
+    }
+  }
+});
+
+// ---- what the old plate's checks held that the wheel still owes ---------------------------------------------------
+
+test('no safety group is at the top of the wheel: it opens on Measuring at twelve, and Shop safety lies at the lower left', () => {
+  // At rest the wheel's own start is at twelve o'clock and its angles go round clockwise (lens.ts, plate.ts).
+  const hours = (angle: number) => (angle / TAU) * 12;
+  const span = (slug: string) => [hours(model.sp0[g(slug)]), hours(model.sp1[g(slug)])];
+  assert.equal(model.G[model.core[0]].slug, 'measurement-tools');
+  const [from, to] = span('measurement-tools');
+  assert.ok(from >= 0 && from < 0.25 && to < 3, `Measuring runs from ${from.toFixed(2)} to ${to.toFixed(2)} o'clock`);
+  // The three of the twelve that are about safety: none reaches within two hours of twelve, and Shop safety,
+  // the one with no hue, lies wholly between six and ten.
+  for (const slug of ['hazardous-energy', SAFETY, 'hazardous-materials']) {
+    const [a, b] = span(slug);
+    assert.ok(a >= 2 && b <= 10, `${slug} runs from ${a.toFixed(2)} to ${b.toFixed(2)} o'clock`);
+  }
+  const [a, b] = span(SAFETY);
+  assert.ok(a >= 6 && b <= 10, `Shop safety runs from ${a.toFixed(2)} to ${b.toFixed(2)} o'clock`);
 });

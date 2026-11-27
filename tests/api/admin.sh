@@ -227,7 +227,8 @@ expect "the editor's path is in the order the career's page draws" "$(req p GET 
 OUT=$(req p GET /occupations/$OA)
 expect "a career's path carries level, group and domain" "$REC Plasma Etching|1|$GRP|$(groupName "$GRP")|$(domainOf "$GRP")" "$(printf '%s' "$OUT" | j "skills.map((s) => [s.name, s.level, s.group.slug, s.group.name, s.domain.name].join('|'))[0]")"
 expect "lowest level first"           "1 2" "$(printf '%s' "$OUT" | j "skills.map((s) => s.level).join(' ')")"
-expect "how it is learned, and no stage or category of its own" "domain,group,howLearned,id,importance,level,name" "$(printf '%s' "$OUT" | j "skills.map((s) => Object.keys(s).sort().join())[0]")"
+# What a skill is and how it is learned ride with the path: a career's page opens each skill to them as its card.
+expect "what it is and how it is learned, and no stage or category of its own" "description,domain,group,howLearned,id,importance,level,name" "$(printf '%s' "$OUT" | j "skills.map((s) => Object.keys(s).sort().join())[0]")"
 # A skill's level is the skill's: changing it moves the skill in every path it is on.
 sql "INSERT INTO occupation_skills (occupation_id, skill_id) VALUES ('$OB', '$SC')" >/dev/null
 check "change a skill's level"        200 "$(req a PUT /skills/$SC '{"level":3}')" '"level":3'

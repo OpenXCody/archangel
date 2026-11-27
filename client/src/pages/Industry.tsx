@@ -6,7 +6,6 @@ import { industriesApi, type IndustryDetail, type IndustryEmployer } from '../li
 import { industryBySlug, industryLabel } from '@shared/industry';
 import { stateName, titleCase } from '../lib/places';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
-import { formatPay } from '../lib/jobFormat';
 import { cn, companyFigure, focusRing, plural } from '@/lib/utils';
 import CompanyLogo from '../components/CompanyLogo';
 import {
@@ -34,7 +33,7 @@ import {
   type PagePlace,
 } from '../components/industry/parts';
 import { publicKeys } from '../lib/queryKeys';
-import { jobPath } from '@shared/jobs';
+import { JobRecordRow } from '../components/jobs/JobRow';
 
 const CAREERS_SHOWN = 8;
 /** The states (or a state's towns) listed before "Show all": the section sits near the top of the page, so it starts short. */
@@ -118,7 +117,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               plants: state.plants,
             }))}
           />
-          {states.length > STATES_SHOWN && <ShowAll open={allStates} total={states.length} onToggle={() => setAllStates((value) => !value)} />}
+          {states.length > STATES_SHOWN && <ShowAll alone open={allStates} total={states.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
       {cities.length > 0 && (
@@ -132,7 +131,7 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
               return { key: `${city.name}-${city.state ?? ''}`, to: `/map?${query}`, label: name, plants: city.plants };
             })}
           />
-          {cities.length > STATES_SHOWN && <ShowAll open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
+          {cities.length > STATES_SHOWN && <ShowAll alone open={allStates} total={cities.length} onToggle={() => setAllStates((value) => !value)} />}
         </DetailSection>
       )}
 
@@ -140,14 +139,9 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
         <DetailSection id="jobs" title="Open jobs">
           <RecordList>
             {data.jobs.map((job) => (
-              <RecordRow
-                key={job.id}
-                to={jobPath(job)}
-                title={job.title}
-                subtitle={[formatCompanyName(job.companyName), job.city ? titleCase(job.city) : null, job.payMin !== null && job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null]
-                  .filter(Boolean)
-                  .join(' · ')}
-              />
+              // The page names an industry, never a career or a company: a row is the job's name, its company and its
+              // place (the city alone where the page is one state's or one focus area's).
+              <JobRecordRow key={job.id} job={job} said={{ state: data.place.kind !== 'country', among: data.jobs }} />
             ))}
           </RecordList>
           {data.openJobs > data.jobs.length && (
@@ -223,12 +217,11 @@ function IndustryBody({ data }: { data: IndustryDetail }) {
       {/* What work is here */}
       {data.careers.length > 0 && (
         <DetailSection id="careers" title="Careers in this industry">
-          <RecordList>
+          <RecordList footer={careersCut && <ShowAll open={allCareers} total={data.careers.length} onToggle={() => setAllCareers((value) => !value)} />}>
             {careers.map((career) => (
               <RecordRow key={career.id} to={`/occupations/${career.id}`} title={career.title} />
             ))}
           </RecordList>
-          {careersCut && <ShowAll open={allCareers} total={data.careers.length} onToggle={() => setAllCareers((value) => !value)} />}
         </DetailSection>
       )}
     </>

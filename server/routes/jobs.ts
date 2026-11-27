@@ -20,8 +20,9 @@ import { uuidParam } from '../middleware/validateUuid.js';
 import { SCOPE } from '../../shared/scope.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { applicationReceived, applicationStatusChanged } from '../lib/notices.js';
-import { jobTextFilter, milesFromFactory, readNear } from '../lib/jobSearch.js';
+import { jobTextFilter, jobTextRank, milesFromFactory, readNear } from '../lib/jobSearch.js';
 import { countOpenJobs, jobIsOpen, jobsInOrder, listOpenJobs } from '../lib/openJobs.js';
+import { jobAsGiven } from '../lib/jobRows.js';
 import { hasVersionOf, readVersion, versionPathSkills } from '../lib/versions.js';
 import { placeOf, placeSql, type SkillPlace } from '../lib/taxonomy.js';
 import { jobPath, readJobNumber } from '../../shared/jobs.js';
@@ -56,6 +57,8 @@ const jobSummary = {
   id: jobs.id,
   serial: jobs.serial,
   title: jobs.title,
+  // The title a job from a careers site was posted under: read for its own name (`ownName`) and never given.
+  postedAs: jobs.postedAs,
   employmentType: jobs.employmentType,
   shift: jobs.shift,
   payMin: jobs.payMin,
@@ -92,9 +95,11 @@ function cents(value: unknown): number | null {
 
 // GET /api/jobs?occupationId=&companyId=&factoryId=&skillId=&q=&state=&near=<lat>,<lng>&within=<miles>&limit=&offset=
 // `q`: every word typed must be in the job's title, company, career, shift or
-// place. `near`: only jobs whose factory is within `within` miles (50 unless
+// place, or in the title its employer posted it under (matched, never given:
+// server/lib/jobSearch.ts). `near`: only jobs whose factory is within `within` miles (50 unless
 // said) of the point, nearest first, each with its distance as `miles`.
-// A page of the list, newest first, with `total`: how many jobs match in all.
+// A page of the list, newest first, with `total`: how many jobs match in all. Each job carries
+// `ownName`: the opening's own name beside its standard one, or null (server/lib/jobRows.ts).
 router.get(
   '/',
   handle(async (req, res) => {
@@ -109,6 +114,7 @@ router.get(
     }
     const typed = jobTextFilter(q);
     if (typed) filters.push(typed);
+    const shownFirst = jobTextRank(q);
     if (typeof state === 'string' && /^[A-Za-z]{2}$/.test(state)) filters.push(eq(factories.state, state.toUpperCase()));
     const near = readNear(req.query.near, req.query.within);
     if (near === 'invalid') {
@@ -127,8 +133,10 @@ router.get(
         .innerJoin(factories, eq(factories.id, jobs.factoryId))
         .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
         .where(and(...filters))
-        // Nearest first where a place was given; then the newest day, the companies of a day in turn (jobsInOrder).
-        .orderBy(...(miles ? [sql`${miles} ASC`] : []), jobsInOrder())
+        // Where words were typed, the jobs whose rows say them before the ones found only by the title they were
+        // posted under (jobTextRank). Nearest first where a place was given; then the newest day, the companies of a
+        // day in turn (jobsInOrder).
+        .orderBy(...(shownFirst ? [shownFirst] : []), ...(miles ? [sql`${miles} ASC`] : []), jobsInOrder())
         .limit(limit)
         .offset(offset),
       db
@@ -139,7 +147,7 @@ router.get(
         .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
         .where(and(...filters)),
     ]);
-    res.json({ jobs: rows, total: counted?.total ?? 0, limit, offset });
+    res.json({ jobs: rows.map(jobAsGiven), total: counted?.total ?? 0, limit, offset });
   })
 );
 
@@ -179,9 +187,10 @@ interface JobPathSkill extends SkillPlace {
 }
 
 /**
- * The skills a job's page draws. A job is an opening for a career, so what it
- * takes is the career's path, not only the handful of skills a posting's text
- * happened to name.
+ * The skills a job's page draws from. A job is an opening for a career, and a career is a
+ * template with a wide range of skills of which a job has its own combination: the answer
+ * gives the career's path with what the posting names marked on it, and the page lists the
+ * job's own skills (the named ones) and keeps the rest of the range behind one closed line.
  *
  * `of` says whose list `skills` is:
  * - `version`: the job came from the company's careers site and the company has its own version of
@@ -192,8 +201,8 @@ interface JobPathSkill extends SkillPlace {
  *   choice (`job_skills`); nothing is added from the career.
  *
  * `skills` is always in path order (level, domain, group, the skill's place in its group), each with
- * its level, group and domain, so the page lays it out as a career's path is laid out. On a job from
- * a careers site each skill says whether the posting names it (`named`).
+ * its level, group and domain, so the page lays the range out as a career's path is laid out. On a job
+ * from a careers site each skill says whether the posting names it (`named`).
  *
  * `alsoNamed` is what the posting names that is not on that path: skills in `job_skills` (or the
  * skill of a make in `job_makes`) that the career's path does not have. Empty for a job posted by hand.
@@ -351,7 +360,8 @@ async function readJobPage(req: Request, where: SQL) {
 
   return {
     // `href` is the job's address as links are written today (shared/jobs.ts): the page puts it in place of an older one.
-    job: { ...job, isOpen, href: jobPath(job) },
+    // `ownName` is the opening's own name beside its standard one; the title it was posted under is not given.
+    job: { ...jobAsGiven(job), isOpen, href: jobPath(job) },
     // The job's own rows (`job_skills`), by name. The page draws `path`; this stays for other readers.
     skills: skillRows.map((skill) => ({ ...skill, makes: makesOf(skill.id) })),
     path,

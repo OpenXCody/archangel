@@ -1,24 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { formatPay } from '../../lib/jobFormat';
 import { type CareerJob, type MilitaryCareerRow } from '../../lib/api';
-import { formatCompanyName } from '@shared/displayName';
+import type { JobListSays } from '../../lib/jobRow';
 import { industryLabel, industryPath } from '@shared/industry';
 import { kindLine } from '@shared/military';
 import FootprintMap from './FootprintMap';
 import { titleCase } from '../../lib/places';
-import {
-  DetailSection,
-  sectionLinkClass,
-  RecordList,
-  RecordRow,
-  ShowAll,
-  recordListClass,
-} from '../layout/Page';
-import { jobPath } from '@shared/jobs';
-import { labelClass } from '@/lib/utils';
-import { ShareRing } from '../path/HeldShare';
-import type { Share } from '@shared/route';
+import { DetailSection, RecordList, RecordRow, ShowAll, recordListClass } from '../layout/Page';
+import { PanelFooterLink } from '../layout/Panel';
+import { JobRecordRow } from '../jobs/JobRow';
 
 /*
  * What the four record pages share: the heading block's inputs, the footprint
@@ -57,38 +46,28 @@ export function Footprint({ children, ...map }: React.ComponentProps<typeof Foot
   );
 }
 
-/** Open jobs at a company, a factory, for a career or asking for a skill. Drawn only when there is one. */
-export function OpenJobsSection({ jobs, showCareer = false, total, all }: { jobs: CareerJob[]; showCareer?: boolean; total?: number; all?: string }) {
+/**
+ * Open jobs at a company, a factory, for a career or asking for a skill. Drawn only when there is one.
+ * `said` is what the page has already said of every job in the list (its career, its company, its factory): a row's
+ * first line is a job's name, always, with the opening's own name beside it, and it never repeats what the page has
+ * said (`JobRecordRow`; `jobRow` in lib/jobRow.ts is the rule).
+ */
+export function OpenJobsSection({ jobs, said, total, all }: { jobs: CareerJob[]; said?: JobListSays; total?: number; all?: string }) {
   // The page lists the newest few. When more are open, one link leads to all of them on Jobs.
   const more = all && typeof total === 'number' && total > jobs.length;
   return (
-    <DetailSection
-      id="jobs"
-      title="Open jobs"
-      action={
-        more ? (
-          <Link to={all} className={sectionLinkClass} data-all-jobs>
-            All {total.toLocaleString('en-US')}
-          </Link>
-        ) : undefined
-      }
-    >
-      <RecordList>
+    <DetailSection id="jobs" title="Open jobs">
+      <RecordList
+        footer={
+          more ? (
+            <PanelFooterLink to={all} data-all-jobs="">
+              All {total.toLocaleString('en-US')} open jobs
+            </PanelFooterLink>
+          ) : undefined
+        }
+      >
         {jobs.map((job) => (
-          <RecordRow
-            key={job.id}
-            to={jobPath(job)}
-            title={job.title}
-            subtitle={[
-              // The career is said only when the job is not simply named after it.
-              showCareer ? (job.occupationTitle !== job.title ? job.occupationTitle : null) : formatCompanyName(job.companyName),
-              job.city ? titleCase(job.city) : null,
-              // A job from a company's careers site that states no pay says nothing about pay.
-              job.payMin !== null || job.payMax !== null ? formatPay(job.payMin, job.payMax, job.payPeriod) : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          />
+          <JobRecordRow key={job.id} job={job} said={{ ...said, among: jobs }} />
         ))}
       </RecordList>
     </DetailSection>
@@ -105,7 +84,7 @@ export function IndustryRows({ industries }: { industries: { name: string; facto
   const cut = industries.length > INDUSTRIES_SHOWN + 2;
   return (
     <>
-      <RecordList>
+      <RecordList footer={cut && <ShowAll open={showAll} total={industries.length} onToggle={() => setShowAll((value) => !value)} />}>
         {(showAll || !cut ? industries : industries.slice(0, INDUSTRIES_SHOWN)).map((industry) => (
           <RecordRow
             key={industry.name}
@@ -116,7 +95,6 @@ export function IndustryRows({ industries }: { industries: { name: string; facto
           />
         ))}
       </RecordList>
-      {cut && <ShowAll open={showAll} total={industries.length} onToggle={() => setShowAll((value) => !value)} />}
     </>
   );
 }
@@ -136,7 +114,7 @@ export function MilitaryCareerRows({ careers, ...rest }: { careers: (MilitaryCar
   const cut = careers.length > MILITARY_SHOWN + 2;
   return (
     <>
-      <RecordList {...rest}>
+      <RecordList {...rest} footer={cut && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}>
         {(showAll || !cut ? careers : careers.slice(0, MILITARY_SHOWN)).map((career) => (
           <RecordRow
             key={career.id}
@@ -147,31 +125,6 @@ export function MilitaryCareerRows({ careers, ...rest }: { careers: (MilitaryCar
           />
         ))}
       </RecordList>
-      {cut && <ShowAll open={showAll} total={careers.length} onToggle={() => setShowAll((value) => !value)} />}
     </>
-  );
-}
-
-/**
- * The heading of a career's skills, on the route's first line beside "Open
- * all": the word, an admin's Draft, and a seeker's share, quietly, once they
- * hold a skill of it ("5 of 33 held"; never "0 of").
- */
-export function SkillsHeading({ id, held, note }: { id: string; held: Share | null; note?: React.ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-      <h2 id={id} className={labelClass}>
-        Skills
-      </h2>
-      {note}
-      {held && held.held > 0 && (
-        <span className="inline-flex items-center gap-1.5 self-center text-[13px] text-text-3" data-held-count>
-          <ShareRing share={held} className="h-4 w-4" />
-          <span>
-            <span className="tabular-nums text-text-1">{held.held}</span> of {held.total} held
-          </span>
-        </span>
-      )}
-    </div>
   );
 }

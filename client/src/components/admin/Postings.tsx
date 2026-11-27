@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { formatFactoryName } from '@shared/displayName';
 import { useDecidePlace, usePostingSources, useWaitingPlaces, type PostingSource, type WaitingPlace } from '../../lib/postings';
 import { formatDayCapital } from '../../lib/dates';
+import { cityState, titleCase } from '../../lib/places';
 import { CardNote, Dot, ErrorNote, LoadError, RowsSkeleton, busyButtonClass, cardClass, fieldClass, outlineButtonClass, rowClass, textButtonClass } from '../account/parts';
 import Panel from './Panel';
 import { useAdminNotice } from './AdminNotice';
@@ -26,7 +27,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
   const decide = useDecidePlace();
   const notice = useAdminNotice();
   const [plantId, setPlantId] = useState('');
-  const where = `${place.city}, ${place.state}`;
+  const where = cityState(place.city, place.state);
   const key = { source: place.source, placeKey: place.placeKey };
   const selectId = `place-${place.source}-${place.placeKey}`.replace(/[^a-z0-9-]+/gi, '-');
 
@@ -70,7 +71,7 @@ function PlaceRow({ place, nextFocus }: { place: WaitingPlace; nextFocus?: strin
               <option value="">Choose a factory</option>
               {place.plants.map((plant) => (
                 <option key={plant.id} value={plant.id}>
-                  {[formatFactoryName(plant.name), plant.city ? formatFactoryName(plant.city) : null].filter(Boolean).join(', ')}
+                  {[formatFactoryName(plant.name), plant.city ? titleCase(plant.city) : null].filter(Boolean).join(', ')}
                 </option>
               ))}
             </select>

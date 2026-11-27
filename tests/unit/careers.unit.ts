@@ -33,6 +33,8 @@ interface IndustriesFile {
 interface AliasesFile {
   note: string;
   careers: { title: string; aliases: string[]; not?: string[] }[];
+  /** The words that make a posting's title not ours, whatever career it also names: read by the posting reader, loaded into no table. */
+  notOurs?: { why: string; words: string[]; exceptIn?: string[] };
 }
 
 const BUILDER = 'scripts/build-careers-sql.mjs';
@@ -41,9 +43,12 @@ const CATALOGUE = 'data/careers/catalogue.json';
 const TAXONOMY = 'data/skills/taxonomy.json';
 const INDUSTRY_LIST = 'data/careers/industries.json';
 const ALIASES = 'data/careers/aliases.json';
-// The latest of each. 0046 was the catalogue's first; 0047 and 0056 the lists' first and second; each is as it was applied.
-const MIGRATION = 'migrations/0073_careers_catalogue_2.sql';
-const LISTS_MIGRATION = 'migrations/0074_career_lists_3.sql';
+// The latest of each. 0046 and 0073 were the catalogue's first and second; 0047, 0056 and 0074 the lists' first three; each is as it was applied.
+const MIGRATION = 'migrations/0084_careers_catalogue_3.sql';
+const LISTS_MIGRATION = 'migrations/0085_career_lists_4.sql';
+const SECOND_MIGRATION = 'migrations/0073_careers_catalogue_2.sql';
+// The careers that left the catalogue with its third migration: cleaning a plant, and preparing food by hand.
+const TAKEN_OUT = ['Sanitation Technician', 'Meat Cutter', 'Slaughterer', 'Baker'];
 
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T;
 const catalogue = read<CatalogueFile>(CATALOGUE);
@@ -288,12 +293,55 @@ test('the catalogue migration decides in the database, keeps one path and loses 
   }
   // One path, never a union: the keeper's skills are replaced, not added to.
   assert.match(sql, /DELETE FROM occupation_skills WHERE occupation_id = v_keeper;\s+UPDATE occupation_skills SET occupation_id = v_keeper WHERE occupation_id = v_donor;/);
-  // A removed title with a job that has applications, or that is somebody's goal, stays.
-  assert.match(sql, /ELSIF m\.applications > 0 THEN[\s\S]*?ELSIF m\.goals > 0 THEN[\s\S]*?ELSE\s+DELETE FROM occupations WHERE id = m\.id;/);
+  // A removed title with a job that has applications, that is somebody's goal, or that anything else hangs from (a
+  // company's own version of it) stays. What else hangs from a career is asked of the database's foreign keys, as the
+  // employer loader's merge guard asks: the migration names no table of a version (tests/unit/versions.unit.ts holds
+  // that no migration does), and a table added later is guarded without this file knowing it.
+  const removal = sql.slice(sql.indexOf('FROM cat_removed r LEFT JOIN occupations o'), sql.indexOf('-- A career the file does not name is left alone'));
+  assert.match(removal, /ELSIF m\.applications > 0 THEN[\s\S]*?ELSIF m\.goals > 0 THEN[\s\S]*?ELSIF m\.others IS NOT NULL THEN[\s\S]*?ELSE[\s\S]*?DELETE FROM occupations WHERE id = m\.id;/);
+  assert.match(sql, /pg_temp\.cat_goes_with\(o\.id\) AS others/);
+  assert.match(sql, /WHERE c\.confrelid = 'occupations'::regclass AND c\.contype = 'f' AND c\.confdeltype = 'c'/);
+  // What a removal knowingly takes with a career, and nothing more.
+  assert.match(sql, /NOT IN \('occupation_skills', 'occupation_aliases', 'occupation_links', 'industry_occupations',\s+'factory_occupations', 'jobs', 'user_goals'\)/);
+  assert.doesNotMatch(sql, /company_career/);
+  assert.equal(removal.match(/DELETE FROM occupations\b/g)?.length, 1, 'a career is deleted in one place, after every reason to keep it');
   // Each decision is written down.
-  for (const action of ['kept', 'renamed', 'created', 'folded', 'path', 'no path', 'not found', 'removed', 'not removed', 'not in the file', 'summary']) {
+  for (const action of ['kept', 'renamed', 'created', 'folded', 'path', 'no path', 'not found', 'removed', 'not removed', 'jobs removed', 'postings unstaged', 'not in the file', 'summary']) {
     assert.ok(sql.includes(`cat_log('${action}'`), `the log has "${action}"`);
   }
+});
+
+test('a removed career goes with its jobs and with what the postings pipeline keeps of them', () => {
+  const sql = readFileSync(MIGRATION, 'utf8');
+  const at = (text: string) => {
+    const i = sql.indexOf(text);
+    assert.ok(i >= 0, `the migration has: ${text}`);
+    return i;
+  };
+  // Before the career is deleted (its jobs go with it by the foreign key, and with them their skills and makes):
+  // the outside ids of its jobs, which no foreign key holds, and the staged postings read as it.
+  const ids = at("DELETE FROM external_references x USING jobs j WHERE x.entity_type = 'jobs' AND x.entity_id = j.id AND j.occupation_id = m.id;");
+  const staged = at('FROM pg_temp.cat_unstage(m.title) u;');
+  // (The same words delete a folded row, earlier in the file: the one that deletes a removed career follows these.)
+  const career = sql.indexOf('DELETE FROM occupations WHERE id = m.id;', staged);
+  assert.ok(ids < staged && staged < career, 'ids, then staging, then the career');
+  // Staging: a source of jobs only, the reading's career by its title in any letter case; the links and reviews follow by their foreign keys.
+  at("WHERE s.kind = 'job' AND lower(r.facts->'reading'->'career'->>'title') = lower(p_title);");
+  at('DELETE FROM intake_records r USING cat_unstaged u WHERE r.source = u.source AND r.source_id = u.source_id;');
+  // A place stops waiting only when it waited (a person's or the data's decision stays), the postings that went named
+  // it, and no posting still standing does.
+  const places = sql.slice(at('DELETE FROM posting_places pp'), at('GET DIAGNOSTICS places = ROW_COUNT;'));
+  assert.match(places, /WHERE pp\.status = 'waiting'\s+AND EXISTS \(SELECT 1 FROM cat_unstaged u,[\s\S]*?AND NOT EXISTS \(SELECT 1 FROM intake_records r,[\s\S]*?r\.gone_run_id IS NULL/);
+  // A title to remove that is not stored is still cleared from staging (a run that read with the catalogue as it was).
+  at('FROM pg_temp.cat_unstage(m.named) u;');
+  // What went is said, for a person to read on a database that had careers.
+  at("cat_log('jobs removed', NOT v_new");
+  at("cat_log('postings unstaged', NOT v_new");
+  // Nothing of the pipeline's history is rewritten, and no job is deleted but through its career.
+  assert.ok(!/DELETE FROM (jobs|intake_changes|intake_runs|load_log|posting_passes)\b/.test(sql), 'the journal, the runs and the log stay');
+  // It stands after the tables it reads.
+  const list = readFileSync('scripts/migrate.mjs', 'utf8');
+  for (const before of ["'0043_intake.sql'", "'0054_job_postings.sql'"]) assert.ok(list.indexOf(before) < list.indexOf("'0084_careers_catalogue_3.sql'"), `0084 comes after ${before}`);
 });
 
 test('both migrations are in the runner\'s list, the lists after the catalogue', () => {
@@ -303,6 +351,9 @@ test('both migrations are in the runner\'s list, the lists after the catalogue',
   // The catalogue's second comes after the skills' fifth and its taxonomy (a home is a domain), and the lists' third right after it.
   assert.match(runner, /'0073_careers_catalogue_2\.sql', '0074_career_lists_3\.sql'/);
   assert.ok(runner.indexOf("'0071_skill_taxonomy_5.sql'") < runner.indexOf("'0073_careers_catalogue_2.sql'"));
+  // The catalogue's third, the lists' fourth and the paths' third stand together, after everything applied before them.
+  assert.match(runner, /'0084_careers_catalogue_3\.sql', '0085_career_lists_4\.sql', '0086_career_paths_3\.sql'/);
+  assert.ok(runner.indexOf("'0082_texas_hubs_2.sql'") < runner.indexOf("'0084_careers_catalogue_3.sql'"));
 });
 
 test('a name taken back is deleted from its career only, said in the log, and listed for nobody', () => {
@@ -310,7 +361,7 @@ test('a name taken back is deleted from its career only, said in the log, and li
   const taken = aliases.careers.flatMap((row) => (row.not ?? []).map((name) => [row.title, name] as const));
   assert.ok(taken.length > 0, 'the list takes some names back');
   // The earlier lists, and the titles the first catalogue folded in (a title folded then may be a career of its own now).
-  const earlier = ['migrations/0047_career_lists.sql', 'migrations/0056_career_lists_2.sql', 'migrations/0046_careers_catalogue.sql'].map((file) => readFileSync(file, 'utf8')).join('\n');
+  const earlier = ['migrations/0047_career_lists.sql', 'migrations/0056_career_lists_2.sql', 'migrations/0074_career_lists_3.sql', 'migrations/0046_careers_catalogue.sql'].map((file) => readFileSync(file, 'utf8')).join('\n');
   for (const [title, name] of taken) {
     assert.ok(sql.includes(`  ('${name.replace(/'/g, "''")}', '${title}')`), `${name} is taken back from ${title}`);
     // A name that means other work elsewhere is not another career's either.
@@ -333,19 +384,21 @@ test('a name taken back is deleted from its career only, said in the log, and li
   at("'name not added'");
 });
 
+const rowTitles = (sql: string) => new Set([...sql.matchAll(/^ {2}\(\d+, '((?:[^']|'')+)', '[a-z]+', '(?:[^']|'')*'\)[,;]$/gm)].map((m) => m[1].replace(/''/g, "'")));
+
 test('the second catalogue adds the trades of the industries it lacked: each with a home, a description and a place on the lists', () => {
   const before = readFileSync('migrations/0046_careers_catalogue.sql', 'utf8');
-  const after = readFileSync(MIGRATION, 'utf8');
-  const titles = (sql: string) => new Set([...sql.matchAll(/^ {2}\(\d+, '((?:[^']|'')+)', '[a-z]+', '(?:[^']|'')*'\)[,;]$/gm)].map((m) => m[1].replace(/''/g, "'")));
-  const was = titles(before);
-  const now = titles(after);
+  const after = readFileSync(SECOND_MIGRATION, 'utf8');
+  const was = rowTitles(before);
+  const now = rowTitles(after);
   assert.equal(was.size, 156);
   assert.equal(now.size, 231);
   for (const title of was) assert.ok(now.has(title), `${title} is still a career`);
   const added = [...now].filter((title) => !was.has(title));
   assert.equal(added.length, 75);
+  // Every one of them that is still a career is typical of an industry (four have left since: the next check).
   const named = new Map(industries.industries.flatMap((row) => row.careers.map((title) => [title, row.industry] as const)));
-  for (const title of added) assert.ok(named.has(title), `${title} is typical of an industry`);
+  for (const title of added) assert.ok(named.has(title) || TAKEN_OUT.includes(title), `${title} is typical of an industry`);
   // A level, a single machine, a product or an employer's program is another name, never a career.
   for (const title of ['Kiln Operator', 'Field Service Technician', 'Thermoforming Operator', 'Wire Drawing Operator', 'Head Brewer', 'Cellar Worker']) assert.ok(!now.has(title), `${title} is not a career of its own`);
   // Names that moved: the molding technician's names are the process technician's now, not the operator's.
@@ -357,10 +410,149 @@ test('the second catalogue adds the trades of the industries it lacked: each wit
   }
   // The careers that leave a ladder at the bottom have a rung above them now.
   const leads = new Map(catalogue.careers.map((career) => [career.title, career.leadsTo]));
-  assert.ok(leads.get('Food Processing Operator')!.includes('Baker'));
+  assert.ok(leads.get('Food Processing Operator')!.includes('Cheesemaker'));
   assert.ok(leads.get('Welder')!.includes('Pipefitter'));
   assert.ok(leads.get('Metal Fabricator')!.includes('Shipfitter'));
   assert.ok(leads.get('Wire Harness Assembler')!.includes('Marine Electrician'));
+});
+
+test('the third catalogue takes out cleaning a plant and preparing food by hand, and nothing else', () => {
+  const before = readFileSync(SECOND_MIGRATION, 'utf8');
+  const after = readFileSync(MIGRATION, 'utf8');
+  const was = rowTitles(before);
+  const now = rowTitles(after);
+  assert.equal(now.size, 227);
+  assert.equal(catalogue.careers.length, 227);
+  assert.deepEqual([...was].filter((title) => !now.has(title)).sort(), [...TAKEN_OUT].sort(), 'the four, and only they, are careers no longer');
+  assert.deepEqual([...now].filter((title) => !was.has(title)), [], 'no career is added');
+  // They are under `removed`, in one group that says why, so the migration deletes them and the title cannot come back unnoticed.
+  const group = catalogue.removed.find((each) => each.titles.includes('Sanitation Technician'))!;
+  assert.deepEqual(group.titles, TAKEN_OUT);
+  assert.match(group.why, /Cleaning a plant and preparing food by hand/);
+  for (const title of TAKEN_OUT) assert.ok(after.includes(`, '${title}')`), `${title} is a row of cat_removed`);
+  assert.equal(catalogue.removed.reduce((sum, each) => sum + each.titles.length, 0), 17);
+  // Every other career's row is as the second catalogue wrote it: title, home and what.
+  const rows = (sql: string) => new Map([...sql.matchAll(/^ {2}\(\d+, ('(?:[^']|'')+', '[a-z]+', '(?:[^']|'')*')\)[,;]$/gm)].map((m) => [m[1].split("', '")[0], m[1]] as const));
+  const [rowsBefore, rowsAfter] = [rows(before), rows(after)];
+  for (const [title, row] of rowsAfter) assert.equal(row, rowsBefore.get(title), `${title} is as it was`);
+  // The ladders: the five links that named one of the four are gone, and one is added so that Food Safety and Quality
+  // Technician, which only the three that left led to, still has a career below it. No other link changed.
+  // (A link is `from, to` with its place among the careers `from` leads to: Cheesemaker moves up to the place Baker had.)
+  const linkRows = (sql: string) => sql.slice(sql.indexOf('INSERT INTO cat_links'), sql.indexOf('INSERT INTO cat_drop')).split('\n').filter((line) => line.startsWith('  (')).map((line) => line.replace(/[,;]$/, ''));
+  const links = (sql: string) => new Set(linkRows(sql).map((line) => line.replace(/, \d+\)$/, ')')));
+  const [linksBefore, linksAfter] = [links(before), links(after)];
+  assert.equal(linksBefore.size, 195);
+  assert.equal(linksAfter.size, 191);
+  const gone = [...linksBefore].filter((link) => !linksAfter.has(link));
+  assert.equal(gone.length, 5);
+  for (const link of gone) assert.ok(TAKEN_OUT.some((title) => link.includes(`'${title}'`)), `${link} named one of the four`);
+  assert.deepEqual([...linksAfter].filter((link) => !linksBefore.has(link)), ["  ('Food Processing Operator', 'Food Safety and Quality Technician')"]);
+  const placed = new Set(linkRows(before));
+  assert.deepEqual(
+    linkRows(after).filter((line) => !placed.has(line)),
+    ["  ('Food Processing Operator', 'Cheesemaker', 2)", "  ('Food Processing Operator', 'Food Safety and Quality Technician', 3)"],
+    'one link changes its place, one is new, and none other'
+  );
+  assert.deepEqual(catalogue.careers.find((career) => career.title === 'Food Processing Operator')!.leadsTo, ['Maintenance Technician', 'Cheesemaker', 'Food Safety and Quality Technician']);
+  // Which careers no career leads to any more: Baker, which left, and Food Scientist, which only Baker led to and
+  // which now starts its ladder as the engineers start theirs. Food Safety and Quality Technician is not among them.
+  const reached = (sql: string) => new Set([...links(sql)].map((link) => /, '((?:[^']|'')+)'\)$/.exec(link)![1]));
+  assert.deepEqual([...reached(before)].filter((title) => !reached(after).has(title)).sort(), ['Baker', 'Food Scientist']);
+  // No list names one: not a ladder, an industry, an everyday name's career, or a name another career goes by.
+  for (const career of catalogue.careers) for (const next of career.leadsTo) assert.ok(!TAKEN_OUT.includes(next), `${career.title} leads to ${next}`);
+  for (const row of industries.industries) for (const title of row.careers) assert.ok(!TAKEN_OUT.includes(title), `${row.industry} lists ${title}`);
+  const taken = new Set(TAKEN_OUT.map((title) => title.toLowerCase()));
+  for (const row of aliases.careers) {
+    assert.ok(!TAKEN_OUT.includes(row.title), `${row.title} has everyday names`);
+    for (const alias of row.aliases) assert.ok(!taken.has(alias.toLowerCase()), `"${alias}" is another name of ${row.title}`);
+  }
+  for (const career of catalogue.careers) for (const was of career.was) assert.ok(!taken.has(was.toLowerCase()), `"${was}" is folded into ${career.title}`);
+  // The food and drink careers that run process equipment stay.
+  for (const title of ['Food Processing Operator', 'Beverage Production Operator', 'Packaging Line Operator', 'Food Safety and Quality Technician', 'Food Safety Specialist',
+    'Food Scientist', 'Brewer', 'Winemaker', 'Cheesemaker', 'Distiller', 'Grain Miller']) assert.ok(now.has(title), `${title} is still a career`);
+  // The lists that follow it: 421 careers by industry (426 less the five places the four had), and 42 everyday names
+  // fewer, with five added (the production welder, who is the MIG Welder, and the TIG one; a body shop's weld
+  // technician as one employer titles it) and one taken back (a rigger is not a millwright). The reader's test holds
+  // what each changes.
+  const listsBefore = readFileSync('migrations/0074_career_lists_3.sql', 'utf8');
+  const listsAfter = readFileSync(LISTS_MIGRATION, 'utf8');
+  const listed = (sql: string, from: string, to: string) => sql.slice(sql.indexOf(from), sql.indexOf(to)).split('\n').filter((line) => line.startsWith('  (')).map((line) => line.replace(/[,;]$/, ''));
+  const own = (sql: string) => listed(sql, 'INSERT INTO list_industries', 'INSERT INTO list_names').filter((line) => line.endsWith(', false)'));
+  assert.equal(own(listsBefore).length, 426);
+  assert.equal(own(listsAfter).length, 421);
+  assert.equal(industries.industries.reduce((sum, row) => sum + row.careers.length, 0), 421);
+  const names = (sql: string) => listed(sql, 'INSERT INTO list_names', '-- Careers by industry');
+  assert.equal(names(listsBefore).length, 1156);
+  assert.equal(names(listsAfter).length, 1118);
+  const namesAfter = new Set(names(listsAfter));
+  const TAKEN_BACK = ["  ('rigger', 'Millwright')"];
+  for (const line of names(listsBefore)) assert.ok(namesAfter.has(line) || TAKEN_BACK.includes(line) || TAKEN_OUT.some((title) => line.endsWith(`, '${title}')`)), `${line} is still listed`);
+  for (const line of TAKEN_BACK) assert.ok(!namesAfter.has(line), `${line} is no longer a name`);
+  const namesBefore = new Set(names(listsBefore));
+  assert.deepEqual(
+    names(listsAfter).filter((line) => !namesBefore.has(line)),
+    [
+      "  ('production welder', 'MIG Welder')", "  ('production MIG welder', 'MIG Welder')", "  ('MIG production welder', 'MIG Welder')",
+      "  ('TIG production welder', 'TIG Welder')", "  ('EDV body weld technician', 'Body Weld Technician')",
+    ],
+    'the only names added'
+  );
+  // Two names more are taken back: a bakery's oven operator is not a painter, and a rigger is not a millwright.
+  assert.ok(listsAfter.includes("  ('Oven Operator', 'Automotive Paint Technician')"));
+  assert.ok(listsAfter.includes("  ('rigger', 'Millwright')"));
+  assert.equal(aliases.careers.reduce((sum, row) => sum + (row.not ?? []).length, 0), 14);
+});
+
+test('the words that make a title not ours: the check holds their shape, and no career is named with one', () => {
+  // The list as it stands: the words first written, the other spellings and the persons that go with them
+  // ("grounds keeper", "house keeping", "foodservice", "landscaper", "food preparation"), the ways the same work
+  // is said ("porter", "sanitizing", "hygiene", "grounds and maintenance", "lawn care", "canteen", "catering",
+  // "culinary"), and the work of the careers that left the catalogue ("meat cutting", "kill floor", "deboning").
+  assert.deepEqual(aliases.notOurs!.words, [
+    'janitor', 'janitorial', 'custodian', 'custodial', 'housekeeper', 'housekeeping', 'house keeper', 'house keeping', 'porter',
+    'sanitation', 'sanitor', 'sanitization', 'sanitizing', 'hygiene',
+    'groundskeeper', 'groundskeeping', 'grounds keeper', 'grounds keeping', 'grounds maintenance', 'grounds and maintenance', 'grounds and building',
+    'landscaping', 'landscaper', 'landscape', 'lawn care', 'lawn maintenance',
+    'cafeteria', 'canteen', 'catering', 'culinary', 'food service', 'foodservice', 'food prep', 'food preparation',
+    'meat cutter', 'meat cutting', 'butcher', 'kill floor', 'slaughter', 'deboning',
+  ]);
+  // A word of the list may stand in one of these and not count: a proving grounds has maintenance technicians.
+  assert.deepEqual(aliases.notOurs!.exceptIn, ['proving grounds']);
+  // Left off on purpose (real factory work is titled with them), and said so beside the list.
+  for (const word of ['building', 'facilities', 'cleaning', 'cleaner', 'clean', 'kitchen', 'bakery', 'deli', 'store', 'market', 'lawn', 'harvest', 'grounds']) {
+    assert.ok(!aliases.notOurs!.words.includes(word), `"${word}" is not on the list`);
+    assert.ok(aliases.notOurs!.why.includes(word), `the list says "${word}" is left off`);
+  }
+  assert.match(checkLists({}).said, /; 40 words that make a title not ours\.$/m);
+  // The words reach no table: the lists' migration is the same with and without them.
+  const sql = readFileSync(LISTS_MIGRATION, 'utf8');
+  for (const word of ['janitor', 'custodial', 'cafeteria', 'groundskeeper']) assert.ok(!sql.toLowerCase().includes(word), `${word} is not in the migration`);
+  const refused = (name: string, change: (list: { why: unknown; words: unknown[] }, file: AliasesFile) => void, saying: RegExp) => {
+    const file = copy(aliases);
+    change(file.notOurs as unknown as { why: unknown; words: unknown[] }, file);
+    const result = checkLists({ aliases: file });
+    assert.ok(!result.ok, `${name}: the check let it through`);
+    assert.match(result.said, saying, name);
+  };
+  refused('no why', (list) => { list.why = ''; }, /"notOurs" has no one-line "why"/);
+  refused('a why of two lines', (list) => { list.why = 'One line.\nAnd another.'; }, /"notOurs" has no one-line "why"/);
+  refused('no words', (list) => { list.words = []; }, /"notOurs" lists no words/);
+  refused('a word in capitals', (list) => { list.words.push('Janitress'); }, /"Janitress" is not one to three plain words in lower case/);
+  refused('a pattern, not a word', (list) => { list.words.push('clean.*'); }, /is not one to three plain words in lower case/);
+  refused('a word twice', (list) => { list.words.push('janitor'); }, /"janitor" is listed twice/);
+  refused('another key', (_, file) => { (file.notOurs as unknown as Record<string, unknown>).titles = []; }, /only "why", "words" and "exceptIn" are read/);
+  // The phrases a word may stand in: two or three plain words, once each, sharing a word with the list.
+  const phrases = (file: AliasesFile) => (file.notOurs as unknown as { exceptIn: unknown[] }).exceptIn;
+  refused('a phrase of one word', (_, file) => { phrases(file).push('grounds'); }, /"grounds" is not two or three plain words in lower case/);
+  refused('a phrase twice', (_, file) => { phrases(file).push('proving grounds'); }, /"proving grounds" is listed twice/);
+  refused('a phrase that excepts nothing', (_, file) => { phrases(file).push('test track'); }, /"test track" shares no word with the words that make a title not ours/);
+  refused('phrases that are not a list', (_, file) => { (file.notOurs as unknown as Record<string, unknown>).exceptIn = 'proving grounds'; }, /"notOurs.exceptIn" is not a list of phrases/);
+  refused('not a list at all', (_, file) => { (file as unknown as Record<string, unknown>).notOurs = ['janitor']; }, /"notOurs" is not a why and a list of words/);
+  // A word a career is named with could never be read: its title, a title folded into it, an everyday name.
+  refused("a word of a career's title", (list) => { list.words.push('maintenance'); }, /"maintenance" makes a title not ours, and the career "Maintenance Technician" has it/);
+  refused('a word of a folded title', (list) => { list.words.push('cleanroom'); }, /"cleanroom" makes a title not ours, and "Cleanroom Technician", a title folded into "Wafer Fab Operator" has it/);
+  refused('words of an everyday name', (list) => { list.words.push('cleaning room'); }, /"cleaning room" makes a title not ours, and "Cleaning Room Operator", an everyday name of "Casting Finisher" has it/);
+  refused('a word a title has in the plural', (list) => { list.words.push('electronic'); }, /"electronic" makes a title not ours, and the career "Electronics [A-Za-z ]+" has it/);
 });
 
 test('the check refuses a name both listed for a career and taken back from it', () => {

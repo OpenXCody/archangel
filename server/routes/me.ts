@@ -22,6 +22,7 @@ import { rowsOf } from '../lib/rows.js';
 import { pageLimit } from '../lib/paging.js';
 import { markedMakes, setMarkedMakes } from '../lib/makes.js';
 import { jobIsOpen } from '../lib/openJobs.js';
+import { jobAsGiven } from '../lib/jobRows.js';
 import { factoryInScope } from '../lib/scope.js';
 import { isUuid } from '../lib/writes.js';
 import { REACH_MIN_PATH } from '../../shared/reach.js';
@@ -607,12 +608,16 @@ router.get(
         jobId: jobs.id,
         jobSerial: jobs.serial,
         jobTitle: jobs.title,
+        // Read for the job's own name and never given (jobAsGiven in lib/jobRows.ts). Only a job posted here takes
+        // applications, and it has none: the row goes through the one helper all the same.
+        postedAs: jobs.postedAs,
         jobStatus: jobs.status,
         companyId: companies.id,
         companyName: companies.name,
         // With the number, what the job's address is written from (shared/jobs.ts).
         companySlug: companies.slug,
         occupationTitle: sql<string>`(SELECT o.title FROM occupations o WHERE o.id = ${jobs.occupationId})`,
+        factoryName: factories.name,
         city: factories.city,
         state: factories.state,
       })
@@ -622,7 +627,7 @@ router.get(
       .innerJoin(factories, eq(factories.id, jobs.factoryId))
       .where(eq(applications.userId, userId))
       .orderBy(sql`${changed} DESC`, sql`${applications.createdAt} DESC`);
-    res.json({ applications: rows });
+    res.json({ applications: rows.map(jobAsGiven) });
   })
 );
 

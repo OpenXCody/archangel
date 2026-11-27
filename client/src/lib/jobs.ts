@@ -40,7 +40,13 @@ export const EMPLOYMENT_TYPES: EmploymentType[] = ['full-time', 'part-time', 'co
 export interface JobSummary {
   id: string;
   serial: number;
+  /** The job's standard name: its career's title on a job from a careers site, its poster's words on one posted here. */
   title: string;
+  /**
+   * The opening's own name beside it: what the employer called the posting, with what a page states elsewhere cut
+   * out ("Pipe Welder (Starship)"). Null where the posting says nothing beyond the career, and on a job posted here.
+   */
+  ownName?: string | null;
   /** Null only on a job from a company's careers site that does not say. */
   employmentType: EmploymentType | null;
   shift: string | null;
@@ -135,11 +141,14 @@ export interface JobPathSkill {
 }
 
 /**
- * The skills a job's page draws (see `readJobPath` in server/routes/jobs.ts).
+ * The skills a job's page draws from (see `readJobPath` in server/routes/jobs.ts).
  * `skills` is, in path order: the company's version of the job's career
  * (`of: 'version'`) or the career's standard path (`'career'`) for a job from
  * a careers site; the skills the company chose (`'job'`) for one posted here.
- * `alsoNamed` is what a posting names that is not on that path.
+ * `alsoNamed` is what a posting names that is not on that path. The job's own
+ * skills are the ones its posting names (`named` on the path, then
+ * `alsoNamed`): the page lists those, and keeps the rest of the path behind
+ * one closed line, the career's range (components/jobs/JobSkills.tsx).
  */
 export interface JobPath {
   of: 'version' | 'career' | 'job';

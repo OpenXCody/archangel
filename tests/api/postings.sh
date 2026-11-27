@@ -7,7 +7,14 @@
 # listing that is refused or cut part way closes nothing, and one a budget cut
 # is taken up where it stopped; then a job that came from a posting is read as
 # a visitor, a seeker, a member of its company and an admin, and the places
-# that wait for a plant are decided. The postings are read by the reader that
+# that wait for a plant are decided. A job is named by its career's title alone
+# (migration 0088), whatever its employer titled the posting and whatever level
+# the posting states: the name follows a career that is renamed and not a level
+# that changes, and the employer's title is kept as it was posted, follows the
+# posting, is searched and is never given: what every job row gives is the
+# opening's own name, read from it (`ownName`); a title that holds a word of work that
+# is never ours is no longer kept, and a posting read as another career moves its
+# job to that career. The postings are read by the reader that
 # ships (scripts/ingest/postings/read/): the suite has no reader of its own.
 # Prints one line per check and exits non-zero if any fail.
 #
@@ -154,7 +161,14 @@ expect "a place with no plant makes no job" '0' "$(sql "SELECT count(*) FROM job
 expect "it waits, with how many postings name it" 'Nowhere Springs|NV|waiting' "$(sql "SELECT concat_ws('|', city, state, status) FROM posting_places WHERE source = 'postings-e2e-acme'")"
 expect "one outside id is one job"          '8 8' "$(sql "SELECT count(*) || ' ' || count(DISTINCT external_id) FROM external_references WHERE source = 'POSTINGS_E2E_ACME' AND entity_type = 'jobs'")"
 expect "the id is the posting at its place" '106@castings gap|NV 106@postville|NV' "$(sql "SELECT string_agg(external_id, ' ' ORDER BY external_id) FROM external_references WHERE source = 'POSTINGS_E2E_ACME' AND external_id LIKE '106@%'")"
-expect "a job carries what was read"        'Welder II|II|2|2800|3400|hour|Swing shift|full-time|https://jobs.ashbyhq.com/e2e-acme/101' "$(job 101 "concat_ws('|', j.title, j.level_word, j.level_rank, j.pay_min, j.pay_max, j.pay_period, j.shift, j.employment_type, j.apply_url)")"
+expect "a job carries what was read"        'Welder|II|2|2800|3400|hour|Swing shift|full-time|https://jobs.ashbyhq.com/e2e-acme/101' "$(job 101 "concat_ws('|', j.title, j.level_word, j.level_rank, j.pay_min, j.pay_max, j.pay_period, j.shift, j.employment_type, j.apply_url)")"
+# Named by its career, in the product's own words, with no level: the level a posting states ("II", "Sr.") is the employer's own and stays a
+# fact of the job. The employer's title ("Sr. CNC Machinist - N0309 (Foundry)") is kept as it was posted, and is given by
+# no answer: what is given of it is the opening's own name, read from it (below).
+expect "a job is named by its career, not by the title its employer posted it under" 'CNC Machinist|Sr. CNC Machinist - N0309 (Foundry)' "$(job 102 "concat_ws('|', j.title, j.posted_as)")"
+expect "the level its posting states is a fact of the job and no part of its name" 'Senior|3|CNC Machinist II|2|Welder' "$(job 102 "concat_ws('|', j.level_word, j.level_rank, j.title)") $(job 101 "concat_ws('|', j.level_word, j.level_rank, j.title)")"
+expect "every job from a careers site carries its career's title, and the title it was posted under beside it" '0' "$(sql "SELECT count(*) FROM jobs j JOIN occupations o ON o.id = j.occupation_id WHERE j.source LIKE 'postings-e2e-%' AND (j.title IS DISTINCT FROM o.title OR j.posted_as IS NULL)")"
+expect "the rule is written once and reads the career alone" 'Welder|NDT Technician (Ultrasonic)|Mechanical Engineer|1' "$(sql "SELECT concat_ws('|', job_title('Welder'), job_title('NDT Technician (Ultrasonic)'), job_title('  Mechanical Engineer '), (SELECT string_agg(pronargs::text, ',') FROM pg_proc WHERE proname = 'job_title'))")"
 expect "its requirements as facts"          '{"yearsMax": 4, "yearsMin": 2, "education": "high school", "citizenship": "U.S. person", "certifications": ["AWS D1.1"]}' "$(job 101 j.requirements)"
 expect "its skills, by their catalogue names" 'Flux-Cored Welding, MIG Welding' "$(job 101 "(SELECT string_agg(s.name, ', ' ORDER BY s.name) FROM job_skills js JOIN skills s ON s.id = js.skill_id WHERE js.job_id = j.id)")"
 expect "a make is kept with the skill it is a make of" 'CNC Milling, PLC Programming|Haas, Studio 5000' "$(job 102 "(SELECT string_agg(s.name, ', ' ORDER BY s.name) FROM job_skills js JOIN skills s ON s.id = js.skill_id WHERE js.job_id = j.id) || '|' || (SELECT string_agg(m.name, ', ' ORDER BY m.name) FROM job_makes jm JOIN skill_makes m ON m.id = jm.make_id WHERE jm.job_id = j.id)")"
@@ -196,6 +210,7 @@ hashes "$RUN_TABLES" > "$D/after-first.txt"
 BEFORE=$(asked e2e.wd1.myworkdayjobs.com)
 OUT=$(ingest postings --only e2e-acme,e2e-works)
 R2=$(last_run acme)
+# A job's title is its name and its posting's is not: a run compares the posting with the title it was posted under, so nothing differs.
 expect "the same board again: nothing is new" '0 0 9 0 0 0 0' "$(sql "SELECT concat_ws(' ', counts->>'new', counts->>'changed', counts->>'same', counts->>'gone', counts->>'jobsAdded', counts->>'jobsChanged', counts->>'jobsClosed') FROM intake_runs WHERE id = $R2")"
 expect "and nothing is journalled"          0 "$(sql "SELECT count(*) FROM intake_changes WHERE run_id >= $R2")"
 hashes "$RUN_TABLES" > "$D/after-second.txt"
@@ -334,11 +349,13 @@ check "what is open, and where"             200 "$(req anon GET /jobs/summary)" 
 expect "the summary counts every open job"  'true' "$(req anon GET /jobs/summary | j "total >= 17 && o.states.find((x) => x.state === 'NV').jobs >= 17")"
 OUT=$(req anon GET /jobs/$J101)
 check "a sourced job's page"                200 "$OUT" '"fromSource":true'
-expect "it carries facts and a link, no description" 'Welder II||https://jobs.ashbyhq.com/e2e-acme/101|II|2|true|false' "$(printf '%s' "$OUT" | j "job && [o.job.title, o.job.description, o.job.applyUrl, o.job.levelWord, o.job.levelRank, o.job.isOpen, o.canManage].join('|')")"
+expect "it carries facts and a link, no description" 'Welder||https://jobs.ashbyhq.com/e2e-acme/101|II|2|true|false' "$(printf '%s' "$OUT" | j "job && [o.job.title, o.job.description, o.job.applyUrl, o.job.levelWord, o.job.levelRank, o.job.isOpen, o.canManage].join('|')")"
 expect "its requirements, in the reader's words" '2|4|high school|AWS D1.1|U.S. person' "$(printf '%s' "$OUT" | j "job && [o.job.requirements.yearsMin, o.job.requirements.yearsMax, o.job.requirements.education, o.job.requirements.certifications[0], o.job.requirements.citizenship].join('|')")"
 expect "its skills"                         'Flux-Cored Welding, MIG Welding' "$(printf '%s' "$OUT" | j "skills.map((x) => x.name).sort().join(', ')")"
 expect "a make is under the skill it is a make of" 'CNC Milling: Haas; PLC Programming: Studio 5000' "$(req anon GET /jobs/$J102 | j "skills.map((x) => x.name + ': ' + x.makes.map((m) => m.name).join(', ')).sort().join('; ')")"
-# The page draws the career's whole path, not only what the posting names: each skill says whether the posting names it.
+# The answer carries the career's whole path, each skill saying whether the posting names it. The page lists the named
+# ones as the job's own skills and keeps the rest behind one closed line, the career's range: it never says the whole
+# path is what the job takes.
 WELDER_PATH=$(sql "SELECT COUNT(*) FROM occupation_skills WHERE occupation_id = '$WELDER'")
 expect "a sourced job's path is its career's" "career $WELDER_PATH" "$(printf '%s' "$OUT" | j "path.of + ' ' + o.path.skills.length")"
 expect "more than the posting names"        'true' "$(printf '%s' "$OUT" | j "path.skills.length > o.skills.length")"
@@ -366,6 +383,52 @@ expect "a page lists the newest few and says how many are open in all" '6 6' "$(
 expect "the jobs list narrows to a company, a plant and a skill, as their pages link" '6 2 10' "$(req anon GET "/jobs?companyId=$ACME" | j total) $(req anon GET "/jobs?factoryId=$PLANT" | j total) $(req anon GET "/jobs?skillId=$MIG&q=E2E+Postings" | j total)"
 expect "search finds it"                    'true' "$(req anon GET '/search?q=E2E+Postings+Acme' | j "results.jobs.count >= 1")"
 expect "the map's pins count it"            'true' "$(req anon GET /factories/pins | j "pins.find((x) => x[0] === '$PLANT')[8] >= 1")"
+# Named by its career wherever it is listed; the title its employer posted it under is searched and never given (the
+# opening's own name, read from it, is: below).
+FOUNDRY=$(sql "SELECT id FROM factories WHERE name = 'E2E POSTINGS ACME POSTVILLE FOUNDRY'")
+MACHINIST=$(sql "SELECT id FROM occupations WHERE title = 'CNC Machinist'")
+expect "the list names a job by its career" 'CNC Machinist' "$(req anon GET '/jobs?q=E2E+Postings+machinist' | j "jobs.map((x) => x.title).join(', ')")"
+expect "a word only the employer's title has still finds it" "$J102" "$(req anon GET '/jobs?q=N0309' | j "jobs.map((x) => x.id).join(' ')")"
+expect "with the rest of what was typed"    "1 0" "$(req anon GET '/jobs?q=N0309+postville' | j total) $(req anon GET '/jobs?q=N0309+welder' | j total)"
+expect "the header's search finds it so too, under its name" "$J102|CNC Machinist" "$(req anon GET '/search?q=N0309' | j "results.jobs.items.map((x) => x.id + '|' + x.name).join(' ')")"
+# A job found only by the title it was posted under is listed after the jobs whose rows say what was typed, though it is
+# the newest: "weld" lists the welders before a machinist posted under "... - Weld Cell". The same in the header's search.
+POSTED_102=$(job 102 j.posted_as); AT_102=$(job 102 j.posted_at)
+sql "UPDATE jobs SET posted_as = 'Sr. CNC Machinist - Weld Cell N0309', posted_at = now() + interval '1 day' WHERE id = '$J102'" >/dev/null
+OUT=$(req anon GET "/jobs?companyId=$ACME&q=weld")
+expect "the jobs whose rows say the word come first, the one found by its posted title after them" 'true' "$(printf '%s' "$OUT" | j "jobs.length > 1 && o.jobs.findIndex((x) => x.id === '$J102') === o.jobs.length - 1 && o.jobs.slice(0, -1).every((x) => /weld/i.test(x.title))")"
+expect "with nothing typed the newest is first, as before" "$J102" "$(req anon GET "/jobs?companyId=$ACME&limit=1" | j "jobs[0].id")"
+expect "the header's search lists them in that order too" 'true' "$(req anon GET '/search?q=E2E+Postings+Acme+weld&limit=20' | j "results.jobs.items.length > 1 && o.results.jobs.items.findIndex((x) => x.id === '$J102') === o.results.jobs.items.length - 1")"
+sql "UPDATE jobs SET posted_as = '$POSTED_102', posted_at = '$AT_102' WHERE id = '$J102'" >/dev/null
+# Every job the API gives carries its own name beside its standard one (`ownName`): the title its employer posted it
+# under with what a page states elsewhere cut out, read by the server on every row (shared/jobOwnName.ts through
+# server/lib/jobRows.ts) and stored nowhere. Every list of jobs carries it, and it is what the function gives for the
+# job's posted title, its career, its company and its factory.
+expect "the own name is the posted title where nothing of it is said elsewhere, and none where it says only the career" 'CNC Machinist|Sr. CNC Machinist - N0309 (Foundry) Industrial Electrician|null Welder|Welder II' "$(req anon GET "/jobs?companyId=$ACME&limit=100" | j "jobs.filter((x) => ['$J101', '$J102', '$(job 111 j.id)'].includes(x.id)).map((x) => x.title + '|' + x.ownName).sort().join(' ')")"
+expect "a job found by a word of its posted title says why: the list gives its own name" "$J102|CNC Machinist|Sr. CNC Machinist - N0309 (Foundry)" "$(req anon GET '/jobs?q=N0309' | j "jobs.map((x) => [x.id, x.title, x.ownName].join('|')).join(' ')")"
+expect "and so does the header's search, on the job's line" "CNC Machinist|Sr. CNC Machinist - N0309 (Foundry)|Sr. CNC Machinist - N0309 (Foundry) · E2E Postings Acme · Postville, NV" "$(req anon GET '/search?q=N0309' | j "results.jobs.items.map((x) => [x.name, x.ownName, x.subtitle].join('|')).join(' ')")"
+# A title that carries its shift, its town and a requisition number: the own name is the rest. The job is still found by
+# the number, and no answer says the number, the note or the posted title itself.
+sql "UPDATE jobs SET posted_as = 'Sr. CNC Machinist - N0309 (Foundry) - 2nd Shift - Postville, NV - R-20412' WHERE id = '$J102'" >/dev/null
+OWN_102='Sr. CNC Machinist - N0309 (Foundry)'
+expect "still found by what was cut, in the list and in the header's search" "1 $J102" "$(req anon GET '/jobs?q=R-20412' | j total) $(req anon GET '/search?q=R-20412' | j "results.jobs.items.map((x) => x.id).join(' ')")"
+MACHINIST_INDUSTRY='Fabricated Metal Product Manufacturing'
+sql "UPDATE factories SET primary_naics_description = '$MACHINIST_INDUSTRY' WHERE id = '$FOUNDRY'" >/dev/null
+SERIAL_102=$(sql "SELECT serial FROM jobs WHERE id = '$J102'")
+GIVEN=''; UNNAMED=''
+for path in '/jobs?q=N0309' '/jobs?q=R-20412' "/jobs?companyId=$ACME" "/jobs/$J102" "/jobs/by-number/$SERIAL_102" "/jobs/$J101" "/companies/$ACME" "/companies/$ACME/careers" "/factories/$FOUNDRY" "/occupations/$MACHINIST" "/skills/$MIG" '/search?q=N0309' '/search?q=E2E+Postings+Acme' '/map/states/NV/overview' '/map/bounds/overview?west=-117.9&south=40.2&east=-117.3&north=40.8' '/industries?state=NV' '/industries/fabricated-metals?state=NV'; do
+  BODY=$(req anon GET "$path" | sed '$d')
+  # (The header's search says back what was typed, so a typed word alone proves nothing there: the words around it do.)
+  printf '%s' "$BODY" | grep -q 'posted_as\|postedAs' && GIVEN="$GIVEN $path"
+  # Every job row in the answer has the key, whatever list it stands in: a row is anything with a serial and a title.
+  printf '%s' "$BODY" | node -e "let s='';process.stdin.on('data',(d)=>s+=d).on('end',()=>{let rows=0,bare=0;const walk=(v)=>{if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object'){if(typeof v.serial==='number'&&typeof v.title==='string'){rows+=1;if(!('ownName' in v))bare+=1;}Object.values(v).forEach(walk);}};walk(JSON.parse(s));process.exit(bare>0?1:0)})" || UNNAMED="$UNNAMED $path"
+done
+expect "no answer has a posted_as field: the posted title is given only as the own name" '' "$GIVEN"
+expect "every job row of every answer carries its own name" '' "$UNNAMED"
+expect "the lists that hold job rows hold some here" 'true true true true true' "$(req anon GET "/jobs/$J101" | j "others.career.jobs.concat(o.others.factory.jobs).length > 0") $(req anon GET "/factories/$FOUNDRY" | j "jobs.length > 0") $(req anon GET '/map/bounds/overview?west=-117.9&south=40.2&east=-117.3&north=40.8' | j "jobs.length > 0") $(req anon GET '/industries/fabricated-metals?state=NV' | j "jobs.some((x) => x.id === '$J102' && x.ownName !== null)") $(req anon GET "/skills/$MIG" | j "jobs.length > 0")"
+sql "UPDATE factories SET primary_naics_description = NULL WHERE id = '$FOUNDRY'" >/dev/null
+sql "UPDATE jobs SET posted_as = '$POSTED_102' WHERE id = '$J102'" >/dev/null
+expect "the answers that list it name it for its career, and its page says the level as a fact" 'true true true' "$(req anon GET "/factories/$FOUNDRY" | j "jobs.some((x) => x.id === '$J102' && x.title === 'CNC Machinist')") $(req anon GET "/occupations/$MACHINIST" | j "jobs.some((x) => x.id === '$J102' && x.title === 'CNC Machinist')") $(req anon GET "/jobs/$J102" | j "job.title === 'CNC Machinist' && o.job.levelWord === 'Senior' && o.job.levelRank === 3")"
 
 # A seeker
 check "sign-up seeker"                      201 "$(req s POST /auth/sign-up "{\"email\":\"seeker-$RUN@postings.test\",\"name\":\"Sam Seeker\",$PW}")"
@@ -381,7 +444,7 @@ expect "a member can see it is the company's" 'true true' "$(req m GET /jobs/$J1
 check "a member cannot edit it"             409 "$(req m PATCH /jobs/$J101 '{"title":"Welder, edited"}')" "kept in step"
 check "nor close it"                        409 "$(req m PATCH /jobs/$J101 '{"status":"closed"}')" "careers site"
 check "nor delete it"                       409 "$(req m DELETE /jobs/$J101)" "careers site"
-expect "it is as it was"                    'Welder II|open' "$(job 101 "j.title || '|' || j.status")"
+expect "it is as it was"                    'Welder|open|Welder II' "$(job 101 "j.title || '|' || j.status || '|' || j.posted_as")"
 check "a stranger cannot either"            403 "$(req s PATCH /jobs/$J101 '{"title":"x"}')"
 OUT=$(req m GET /employer)
 expect "Your jobs lists what members posted, and counts the rest" '0 6' "$(printf '%s' "$OUT" | j "companies.filter((c) => c.companyId === '$ACME').map((c) => c.jobs.length + ' ' + c.listedJobs)[0]")"
@@ -474,6 +537,95 @@ sql "DELETE FROM jobs WHERE id = '$J102'" >/dev/null
 OUT=$(ingest load postings-e2e-acme)
 expect "a job that was removed by hand is made again, once" '1 1' "$(sql "SELECT concat_ws(' ', (SELECT counts->>'jobsAdded' FROM intake_runs WHERE id = $(last_run acme)), (SELECT count(*) FROM external_references WHERE source = 'POSTINGS_E2E_ACME' AND external_id = '102@postville|NV'))")"
 
+# --- A job's name follows its career, and not its level --------------------------------
+# The board again, a day on: 101 states a level higher, and 102 is the same job under other words.
+boards four
+ingest load postings-e2e-acme >/dev/null
+RN=$(last_run acme)
+expect "two postings changed, and their two jobs" '2 2 0 0' "$(counted "$RN" changed jobsChanged jobsAdded jobsClosed | cut -d' ' -f2-)"
+expect "a level that changes does not rename the job: it is a fact of the job, and the posted title follows the posting" 'Welder|III|3|Welder III' "$(job 101 "concat_ws('|', j.title, j.level_word, j.level_rank, j.posted_as)")"
+expect "the same job under other words keeps its name, and the new words are the ones kept and searched" 'CNC Machinist|Senior CNC Machinist (Foundry) - N0412|1 0' "$(job 102 "j.title || '|' || j.posted_as")|$(req anon GET '/jobs?q=N0412' | j total) $(req anon GET '/jobs?q=N0309' | j total)"
+expect "the lines say what changed"         'level_rank, level_word, title; title' "$(sql "SELECT string_agg(split_part(detail, 'the posting changed: ', 2), '; ' ORDER BY source_id) FROM load_log WHERE run_id = $RN AND action = 'changed'")"
+# The run undone: the titles the postings had before it are back, as they were posted.
+ingest undo "$RN" >/dev/null
+expect "undoing the run puts back the level and the posted titles as they were" 'Welder|II|2|Welder II CNC Machinist|Sr. CNC Machinist - N0309 (Foundry)' "$(job 101 "concat_ws('|', j.title, j.level_word, j.level_rank, j.posted_as)") $(job 102 "j.title || '|' || j.posted_as")"
+ingest load postings-e2e-acme >/dev/null
+expect "and the board read again brings them in line once more" '2 Welder III|Senior CNC Machinist (Foundry) - N0412' "$(sql "SELECT counts->>'jobsChanged' FROM intake_runs WHERE id = $(last_run acme)") $(job 101 j.posted_as)|$(job 102 j.posted_as)"
+ingest load postings-e2e-acme >/dev/null
+expect "the board again changes nothing: no job is written for its name" '0 0 0 0 0' "$(counted "$(last_run acme)" changed jobsChanged jobsAdded jobsClosed | cut -d' ' -f2-) $(sql "SELECT count(*) FROM intake_changes WHERE run_id = $(last_run acme)")"
+# Whatever writes the row, the name holds and the posted title is never lost: only a write that names posted_as changes
+# it. A title written over the job is set aside (a tidy-up of names must not cost what was collected), a write that would
+# empty the posted title leaves it, a level written over the job renames nothing.
+sql "UPDATE jobs SET title = 'Something Else - R77' WHERE id = '$J101'" >/dev/null
+expect "a title written over a job from a careers site neither renames it nor touches the title it was posted under" 'Welder|Welder III' "$(job 101 "j.title || '|' || j.posted_as")"
+POSTED="SELECT md5(string_agg(j.id || '=' || j.posted_as, '~' ORDER BY j.id)) FROM jobs j WHERE j.source = 'postings-e2e-acme'"
+POSTED_BEFORE=$(sql "$POSTED")
+sql "UPDATE jobs SET title = upper(title) WHERE source = 'postings-e2e-acme'" >/dev/null
+expect "nor does a statement that rewrites every title: each job keeps its name and the title it was posted under" "0 $POSTED_BEFORE" "$(sql "SELECT count(*) FROM jobs j JOIN occupations o ON o.id = j.occupation_id WHERE j.source = 'postings-e2e-acme' AND j.title <> o.title") $(sql "$POSTED")"
+sql "UPDATE jobs SET shift = shift, title = title WHERE id = '$J101'" >/dev/null
+expect "a write that gives nothing new changes nothing" 'Welder|Welder III' "$(job 101 "j.title || '|' || j.posted_as")"
+sql "UPDATE jobs SET posted_as = NULL, level_word = 'Principal', level_rank = 4 WHERE id = '$J101'" >/dev/null
+expect "the posted title cannot be emptied, and a level written over the job does not rename it" 'Welder|Welder III|Principal' "$(job 101 "concat_ws('|', j.title, j.posted_as, j.level_word)")"
+sql "UPDATE jobs SET posted_as = '   ' WHERE id = '$J101'" >/dev/null
+expect "nor blanked"                        'Welder|Welder III' "$(job 101 "j.title || '|' || j.posted_as")"
+expect "a write that names the posted title sets it, as a run does" 'Welder|Welder III - R77' "$(sql "UPDATE jobs SET posted_as = 'Welder III - R77' WHERE id = '$J101'" >/dev/null; job 101 "j.title || '|' || j.posted_as")"
+# A snapshot an earlier run journalled may name a career the catalogue has removed since (0084): written back by an
+# undo, it leaves the job the career it has and writes the rest, so the run can still be undone.
+sql "SELECT posting_job_write('$J101', posting_job_snapshot('$J101') || jsonb_build_object('occupation_id', gen_random_uuid(), 'shift', 'night'))" >/dev/null 2>&1
+expect "a snapshot that names a career no longer stored is written without it: the job keeps its career" "Welder|$WELDER|night" "$(job 101 "concat_ws('|', j.title, j.occupation_id, j.shift)")"
+ingest load postings-e2e-acme >/dev/null
+expect "the next run puts back what the posting says, once" '1 Welder|Welder III|III' "$(sql "SELECT counts->>'jobsChanged' FROM intake_runs WHERE id = $(last_run acme)") $(job 101 "concat_ws('|', j.title, j.posted_as, j.level_word)")"
+# A career that is renamed renames its jobs: every job from a careers site, whatever its level, and no other job.
+sql "INSERT INTO jobs (company_id, factory_id, occupation_id, title, expires_at) VALUES ('$ACME', '$PLANT', '$WELDER', 'E2E Postings weld shop, nights', now() + interval '30 days')" >/dev/null
+sql "UPDATE occupations SET title = 'E2E Postings Fusion Welder' WHERE id = '$WELDER'" >/dev/null
+expect "a renamed career renames its jobs, and their posted titles stay" 'E2E Postings Fusion Welder|Welder III' "$(job 101 "j.title || '|' || j.posted_as")"
+expect "every one of them, whatever its level" '0 2' "$(sql "SELECT concat_ws(' ', count(*) FILTER (WHERE j.title IS DISTINCT FROM 'E2E Postings Fusion Welder'), count(DISTINCT coalesce(j.level_word, ''))) FROM jobs j WHERE j.occupation_id = '$WELDER' AND j.source LIKE 'postings-e2e-%'")"
+expect "a job posted by hand keeps the title its company typed, and has no posted title" 'E2E Postings weld shop, nights|' "$(sql "SELECT title || '|' || coalesce(posted_as, '') FROM jobs WHERE company_id = '$ACME' AND source IS NULL")"
+sql "UPDATE occupations SET title = 'Welder' WHERE id = '$WELDER'" >/dev/null
+expect "and back again"                     'Welder|Welder III' "$(job 101 "j.title || '|' || j.posted_as")"
+ingest load postings-e2e-acme >/dev/null
+expect "a run after the career has its name back changes nothing" '0 0 0' "$(counted "$(last_run acme)" jobsChanged jobsAdded jobsClosed | cut -d' ' -f2-)"
+
+# --- Work that is never ours, whatever career's title follows the word ------------------
+# The board again: 103, a maintenance technician's posting until now, is titled "Janitorial Maintenance Technician".
+# The reader turns such a title away before anything else (data/careers/aliases.json, `notOurs`), so the posting is
+# no longer kept, and it leaves as a posting the board took down does: nothing is deleted for it.
+expect "the posting stands and its job is open"  'open|Maintenance Technician|1' "$(job 103 "j.status || '|' || j.title")|$(sql "SELECT count(*) FROM intake_records WHERE source = 'postings-e2e-acme' AND source_id = '103' AND gone_run_id IS NULL")"
+KEPT=$(sql "SELECT counts->>'kept' FROM intake_runs WHERE id = $(last_run acme)")
+boards five
+ingest load postings-e2e-acme >/dev/null
+RJ=$(last_run acme)
+expect "a title that holds such a word is not kept: one fewer, gone at this complete listing, nothing closed yet" "$((KEPT - 1)) 1 0" "$(counted "$RJ" kept gone jobsClosed | cut -d' ' -f2-)"
+expect "by the listing's rule, not the catalogue's (its career is still one): it no longer stands in staging" '0|' "$(sql "SELECT count(*) FROM intake_records WHERE source = 'postings-e2e-acme' AND source_id = '103' AND gone_run_id IS NULL")|$(sql "SELECT coalesce(counts->>'dropped', '') FROM intake_runs WHERE id = $RJ")"
+expect "its job is open for one listing more, as any posting's that is missed for the first time" 'open' "$(job 103 j.status)"
+ingest load postings-e2e-acme >/dev/null
+expect "at the second complete listing the job is closed: never deleted, and what was collected is kept" "closed|No longer on the company's careers site|Maintenance Technician|Maintenance Technician" "$(job 103 "concat_ws('|', j.status, j.closed_reason, j.title, j.posted_as)")"
+expect "no other job of the board was touched" '0 0 1' "$(counted "$(last_run acme)" jobsAdded jobsChanged jobsClosed | cut -d' ' -f2-)"
+expect "and a visitor no longer finds it among the open jobs" '0' "$(req anon GET "/jobs?companyId=$ACME&q=janitorial" | j total)"
+
+# --- A posting read as another career moves its job ---------------------------------------
+# The board again: 101, a welder's posting until now, is titled "Production Welder III". A production welder is the MIG
+# Welder (data/careers/aliases.json lists the name under it), so the same posting is another career's: the job moves to
+# that career and is named for it, and everything collected of it stays (its number, its level, its skills, its pay).
+MIG=$(sql "SELECT id FROM occupations WHERE title = 'MIG Welder'")
+WAS=$(job 101 "concat_ws('|', j.id, j.serial, j.level_word, j.pay_min, j.pay_max, (SELECT string_agg(s.name, ', ' ORDER BY s.name) FROM job_skills js JOIN skills s ON s.id = js.skill_id WHERE js.job_id = j.id))")
+boards six
+ingest load postings-e2e-acme >/dev/null
+RW=$(last_run acme)
+expect "one posting changed, and its one job: none added, none closed" '1 1 0 0' "$(counted "$RW" changed jobsChanged jobsAdded jobsClosed | cut -d' ' -f2-)"
+expect "the job is the MIG welder's now, named for that career, the posted title kept" "MIG Welder|$MIG|Production Welder III" "$(job 101 "concat_ws('|', j.title, j.occupation_id, j.posted_as)")"
+expect "the same job: its number, its level, its pay and its skills are as they were" "$WAS" "$(job 101 "concat_ws('|', j.id, j.serial, j.level_word, j.pay_min, j.pay_max, (SELECT string_agg(s.name, ', ' ORDER BY s.name) FROM job_skills js JOIN skills s ON s.id = js.skill_id WHERE js.job_id = j.id))")"
+expect "the line says what changed"          'occupation_id, title' "$(sql "SELECT split_part(detail, 'the posting changed: ', 2) FROM load_log WHERE run_id = $RW AND action = 'changed'")"
+OUT=$(req anon GET /jobs/$J101)
+expect "its page is the MIG welder's: that career's path, with what the posting names on it" "MIG Welder|career $(sql "SELECT count(*) FROM occupation_skills WHERE occupation_id = '$MIG'")|Flux-Cored Welding, MIG Welding" "$(printf '%s' "$OUT" | j "job.occupationTitle + '|' + o.path.of + ' ' + o.path.skills.length + '|' + o.path.skills.filter((x) => x.named).map((x) => x.name).sort().join(', ')")"
+expect "its address has the career's new words and the same number" "true" "$(printf '%s' "$OUT" | j "job.href.endsWith('/mig-welder/' + o.job.serial)")"
+expect "found as a MIG welder's job and no longer as a welder's" '1 0' "$(req anon GET "/jobs?companyId=$ACME&occupationId=$MIG" | j "jobs.filter((x) => x.id === '$J101').length") $(req anon GET "/jobs?companyId=$ACME&occupationId=$WELDER&limit=100" | j "jobs.filter((x) => x.id === '$J101').length")"
+ingest load postings-e2e-acme >/dev/null
+expect "the board again changes nothing"     '0 0 0 0' "$(counted "$(last_run acme)" changed jobsChanged jobsAdded jobsClosed | cut -d' ' -f2-)"
+# Taken back, run by run (the newest first): the job is the welder's again, as it was posted before.
+ingest undo "$(last_run acme)" >/dev/null
+ingest undo "$RW" >/dev/null
+expect "undone, it is a welder's job again, under the title it had" "Welder|$WELDER|Welder III" "$(job 101 "concat_ws('|', j.title, j.occupation_id, j.posted_as)")"
 # --- Where new jobs are ported from: the registry's "states" (migration 0091) ----------------------------------------
 # A block of its own: its companies, its boards and its two registries (one that names no states, as the rule was
 # before; one that ports new jobs from Texas, with a line that says its own). Lone Star has a factory in Texas and one

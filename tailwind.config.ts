@@ -10,6 +10,11 @@ export default {
   // Dark is the default theme; `data-theme="light"` on <html> switches (client/src/lib/theme.ts).
   darkMode: ["selector", ':root:not([data-theme="light"])'],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  // A hover style applies only where there is a pointer that hovers: on a touch screen a tapped
+  // row is never left grey, so a fill can never be read as the row's state.
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       screens: {

@@ -127,7 +127,8 @@ export default function Layout() {
   const section =
     navItems.find((n) => isAt(location.pathname, n.to))?.label ??
     accountPageTitle(location.pathname, isAdmin);
-  const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname);
+  // A job's page names itself too (its name and its company), on arrival and when its address is put right.
+  const isDetail = /^\/(companies|factories|occupations|skills)\/[^/]+$/.test(location.pathname) || /^\/jobs\/.+/.test(location.pathname);
   // The industry pages name themselves too: the industry, and the place.
   // So does a page that is not there ("Not found"), which has no section.
   const namesItself = isDetail || /^\/(industries(\/[^/]+)?|atlas)$/.test(location.pathname);

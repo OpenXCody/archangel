@@ -78,22 +78,19 @@ export function SkillTag({
 
 /**
  * A tag's second line: what narrows the skill here. Nothing when there is
- * nothing to say. `lead` goes first on it: a skill's group, where the skill
- * stands by itself on a route.
+ * nothing to say.
  */
-export function SecondLine({ skill, lead }: { skill: PathSkillItem; lead?: string | null }) {
+export function SecondLine({ skill }: { skill: PathSkillItem }) {
   const makes = skill.makes ?? [];
-  const said = lead ?? skill.note;
   if (!skill.added && makes.length === 0) {
-    return said ? (
+    return skill.note ? (
       <span className="block text-xs font-normal text-text-3" data-tag-note>
-        {said}
+        {skill.note}
       </span>
     ) : null;
   }
   return (
     <span className="block text-xs font-normal text-text-3" data-tag-line>
-      {lead && <span data-tag-note>{lead} · </span>}
       {skill.added && <span data-tag-added>Added</span>}
       {skill.added && makes.length > 0 && ' · '}
       {makes.map((make, index) => (

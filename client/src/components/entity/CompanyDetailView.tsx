@@ -187,7 +187,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
               />
             </ul>
           ) : (
-            <p className="border-t border-line py-3 text-sm text-text-2">
+            <p className="border-t border-line px-4 py-3 text-sm text-text-2">
               {byState.slice(0, 6).map((state, index) => (
                 <span key={state.code}>
                   {index > 0 && ' · '}
@@ -206,7 +206,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
       )}
 
       {/* Open jobs: said only when there are some */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer total={data.openJobCount} all={`/jobs?company=${data.id}`} />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} said={{ company: true }} total={data.openJobCount} all={`/jobs?company=${data.id}`} />}
 
       {/* The companies that are part of this one */}
       {(data.subsidiaries?.length ?? 0) > 0 && (
@@ -222,7 +222,13 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         {/* Every factory: where it is and what it makes */}
         {plants.length > 1 && (
           <DetailSection id="factories" title="Factories" className="min-w-0">
-            <RecordList>
+            <RecordList
+              footer={
+                sortedPlants.length > PLANTS_SHOWN && (
+                  <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
+                )
+              }
+            >
               {shownPlants.map((plant) => (
                 <RecordRow
                   key={plant.id}
@@ -241,9 +247,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                 />
               ))}
             </RecordList>
-            {sortedPlants.length > PLANTS_SHOWN && (
-              <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
-            )}
           </DetailSection>
         )}
         {careers.length > 0 && (
@@ -251,7 +254,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
             {/* Its careers: the ones it has its own version of, then those recorded across its factories */}
             {careers.length > 0 && (
               <DetailSection id="occupations" title="Careers">
-                <RecordList>
+                <RecordList footer={careers.length > CAREERS_SHOWN && <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />}>
                   {(showAllCareers ? careers : careers.slice(0, CAREERS_SHOWN)).map((career) => (
                     <RecordRow
                       key={career.id}
@@ -262,9 +265,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                     />
                   ))}
                 </RecordList>
-                {careers.length > CAREERS_SHOWN && (
-                  <ShowAll open={showAllCareers} total={careers.length} onToggle={() => setShowAllCareers((value) => !value)} />
-                )}
               </DetailSection>
             )}
           </div>
@@ -279,7 +279,7 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
             </p>
           ) : (
             <>
-              <RecordList data-service-careers="">
+              <RecordList data-service-careers="" footer={serviceCareers.length > CAREERS_SHOWN && <ShowAll open={showAllCareers} total={serviceCareers.length} onToggle={() => setShowAllCareers((value) => !value)} />}>
                 {(showAllCareers ? serviceCareers : serviceCareers.slice(0, CAREERS_SHOWN)).map((career) => (
                   <RecordRow
                     key={career.id}
@@ -290,9 +290,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                   />
                 ))}
               </RecordList>
-              {serviceCareers.length > CAREERS_SHOWN && (
-                <ShowAll open={showAllCareers} total={serviceCareers.length} onToggle={() => setShowAllCareers((value) => !value)} />
-              )}
             </>
           )}
         </DetailSection>

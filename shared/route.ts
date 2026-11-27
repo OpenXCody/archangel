@@ -1,11 +1,11 @@
 /**
- * A career's path as a route: stops down one line, top to bottom the order to
- * learn in. Pure, and shared by the page and the server, so both cut a path
- * into the same stops and name the same next skills.
+ * A career's path, cut for drawing: by skill group (`groupRoute`: a career's
+ * page and a company's version of it, as the connector tree) or into stops
+ * down one line (`buildRoute`: the employer's editor of a version). Pure.
  *
  * The order itself is not decided here: the skills arrive in it (the server's
- * `routeOf`). What is derived here is never stored: the stops, what is next,
- * and how much is held.
+ * `routeOf`). What is derived here is never stored: the stops, and how much
+ * is held.
  */
 
 /** What a route needs of a skill: who it is, and the skill group it belongs to. */
@@ -87,23 +87,6 @@ export function groupRoute<S extends RouteSkillLike>(skills: readonly S[]): Rout
 /** A route's skills again, in order. */
 export function routeSkills<S>(route: readonly RouteStop<S>[]): S[] {
   return route.flatMap((stop) => (stop.kind === 'section' ? stop.skills : [stop.skill]));
-}
-
-/** How many skills are named as next: the first is Next, the others Then. */
-export const NEXT_SKILLS = 3;
-
-/**
- * The next skills of a route: the first three not held, in the route's order.
- * A skill being learned is not held, so it can be one of them. Nothing is
- * gated: skills held out of order are simply passed over.
- */
-export function nextOf<S extends { id: string }>(skills: readonly S[], isHeld: (skillId: string) => boolean, count = NEXT_SKILLS): S[] {
-  const next: S[] = [];
-  for (const skill of skills) {
-    if (next.length >= count) break;
-    if (!isHeld(skill.id)) next.push(skill);
-  }
-  return next;
 }
 
 /** A person's standing in a skill. */

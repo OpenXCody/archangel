@@ -285,7 +285,16 @@ Tools calls the same functions.
   changes or the adapter's days have passed.
 - **A posting is a job**: a row of `jobs` with `source` (the intake source's
   slug) and `source_id` (the posting's id there), `apply_url` the employer's
-  page, `created_by` null, no description. `level_word` and `level_rank`,
+  page, `created_by` null, no description. Its `title` is its career's title
+  and nothing else ("Welder", "Mechanical Engineer"; no level, no site, no
+  shift), held so by the database (migration `0088`: `job_title(career)`, a
+  trigger on `jobs`, and one on `occupations` that renames a career's jobs
+  with it); the title the employer posted it under is kept as it was
+  collected in `posted_as`, which the Jobs search reads and no answer of the
+  API gives under that name. What the API gives on every job row is
+  `ownName`: the posted title as the company wrote it, or null where it
+  says no more than the career (`server/lib/jobRows.ts`). `level_word` and
+  `level_rank`,
   `requirements` (one `jsonb` in the reader's words: `yearsMin`, `yearsMax`,
   `education`, `certifications`, `clearance`, `citizenship`, only the keys
   that were said), `last_seen_at`; its skills in `job_skills`, its makes in
@@ -712,6 +721,67 @@ company's careers site"); if it returns, the job reopens. A posting that no
 longer names a place closes the job there at once. A job is never deleted by
 a run. A job that is as it should be is not written, except for the day it
 was last seen, which a complete listing moves once a day.
+
+**What a run compares.** `posting_apply` writes a job only where the job as
+it stands (`posting_job_snapshot`) differs from what its posting says
+(`posting_job_wanted`). The posting's title is compared with `posted_as`,
+never with the job's name: the snapshot's `title` is `posted_as`, and the
+write (`posting_job_write`) puts the posting's title there and leaves the
+name to the trigger. So an employer who rewords a posting changes `posted_as`
+and, of what a reader sees, only the opening's own name, which is read from
+it; a level that changes changes `level_word` and
+`level_rank`, and the job's name stays its career's; a posting read as
+another career than before moves the job to that career, and the name
+follows. What was collected is all kept on the job for the day the postings
+are consolidated into standards: `posted_as`, `level_word` and `level_rank`,
+`requirements`, `job_skills` and `job_makes`. Only a write that names
+`posted_as` changes it (the trigger `jobs_title_is_career`, migration 0088):
+a title written over a job from a careers site is set aside for the job's
+name and the posted title stays, and a write that would empty or blank it
+leaves it. A snapshot written back by an undo may name a career the
+catalogue has removed since; the job then keeps the career it has and the
+rest is written, so a run from before the removal can still be undone.
+
+**A posting read as another career.** A change to `data/` can make a title
+another career's without a word of the posting changing ("production welder"
+became a name of MIG Welder, and John Deere's "Production Welder" postings,
+jobs named Welder until then, are MIG Welders). When that reaches the job
+depends on what a text costs. A feed that gives every posting's text at every
+run (Greenhouse, Lever, Ashby, Jibe, SuccessFactors's feed) is read again at
+every run, so the job moves at the first run after the change: the record is
+staged as changed, `posting_apply` writes `occupation_id`, the name follows,
+and everything else of the job stays as it was. Where a text costs a request
+(Workday, Oracle, iCIMS, a SuccessFactors career site) an unchanged posting
+is taken as it was read last, so the job moves when its listing changes, when
+the adapter's days have passed (30 unless it says otherwise), or at a run
+with `--again`, which reads every posting anew.
+
+**A posting that is no longer ours.** What the reader keeps can change under
+a posting that has not: a career leaves the catalogue, a name is taken back
+from a career, a word is put on the list of those that make a title not ours
+(`data/careers/aliases.json`, `not` and `notOurs`).
+- *Its title is turned away now.* The reader is asked about the title at
+  every run, before a text is asked for and before a posting is taken as it
+  was read last time, so the posting is not kept from the first run after the
+  change, and no text is asked for. It then leaves like a posting the board
+  took down: marked gone at the next listing read to its end, its job closed
+  at the one after. Nothing is deleted for it.
+- *Its career is gone from the catalogue.* A staged reading names its career
+  by title, and `posting_decide` would find no one to give the job to. Such a
+  reading is never taken as it stands (`stillACareer` in `jobs.mjs`): the
+  posting is read again like a new one. Read as another career, it is staged
+  as that. Otherwise it is taken out of what stands in that very run, whether
+  or not the listing reached it or was read to its end (`dropped`: the one
+  thing a cut listing does take away, since it is the catalogue and not the
+  listing that says so); the run's row counts these apart (`counts.dropped`)
+  and the report says "staged as a career that is no longer one of ours". One
+  whose title could still be a career and whose text was left for a later run
+  stands as it was until it is read. The catalogue's own migration does the
+  same from the other side: a career it removes goes with its jobs (those
+  from careers sites with their outside ids), the staged postings read as it
+  and the places only they were waiting on (a removed career that has an application,
+  is somebody's goal or has anything else attached that would go with it,
+  such as a company's version, is kept, with a line in `load_log`).
 
 `undo <run>` takes a run back, newest first: a job it added is removed (closed
 instead, if anyone applied), a job it changed, closed or reopened is put back
@@ -1343,13 +1413,15 @@ const reading = readPosting({ employer, title, location, department, text, count
 
 `career` is null when the posting is not one of the careers, and then nothing else is read: four postings in five are refused on their title alone. 9,215 postings read in under four seconds on one core.
 
-**What it knows, and where.** Careers, their former titles and other names: `data/careers/catalogue.json` (`title`, `was`) and `aliases.json`, less the names `aliases.json` takes back (`not`: "not a name of this career", whether it was an everyday name or a former title; the lists migration deletes the same name from `occupation_aliases`, so the file, the database and the reader agree). Paths: `data/careers/paths.json`. Skills, their other names and tools: `data/skills/catalogue.json`; groups: `taxonomy.json`; makes: `makes.json`. A name the reader should know is added there, never in the reader. What the reader holds itself is how English and postings work: level and shift words, job words ("technician", "engineer"), words that say nothing ("manufacturing", "process"), the fields that are not ours (software, finance), headings, state names, certificates, and a short list of three-letter codes that also mean something else.
+**What it knows, and where.** Careers, their former titles and other names: `data/careers/catalogue.json` (`title`, `was`) and `aliases.json`, less the names `aliases.json` takes back (`not`: "not a name of this career", whether it was an everyday name or a former title; the lists migration deletes the same name from `occupation_aliases`, so the file, the database and the reader agree). The words that make a title not ours whatever career it also names: `aliases.json`, `notOurs` (a one-line `why` and `words`; they load into no table, and `scripts/build-career-lists-sql.mjs --check` holds their shape and that no career is named with one). Paths: `data/careers/paths.json`. Skills, their other names and tools: `data/skills/catalogue.json`; groups: `taxonomy.json`; makes: `makes.json`. A name the reader should know is added there, never in the reader. What the reader holds itself is how English and postings work: level and shift words, job words ("technician", "engineer"), words that say nothing ("manufacturing", "process"), the fields that are not ours (software, finance), headings, state names, certificates, and a short list of three-letter codes that also mean something else.
 
 **The career** (`title.mjs`, `career.mjs`, `decide.mjs`). A wrong career is worse than a missed posting.
+- Before anything else, a title that holds a word of work that is never ours is turned away, whatever career's name stands beside the word: "Janitorial Maintenance Technician", "General Laborer - Sanitation", "Grounds Maintenance Technician", "Production Operator - Food Service", "Production Operator - Kill Floor". The words are data (`notOurs.words`, forty of them): the janitor's and the housekeeper's in their spellings (janitor, janitorial, custodian, custodial, housekeeper, housekeeping, house keeper, house keeping, porter), cleaning a food plant (sanitation, sanitor, sanitization, sanitizing, hygiene), the grounds (groundskeeper, groundskeeping, grounds keeper, grounds keeping, grounds maintenance, grounds and maintenance, grounds and building, landscaping, landscaper, landscape, lawn care, lawn maintenance), feeding people (cafeteria, canteen, catering, culinary, food service, foodservice, food prep, food preparation), and the work of the careers that left the catalogue under a general title (meat cutter, meat cutting, butcher, kill floor, slaughter, deboning). A word is looked for whole, anywhere in the title (in brackets, after a dash or a comma), a plural counting as its singular; a misspelling is not found, and cannot be listed. A posting's department is read for the same words once its title has been taken for a career: a "Production Operator" filed under Sanitation, or a "Maintenance Technician" under Custodial Services, is that department's work. A word that stands inside a phrase the list excepts (`notOurs.exceptIn`: "proving grounds") is that phrase's and is not counted, so a "Proving Grounds Maintenance Technician" is a maintenance technician. Left off on purpose, because factory work is titled with them: building and facilities ("Facilities Maintenance Technician" at a fab is a maintenance technician), cleaning, cleaner and clean ("Cleaning Room Operator" is a foundry's casting finisher; a cleanroom is a place; a parts cleaner runs a wash line), kitchen, bakery, deli, store and market (they stand in factories' and companies' names), lawn and harvest (mowers and harvesters are built), and grounds by itself. The list costs a posting now and then: a maker of food-service equipment that titles its jobs "... - Food Service Division" is turned away, the lesser harm.
 - The title is cut into parts at dashes, commas, colons and brackets; level, shift, employment words, requisition codes and aircraft designations are set aside. A part that holds a job word is the job; the others are a site, a programme or a team.
 - A part is a career when its words are a career's title or another name (`how: 'title' | 'other name'`); when a name ends it and the words before it leave it what it is, or a name opens it with a word or two after; when it is a name said backwards ("Technician, Composites"); with "technician" for "mechanic"; or with a skill's short name spelled out ("AFP Operator"). These are `'close'`.
 - Refused on the title: managers, supervisors, directors, leads, interns, students, recruiters, buyers, planners; any title that names software, IT, data, security, sales, finance, EHS or construction; a word that changes the job before the name ("Field", "Service", "Supplier").
 - A name that ends in no job word ("welding", "CNC", "quality assurance") is for search, not for titles. An initialism ("Assembly ME") counts only if the text spells the career out.
+- A trade and its branch are told apart by a name in `data/`. The catalogue has Welder (stick, MIG, flux-cored and TIG, in all positions) and MIG Welder (one wire process on a production line): a "Production Welder" is the MIG Welder because `aliases.json` lists "production welder" under it (with "production MIG welder" and "MIG production welder"; "TIG production welder" is listed under TIG Welder), and before that name was there the title ended in "welder" and was read as the trade. Such a name is **a trade's general name** (`generalNameOf` in `career.mjs`: words that leave a trade what it is, "production", "certified", before the trade's own title, listed as another career's name), and it says the branch only while nothing else does. (1) A word of the title that, with the trade's word, is a name says the kind and is the reading, wherever it stands: "Production Welder - TIG", "(GTAW)", ", Aluminum TIG" and "Welder, Production (TIG)" are the TIG Welder, "Production Welder - Stick/Flux Core" and "- Pipe Shop" the Welder, "Production Welder, Aerospace" the Aerospace Welder. (2) It is no rival to a name inside the title that says the kind, and ends a title only after plain words: "Production Stick Welder", "Production Pipe Welder" and "Robotic Production Welder" are read by the trade, as they were before the name existed. (3) A text that asks for something only the whole trade does (one telling skill of the trade's path that the branch's path has not: TIG or stick welding, pipe) makes the posting the trade's, read as the trade's own title would be; a skill most careers share (a forklift) does not. John Deere's postings say "various welding processes" and stay the MIG Welder. Beyond that the reader does not choose between Welder, MIG Welder and TIG Welder from the processes a text names, but for the one case under "Two careers" where the text speaks for the branch alone.
 - A one-word name ("operator", "mechanic") matches only alone or after a plain word ("Production"); machinist, welder and electrician stay themselves after anything. A title that opens with "Systems", "Process", "Product", "Design" takes no word before it: a "Fluid Systems Engineer" is not a systems engineer.
 - **The text can refuse.** Another name made only of words any job could carry ("manufacturing specialist", "design engineer", "mechanic") needs two skills of the career's path in the text (three for an engineer); a former title needs one; an engineer's title with words around it needs one. A skill most careers share counts half. In a software department, or under a text full of software's words, two path skills are needed whatever the title.
 - **Two careers.** Where the same words spell two careers ("Test Automation Engineer", "Assembler / Machine Operator", "Reliability Engineer" beside "Product Reliability Engineer"), the one whose path's skills the text names is taken, with at least two more than the other; where it is even the answer is null.
@@ -1365,7 +1437,7 @@ const reading = readPosting({ employer, title, location, department, text, count
 
 **Facts** (`facts.mjs`). Places from the location field in each feed's form ("Bastrop, TX", "US-TX-Austin", "United States-Utah-Salt Lake City", "City, Region, CC, postcode", a Workday site written "Auburn AL USA" or "Saint George UT US 1"); a part that only says there are more places ("Dallas, Multiple Locations, TX") is not the city; in every form, what stands where the town would and is none is no place: a building or a site of the employer's ("Fab 6", "Site", the word plant with whatever follows it: "Plant", "Plant 3", "Plant A", "Plant Fremont"), a way of working or a kind of site ("Hybrid", "Onsite", "Off-site", "Client Site", "Nationwide", "Telework", "Home Office", "HQ", "Factory", "Warehouse"), the country ("United States TX USA"), and a state's name, which is a town's only beside another state's two letters ("Delaware, OH", "US-OH-Delaware", "Indiana PA USA"); Plant City, Florida, the one town that begins with the word, is a town; a line of states' names alone ("Texas, Oklahoma", "Indiana, Ohio, Michigan", "USA - Texas - Oklahoma") is no place, and neither is Workday's "City, State, Country" with a state's name for the city ("Wyoming, Michigan, United States of America" is written as "Texas, Oklahoma, United States" is, and nothing in the line tells the town from the state: a board that names a site so has it written out on its line's `sites`), but for the two cities named as a state beside their own ("New York, New York", "Washington, District of Columbia"; the District in any spelling, "D.C." or "DC 20001", is DC); this costs every town named for a state written beside a state's full name: our data has factories in a town called Washington in twelve states, and "Washington, Missouri, United States" or "Washington, Pennsylvania, United States of America" is no place, so a board with such a site has it written out on its line's `sites` once a run lists it among the places named and not read; a city between two states is the first one's ("Arizona, Phoenix, Nevada" is Phoenix, Arizona), each state settled in the order it is written; a ZIP code after a state's letters is left off ("Dallas, TX 75201"); a Workday site whose town carries the employer's word for its business ("W Chester AEROSPACE OH US") is read as a town so named, which no factory is in, and waits for a person; a town alone ("Evendale") is no place, since it says no state (the registry's `sites` write such a site out before the reader sees it); the text only when the field is empty; remote and abroad are no place. A posting that carries a `country` other than the United States has no place whatever its location looks like ("Amsterdam, NH" is North Holland): an adapter passes the feed's country where it has one, and leaves it out where it has none. Years: the first requirement stated, a range as min and max. Education: the least that qualifies. Certificates by name (NADCAP is a company's, not a person's). Clearance by the level named. A U.S. citizen where citizenship is required; a U.S. person where the export rules are cited. Pay as dollars and a period; where a band is given per level the title's level picks it, and with no level the span.
 
-**Measured.** `tests/fixtures/postings/gold.json` is 480 hand-labelled postings (half a naive word match would keep, half it would refuse), in reduced form: title, department, location, a few lines, the labels. Half was tuned on; half was not looked at until the reader was done. `tests/unit/postings-read.unit.ts` holds the figures as a floor and names every trap. The labels are as they were written; the figures were raised once, after the vocabulary pass below. On the held-out half, whole text: no wrong career among 62 kept, nothing kept of 127 that are plainly not ours, and 11 of 84 of ours refused where refusing is not accepted (17 before the pass). On the labelled lines: of the skills read 89 in 100 are ones the lines ask for, and of those they ask for 75 in 100 are read.
+**Measured.** `tests/fixtures/postings/gold.json` is 528 hand-labelled postings in reduced form: title, department, location, a few lines, the labels. 480 were drawn from employers' boards (half a naive word match would keep, half it would refuse): half was tuned on; half was not looked at until the reader was done. 48 were added to the tuning half on 2026-11-26: 20 titles of cleaning and food preparation work, turned away since those careers left the catalogue; 24 for the words that make a title not ours (20 that hold one beside a career's own name and are turned away though their lines name that career's skills, each of which the reader keeps with the list set aside; four that hold a word left off the list on purpose and are kept); and four "Production Welder" titles of John Deere's board, each a MIG Welder. Those 48 have lines written by hand (what such a posting asks for; no posting was fetched for them). `tests/unit/postings-read.unit.ts` holds the figures as a floor and names every trap. The labels are as they were written, but for two: the two "Production Welder" postings the sample already held (one in each half) were labelled Welder and are labelled MIG Welder since the decision that a production welder is the MIG welder (`relabelled` in the file). The floor was raised once after the vocabulary pass below, and for the tuning half by what the added postings add (their places, and the eight kept). On the fixture as it stands: of the held-out half's 240 postings 67 are kept, none with a wrong career and none that is plainly not ours, 13 of ours are refused where refusing is not accepted, and every place is read; of the tuning half's 288, 85 are kept, none wrong and none not ours, 7 of ours are refused, and 286 places are read. On the labelled lines of the held-out half, of the skills read 89 in 100 are ones the lines ask for, and of those they ask for 78 in 100 are read (96 and 85 on the tuning half). The held-out half was also read with its postings' whole texts when the vocabulary pass was done: no wrong career among 62 kept, nothing kept of 127 that are plainly not ours, and 11 of 84 of ours refused where refusing is not accepted (17 before the pass); those texts are not kept, so that reading is not repeated here.
 
 **The vocabulary pass** (migrations 0056 to 0058). What the reader misses is mostly a name `data/` does not have, so a pass over the vocabulary is how recall rises: names from the postings' own titles and the words nothing matched (`unknown`), each added to the file that owns it, checked on all the saved postings (every posting a name newly keeps is read; a name that brings in a wrong one is dropped), and loaded by that file's builder as a new generated migration.
 - Careers' other names, `data/careers/aliases.json`, `scripts/build-career-lists-sql.mjs`: a career's `aliases` are added; a career's `not` are names taken back from it, deleted from that career only. Each name added, removed or not added (it belongs to another career) is a line in `load_log` (load `career-lists`).
