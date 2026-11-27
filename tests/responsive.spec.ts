@@ -259,7 +259,13 @@ test('a career page shows its skills as one tree, every group closed; a company 
     await expect(nodes.nth(at).locator('[data-group-figure]')).toHaveText(sized(group.skills.length));
   }
   await expect(tree.locator('[data-skill-tag], .tree-card')).toHaveCount(0);
-  await expect(tree).not.toContainText(/Fundamentals|Intermediate|Advanced/);
+  // No level is named on the tree. "Fundamentals" there is the Atlas's word for its core groups, the tree's first part,
+  // and every part is named as the Atlas names it (Fundamentals, then the fields the path reaches).
+  await expect(tree).not.toContainText(/Intermediate|Advanced/);
+  const parts = await tree.locator('[data-atlas-section]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-atlas-section')));
+  expect(parts.length, 'the groups stand under the parts of the Atlas').toBeGreaterThan(0);
+  if (parts.includes('fundamentals')) expect(parts[0], 'Fundamentals leads').toBe('fundamentals');
+  expect(parts.filter((part) => part !== 'fundamentals').every((part) => ATLAS_FILE.fields.some((field) => field.slug === part)), 'every other part is a field of the Atlas').toBe(true);
   // To a visitor: no mark, no figure but a group's size, nothing held.
   await expect(held).toHaveCount(0);
 
@@ -505,8 +511,25 @@ function groupsOf<S extends { group: { slug: string; name: string } | null }>(sk
     if (found) found.skills.push(skill);
     else groups.push({ slug: skill.group.slug, name: skill.group.name, skills: [skill] });
   }
-  return groups;
+  // The page lays the groups out as the Atlas places them (`atlasSections` in shared/atlas.ts): the core groups
+  // first, then each field in the wheel's order, a field's groups in the wheel's order; an unplaced group last.
+  const rank = (slug: string): [number, number] => {
+    const at = ATLAS_FILE.groups.findIndex((place) => place.slug === slug);
+    if (at < 0) return [Number.MAX_SAFE_INTEGER, 0];
+    const field = ATLAS_FILE.groups[at].field;
+    return [field === null ? -1 : ATLAS_FILE.fields.findIndex((each) => each.slug === field), at];
+  };
+  return groups
+    .map((group, at) => ({ group, at, rank: rank(group.slug) }))
+    .sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.at - b.at)
+    .map((row) => row.group);
 }
+
+/** The Atlas's structure, as the page reads it: where each skill group stands. */
+const ATLAS_FILE = JSON.parse(readFileSync('data/skills/atlas.json', 'utf8')) as {
+  fields: { slug: string; name: string }[];
+  groups: { slug: string; field: string | null }[];
+};
 
 /** A career of the catalogue, by its exact title, with its ladder as the API gives it. */
 async function careerByTitle(request: APIRequestContext, title: string) {
