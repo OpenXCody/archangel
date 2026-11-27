@@ -111,6 +111,85 @@ export function beforeText(reader, posting, base, vocab) {
   return { could: Boolean(reading?.career) || reached, places: line ? placesOf(reading?.places) : null };
 }
 
+// ---------------------------------------------------------------------------
+// Where new jobs are ported from (the registry's `states`)
+// ---------------------------------------------------------------------------
+//
+// The rule looks forward only. Nothing already ported is closed or removed
+// for it: a job of ours at a place outside the states is tended exactly as
+// before (brought in line with its posting, closed when the posting is gone
+// from two complete listings, reopened if it returns). What stops is the new:
+// no new job is made at a place outside them and no place there waits for a
+// person (posting_resolve and posting_apply, migration 0091, read the states
+// from the source's row), a posting wholly outside them that we hold no job
+// for is not kept and its text not asked for (collect), and a board is not
+// read at all once its company has no factory in them and no open job is left
+// from it (runEmployer).
+
+/** The states as the rule uses them: null for everywhere, else { states, said, inside(places) }. */
+export function portedFrom(states) {
+  if (!Array.isArray(states) || states.length === 0) return null;
+  const codes = [...new Set(states.map((state) => String(state).trim().toUpperCase()))].sort();
+  const set = new Set(codes);
+  return {
+    states: codes,
+    /** As a sentence names them: "TX", "OK and TX", "LA, OK and TX". */
+    said: codes.length < 3 ? codes.join(' and ') : `${codes.slice(0, -1).join(', ')} and ${codes[codes.length - 1]}`,
+    /** Whether any of these places ([{ city, state }]) is in the states. */
+    inside: (places) => (places ?? []).some((place) => set.has(String(place?.state ?? '').toUpperCase())),
+  };
+}
+
+/** The ids of the postings a source has a job for, open or closed: the ones that go on being read wherever they are. */
+async function heldPostings(db, source) {
+  const rows = await db`SELECT DISTINCT source_id FROM jobs WHERE source = ${source.slug} AND source_id IS NOT NULL`;
+  return new Set(rows.map((row) => row.source_id));
+}
+
+/**
+ * What decides whether a board is read under the rule: how many factories its
+ * companies (the registry's company and `also`, and the companies recorded as
+ * parts of them, as posting_companies finds them) have in the states, and how
+ * many jobs from this board are still open, wherever they are. An open job
+ * here is one whose status says so: one past its expiry is still ours to
+ * tend, and the next complete listing that includes it brings it back.
+ */
+export async function boardStanding(db, entry, states) {
+  const names = [entry.company, ...(entry.also ?? [])].map((name) => name.toLowerCase());
+  const [row] = await db`
+    WITH RECURSIVE family(id, depth) AS (
+      SELECT c.id, 0 FROM companies c
+      WHERE lower(c.name) = ANY(${names}) OR EXISTS (SELECT 1 FROM unnest(c.aliases) a WHERE lower(a) = ANY(${names}))
+      UNION
+      SELECT c.id, f.depth + 1 FROM family f JOIN companies c ON c.parent_company_id = f.id WHERE f.depth < 3
+    )
+    SELECT (SELECT count(*) FROM factories f WHERE f.company_id IN (SELECT id FROM family) AND f.state = ANY(${states}))::int AS factories,
+           (SELECT count(*) FROM jobs j WHERE j.source = ${sourceOf(entry).slug} AND j.status = 'open')::int AS open`;
+  return { factories: Number(row?.factories ?? 0), open: Number(row?.open ?? 0) };
+}
+
+/**
+ * Writes where a source's new jobs are ported from onto its row
+ * (intake_sources.states, migration 0091; null: everywhere), which is where
+ * the database reads it when it decides a job. A source that is not
+ * registered yet is left for the run that registers it.
+ */
+export async function scopeSource(db, entry, states) {
+  const scope = portedFrom(states);
+  const { slug } = sourceOf(entry);
+  await db`
+    UPDATE intake_sources SET states = ${scope ? scope.states : null}
+    WHERE slug = ${slug} AND states IS DISTINCT FROM ${scope ? scope.states : null}::text[]`;
+}
+
+/** Whether this database has had migration 0091: without it the rule cannot be kept, and nothing is read. */
+export async function scopeReady(db) {
+  const [row] = await db`
+    SELECT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = current_schema() AND table_name = 'intake_sources' AND column_name = 'states') AS ready`;
+  return Boolean(row?.ready);
+}
+
 /** Where a listing that was cut short is taken up from, when the system allows it: { next, seen } or null. */
 async function resumeOf(db, source, adapter) {
   if (!adapter.resumes) return null;
@@ -153,8 +232,16 @@ async function resumeOf(db, source, adapter) {
  * own record alike. The location lines of the postings that name no place
  * are counted, the commonest kept for the run's report (`unplaced`): they are
  * what a person writes out next.
+ *
+ * `states` is where new jobs are ported from (the registry's, or the line's
+ * own; null: everywhere). A posting none of whose places is in them is kept
+ * only when we already hold a job for it, so that job goes on being tended;
+ * any other is counted (`outside`) and let go: not staged, not among the
+ * lines no place was read in, and, where the listing says its place, its text
+ * is never asked for. Which of a kept posting's places becomes a new job is
+ * the database's to say (migration 0091).
  */
-export async function collect(db, entry, { session, reader, vocab, today = new Date().toISOString().slice(0, 10), again = false, log = () => {} }) {
+export async function collect(db, entry, { session, reader, vocab, today = new Date().toISOString().slice(0, 10), again = false, log = () => {}, states = null }) {
   const adapter = SYSTEMS[entry.system];
   const source = sourceOf(entry);
   const started = Date.now();
@@ -177,6 +264,12 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
   }
 
   const counts = { read: 0, abroad: 0, notCareer: 0, noPlace: 0, noAddress: 0, vanished: 0, texts: 0, spared: 0, kept: 0 };
+  // Where new jobs are ported from, and the postings we hold a job for already (open or closed: one that left may return).
+  const scope = portedFrom(states);
+  const held = scope ? await heldPostings(db, source) : null;
+  /** None of these places is where new jobs are ported from, and no job of ours stands behind the posting. */
+  const outside = (posting, places) => Boolean(scope) && !scope.inside(places) && !held.has(posting.id);
+  if (scope) counts.outside = 0;
   const kept = new Map();
   const deferred = new Set();
   const unknown = new Map();
@@ -230,6 +323,12 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
       if (before.places && before.places.length === 0) {
         counts.noPlace += 1;
         unread(linesOf(posting));
+        return;
+      }
+      // A listing that says where the work is, and none of it is where new jobs are ported from: its text is not asked
+      // for, unless a job of ours already stands behind the posting.
+      if (before.places && outside(posting, before.places)) {
+        counts.outside += 1;
         return;
       }
       const listing = short(canonical({
@@ -290,6 +389,12 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     if (places.length === 0) {
       counts.noPlace += 1;
       unread(linesOf(full));
+      if (mark) passes.set(posting.id, mark);
+      return;
+    }
+    // At places we read, none of them where new jobs are ported from, and no job of ours to tend: not kept.
+    if (outside(posting, places)) {
+      counts.outside += 1;
       if (mark) passes.set(posting.id, mark);
       return;
     }
@@ -369,45 +474,80 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     `${counts.kept.toLocaleString('en-US')} kept, ${session.requests} requests in ${seconds(started)} s`);
   return {
     source, kept, deferred, present, dropped, passes, today, complete, resume, resumed: Boolean(from), stopped, counts,
+    states: scope ? scope.states : null,
     unknown: commonest(unknown, UNKNOWN_KEPT), unplaced: commonest(unplaced, UNPLACED_KEPT),
     titles: titles.summary(), requests: session.requests, seconds: seconds(started),
   };
 }
 
 /**
- * How long a board that has been listed in full may wait while boards that never have are first read in: days.
- * Half of what a job from a source lasts after its last complete listing (14 days, posting_apply), so the jobs a
- * board already gave do not leave the lists while the budget is spent on new boards.
+ * How much of a run's budget makes a run a board's turn when its listing did not reach the end: half. A run the
+ * budget cut after less than that was the tail of another board's turn, and does not cost this board its place.
  */
-const KEEP_DAYS = 7;
+const TURN_SHARE = 0.5;
+/** How many of a board's latest runs are looked through for its last turn. */
+const TURNS_BACK = 60;
+
+/**
+ * Whether a run was the board's turn at its platform's budget: its listing
+ * reached the end, or it had at least half of that run's budget (`budget` on
+ * the run where it was noted, else the platform's own number). A run that
+ * listed nothing (a refusal before the first page) was no turn.
+ */
+export function wasTurn(counts, budget) {
+  if (!counts || counts.read === undefined || counts.read === null) return false;
+  if (counts.complete === true || counts.complete === 'true') return true;
+  const of = Number(counts.budget ?? budget ?? 0);
+  return of > 0 && Number(counts.requests ?? 0) >= of * TURN_SHARE;
+}
 
 /**
  * The order boards are read in. Those with no budget first, as the registry
  * lists them. Then the boards of a platform that has a budget for the run,
- * which is spent where it is most needed: a listing an earlier run left cut
- * first (it is taken up where it stopped), then a board whose last complete
- * listing is a week old or more (its jobs expire a week after that), then a
- * board never listed to its end, then the board whose last complete listing
- * is oldest. The registry's order settles a tie, so the order is the same
- * for the same history.
+ * and the one rule for them: the board that has waited longest since its
+ * last turn goes first (wasTurn: a run that read its listing to the end, or
+ * had at least half of the run's budget), and a board that has never had a
+ * turn goes before all of those. The registry's order, which is the order of
+ * priority, settles a tie: it is the order among the boards never read.
+ *
+ * So no listing, however long, is taken up twice before every other board
+ * has had its turn. Why it cannot starve a board: the first board in line
+ * has the whole budget before it, so its run either reaches the end of its
+ * listing or spends the budget, which is a turn either way, and it goes to
+ * the back of the line; every board behind it moves up at each run until it
+ * is first. With n boards on the platform a board waits n runs at the very
+ * most, and that only if every other listing is longer than a whole budget.
+ * A listing that was cut is still taken up where it stopped (resumeOf), when
+ * its turn comes round. The board the budget ran out on after less than half
+ * of it has had no turn: it is ahead of every board that did, with the next
+ * run's budget before it. Nor has a board that was refused or did not answer
+ * part way, or one whose own ceiling is under half the budget: it keeps its
+ * place, and costs the boards behind it only the few requests it makes.
+ *
+ * Before this, a cut listing went first, then a board a week past its last
+ * whole listing, then one never read: Northrop Grumman's listing was cut at
+ * 300 requests run after run and taken up first at each, and for two days no
+ * other board on the platform was read (tests/unit/postings-scope.unit.ts
+ * replays them).
  */
-export async function inTurn(db, entries, { now = Date.now() } = {}) {
+export async function inTurn(db, entries) {
   const free = [];
   const held = [];
   for (const [at, entry] of entries.entries()) {
-    if (!SYSTEMS[entry.system].budget) {
+    const budget = SYSTEMS[entry.system].budget;
+    if (!budget) {
       free.push(entry);
       continue;
     }
     const { slug } = sourceOf(entry);
-    const [last] = await db`
-      SELECT counts FROM intake_runs WHERE source = ${slug} AND state <> 'undone' AND counts ? 'read' ORDER BY id DESC LIMIT 1`;
-    const [whole] = await db`
-      SELECT max(started_at) AS at FROM intake_runs WHERE source = ${slug} AND state <> 'undone' AND counts->>'complete' = 'true'`;
-    const listed = whole?.at ? new Date(whole.at).getTime() : 0;
-    held.push({ entry, at, cut: last?.counts?.resume?.next ? 1 : 0, due: listed > 0 && now - listed >= KEEP_DAYS * 86_400_000 ? 1 : 0, whole: listed });
+    const runs = await db`
+      SELECT started_at, counts->'read' AS read, counts->'complete' AS complete, counts->'requests' AS requests, counts->'budget' AS budget
+      FROM intake_runs WHERE source = ${slug} AND state <> 'undone' AND counts ? 'read' ORDER BY id DESC LIMIT ${TURNS_BACK}`;
+    const turn = runs.find((run) => wasTurn(run, budget.requests));
+    // No turn among its latest runs, or no run at all: it has waited longest of all.
+    held.push({ entry, at, since: turn ? new Date(turn.started_at).getTime() : 0 });
   }
-  held.sort((a, b) => b.cut - a.cut || b.due - a.due || a.whole - b.whole || a.at - b.at);
+  held.sort((a, b) => a.since - b.since || a.at - b.at);
   return [...free, ...held.map((board) => board.entry)];
 }
 
@@ -435,7 +575,7 @@ export async function companyListed(db, entry) {
 }
 
 /** A run that read nothing, or not all of it: why, in the run's row and in a line. */
-export async function closeRun(db, runId, entry, { outcome, why, requests = 0, took = 0 }) {
+export async function closeRun(db, runId, entry, { outcome, why, requests = 0, took = 0, look = true }) {
   const source = sourceOf(entry);
   await db`
     UPDATE intake_runs SET state = 'failed', ended_at = now(), note = ${why},
@@ -443,7 +583,7 @@ export async function closeRun(db, runId, entry, { outcome, why, requests = 0, t
     WHERE id = ${runId}`;
   await db`
     INSERT INTO load_log (load, kind, action, look, company, detail, run_id)
-    VALUES (${source.slug}, 'run', ${outcome}, true, ${entry.company}, ${why}, ${runId})`;
+    VALUES (${source.slug}, 'run', ${outcome}, ${look}, ${entry.company}, ${why}, ${runId})`;
 }
 
 /**
@@ -546,6 +686,8 @@ export async function stage(db, runId, collected, { log = console.log } = {}) {
     // `complete` is what posting_apply reads; `resume` is where the next run takes the listing up, with the ids seen so far.
     complete, resumed: collected.resumed, resume: collected.resume, unknown: collected.unknown, unplaced: collected.unplaced ?? [],
     new: fresh.length, changed: changed.length, same: diff.same.length, back: diff.back.length, gone: diff.gone.length,
+    // Where new jobs were ported from in this run, and the budget the run's platform had (what makes a cut run a turn: inTurn).
+    ...(collected.states ? { states: collected.states } : {}), ...(collected.budget ? { budget: collected.budget } : {}),
     // Of the gone, the ones the catalogue dropped rather than the listing: only when there are some.
     ...(notOurs ? { dropped: notOurs } : {}),
   };
@@ -562,7 +704,11 @@ export async function resolve(db, runId, { log = console.log } = {}) {
   if (!['staged', 'resolved'].includes(run.state)) throw new Error(`Run ${runId} is ${run.state}: only a staged run is resolved.`);
   const started = Date.now();
   const [{ counts }] = await inTransaction(db, (tx) => tx`SELECT posting_resolve(${run.source}, ${runId}) AS counts`);
-  const resolved = { placed: counts.placed ?? 0, waiting: counts.waiting ?? 0, waitingPlaces: counts.waitingPlaces ?? 0, noCareer: counts.noCareer ?? 0 };
+  const resolved = {
+    placed: counts.placed ?? 0, waiting: counts.waiting ?? 0, waitingPlaces: counts.waitingPlaces ?? 0, noCareer: counts.noCareer ?? 0,
+    // The places of kept postings that are outside the states new jobs are ported from and have no job of ours: they make none, and do not wait.
+    ...(counts.outside ? { placesOutside: counts.outside } : {}),
+  };
   await note(db, runId, { state: 'resolved', counts: resolved, timings: { resolve: seconds(started) } });
   log(`resolve: run ${runId}: ${resolved.placed} postings at a plant, ${resolved.waiting} waiting on ${resolved.waitingPlaces} places with no plant` +
     `${resolved.noCareer ? `, ${resolved.noCareer} whose career is not stored` : ''} in ${seconds(started)} s`);
@@ -601,7 +747,9 @@ export async function report(db, runId, { everything = false, rehearsal = false,
     out.push(`  listing: ${c.resumed ? 'taken up where the last run stopped; ' : ''}` +
       `${c.complete === false ? `not read to its end${c.resume ? ' (the next run takes it up there)' : ' (the next run starts it again)'}: nothing is taken to be gone` : 'read to its end'}`);
     out.push(`  read: ${n(c.read)} postings listed; ${n(c.notCareer)} not one of our careers, ${n(c.abroad)} outside the United States, ${n(c.noPlace)} naming no place` +
-      `${c.vanished ? `, ${n(c.vanished)} gone before they were read` : ''}; kept ${n(c.kept)}${c.texts ? `; ${n(c.texts)} texts asked for` : ''}` +
+      `${c.vanished ? `, ${n(c.vanished)} gone before they were read` : ''}` +
+      `${c.outside ? `, ${n(c.outside)} at places outside ${portedFrom(c.states)?.said ?? 'the states new jobs are ported from'} with no job of ours` : ''}` +
+      `; kept ${n(c.kept)}${c.texts ? `; ${n(c.texts)} texts asked for` : ''}` +
       `${c.spared ? `; ${n(c.spared)} read before and not ours, not asked about again` : ''}`);
     out.push(`  staged: ${n(c.new)} new, ${n(c.changed)} changed, ${n(c.same)} the same, ${n(c.back)} back, ${n(c.gone)} gone since the last complete listing` +
       `${c.dropped ? ` (${n(c.dropped)} of them not gone from the site: staged as a career that is no longer one of ours)` : ''}` +
@@ -610,6 +758,10 @@ export async function report(db, runId, { everything = false, rehearsal = false,
   if (c.placed !== undefined) {
     out.push(`  placed: ${n(c.placed)} postings at a plant; ${n(c.waiting)} waiting on ${n(c.waitingPlaces)} places where we list no plant of the company` +
       `${c.noCareer ? `; ${n(c.noCareer)} whose career is not stored` : ''}`);
+    if (c.placesOutside) {
+      out.push(`  new jobs are ported from ${portedFrom(c.states)?.said ?? 'the states the registry names'}: ${n(c.placesOutside)} places of kept postings are elsewhere and have no job of ours; ` +
+        'they make no new job and do not wait');
+    }
   }
   if (c.jobsAdded !== undefined) {
     out.push(`  jobs: ${n(c.jobsAdded)} added, ${n(c.jobsChanged)} changed, ${n(c.jobsReopened)} reopened, ${n(c.jobsClosed)} closed; ${n(c.jobsOpen)} open`);
@@ -659,24 +811,38 @@ export async function report(db, runId, { everything = false, rehearsal = false,
  * answer, or answered an error: the next run tries again) or 'cut' (a budget
  * or a ceiling ended the asking), each of which may still have staged what
  * was read before it; 'not listed' (the registry's company is not in our
- * data: nothing was asked); 'not reached' (the platform's budget for the run
- * was spent before this board: no run is recorded) or 'failed' (the feed's
+ * data: nothing was asked); 'not read' (`states` says where new jobs are
+ * ported from, the company has no factory there and no job from this board
+ * is open: nothing was asked, and the run's row says so); 'not reached' (the
+ * platform's budget for the run was spent before this board: no run is
+ * recorded) or 'failed' (the feed's
  * shape changed: the adapter needs a person). With `rehearse` everything is
  * done in a transaction that is rolled back; `upTo` stops after 'stage' or
  * 'resolve'.
  */
-export async function runEmployer(db, entry, { fetcher, reader, vocab, today, again = false, rehearse = false, upTo = 'apply', startedBy = 'cli', log = console.log, everything = false } = {}) {
+export async function runEmployer(db, entry, { fetcher, reader, vocab, today, again = false, rehearse = false, upTo = 'apply', startedBy = 'cli', log = console.log, everything = false, states = null } = {}) {
   const begun = Date.now();
   const session = fetcher.session(entry.slug, { pace: SYSTEMS[entry.system].pace, ceiling: entry.ceiling });
 
   // Before the database is written: is the company ours, and what does the board say.
   let collected = null;
   let fail = null;
+  const scope = portedFrom(states);
+  const standing = scope ? await boardStanding(db, entry, scope.states) : null;
   if (!(await companyListed(db, entry))) {
     fail = { outcome: 'not listed', why: `the registry names ${entry.company}, which is not a company in our data: the board was not read` };
+  } else if (standing && standing.factories === 0 && standing.open === 0) {
+    // Not read for now: its line stays in the registry, and it is read again the day the company has a factory there.
+    fail = {
+      outcome: 'not read', look: false,
+      why: `new jobs are ported from ${scope.said}: we list no factory of ${[entry.company, ...(entry.also ?? [])].join(' or ')} there and no job from this board is open, so the board is not read for now`,
+    };
   } else {
     try {
-      collected = await collect(db, entry, { session, reader, vocab, today, again, log });
+      collected = await collect(db, entry, { session, reader, vocab, today, again, log, states });
+      // The budget the run's platform had, where it has one: what makes a run that was cut a turn (inTurn).
+      const budget = SYSTEMS[entry.system].budget;
+      if (budget && fetcher.budgets?.[budget.platform] !== undefined) collected.budget = fetcher.budgets[budget.platform];
     } catch (error) {
       // The platform's budget went before this board listed anything: there is no run to record.
       if (error instanceof BudgetSpent) {
@@ -695,8 +861,12 @@ export async function runEmployer(db, entry, { fetcher, reader, vocab, today, ag
 
   const steps = async (tx) => {
     const runId = await openRun(tx, entry, { startedBy });
+    // Where the source's new jobs are ported from, on its row: the database decides by it.
+    if (scope || (await scopeReady(tx))) await scopeSource(tx, entry, states);
     if (fail) {
       await closeRun(tx, runId, entry, fail);
+      // A board that is not read keeps no place waiting outside the states either: the list is resolved against what is staged.
+      if (fail.outcome === 'not read') await tx`SELECT posting_resolve(${sourceOf(entry).slug}, ${runId})`;
       return { runId, outcome: fail.outcome, counts: { outcome: fail.outcome, requests: fail.requests }, why: fail.why, text: await report(tx, runId, { rehearsal: rehearse, everything }) };
     }
     const counts = await stage(tx, runId, collected, { log });

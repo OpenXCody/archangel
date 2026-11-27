@@ -26,7 +26,10 @@
 // run n requests in place of its own number (a gentler run; tests), and
 // `--feeds http://127.0.0.1:<port>` sends every request to a local server
 // standing in for the feeds (tests, and runs over saved boards; `--paced` keeps
-// each system's pacing there, to time a run as it would be). Every command
+// each system's pacing there, to time a run as it would be). New jobs are
+// ported from the states the registry names (`states`: its own, or a line's);
+// a job already ported from elsewhere is tended as before, and a board whose
+// company has no factory in them and no open job is not read. Every command
 // says what it is about to do before it does it. scripts/ingest/README.md
 // describes the pipeline.
 import { writeFile } from 'node:fs/promises';
@@ -219,7 +222,13 @@ async function main() {
       const named = one ? [tools.entry(args[0])] : tools.employers.employers.filter((entry) => (!only || only.has(entry.slug)) && (!systems || systems.has(entry.system)));
       if (only) for (const slug of only) if (!tools.employers.employers.some((entry) => entry.slug === slug)) throw new Error(`There is no employer "${slug}" in the registry.`);
       if (named.length === 0) throw new Error('No employer in the registry is on a board that was asked for.');
-      // The boards of a platform with a budget come last, the one whose complete listing is oldest first.
+      // Where new jobs are ported from: the registry's states, or a line's own (null: everywhere). The database decides by
+      // them (migration 0091), so a database that has not had that migration is not run against.
+      const statesOf = (entry) => tools.registry.statesOf(tools.employers, entry);
+      if (named.some((entry) => statesOf(entry)) && !(await jobs.scopeReady(sql))) {
+        throw new Error('The registry says where new jobs are ported from, and this database has not had migration 0091 (npm run db:migrate), which is what keeps to it. Nothing was read.');
+      }
+      // The boards of a platform with a budget come last, the one that has waited longest for its turn first.
       const entries = await jobs.inTurn(sql, named);
       const rehearse = command === 'rehearse' || Boolean(options.rehearse);
       const upTo = command === 'stage' ? 'stage' : 'apply';
@@ -229,16 +238,35 @@ async function main() {
           ? `  will read ${entries[0].employer}'s board into staging as a new run; no job is touched`
           : `  will read ${entries.length === 1 ? `${entries[0].employer}'s board` : `${entries.length} employers' boards`} and bring the jobs in line: jobs change. \`undo <run>\` takes a run back`);
       say(`  asked as "${tools.userAgent}"${tools.standIn ? `, of the stand-in at ${options.feeds}` : ''}; robots files are read first and obeyed; a refusal ends that employer for this run`);
+      // What the registry says of where new jobs are ported from, once for the run: the states and how many boards each set is for.
+      const ported = new Map();
+      for (const entry of entries) {
+        const said = jobs.portedFrom(statesOf(entry))?.said ?? null;
+        if (said) ported.set(said, (ported.get(said) ?? 0) + 1);
+      }
+      for (const [said, boards] of ported) {
+        say(`  new jobs are ported from ${said}${ported.size > 1 || boards < entries.length ? ` (${boards} ${boards === 1 ? 'board' : 'boards'})` : ''}: ` +
+          'a job already ported from elsewhere is tended as before, and no new job is made there');
+      }
       for (const [platform, budget] of Object.entries(tools.fetcher.budgets)) say(`  ${platform}: at most ${budget} requests in this run, across all of its boards`);
       // Every employer that is to be read is a source from now on, whether or not this run reaches its board: one the
       // platform's budget does not reach has no run yet, and Admin Tools lists it as waiting for its first.
-      if (!rehearse) for (const entry of entries) await pipeline.registerSource(sql, tools.registry.sourceOf(entry));
+      if (!rehearse) {
+        const ready = await jobs.scopeReady(sql);
+        for (const entry of entries) {
+          await pipeline.registerSource(sql, tools.registry.sourceOf(entry));
+          // And where its new jobs are ported from stands on its row from now on, whether or not this run reaches it.
+          if (ready) await jobs.scopeSource(sql, entry, statesOf(entry));
+        }
+      }
       const started = Date.now();
       const lines = [];
       const texts = [];
       const whole = [];
       const part = [];
       const unreached = [];
+      // The boards that are not read for now: no factory of the company where new jobs are ported from, and no open job.
+      const rested = [];
       let failed = 0;
       for (const entry of entries) {
         const began = Date.now();
@@ -249,7 +277,9 @@ async function main() {
           result = { runId: null, outcome: 'not reached', counts: { requests: 0 }, why: `the run's budget of ${tools.fetcher.budgets[budget.platform]} requests to ${budget.platform} is spent`, text: null };
         } else {
           try {
-            result = await jobs.runEmployer(sql, entry, { ...tools, again: Boolean(options.again), rehearse, upTo, startedBy, log: one ? say : () => {}, everything: Boolean(options.all) });
+            result = await jobs.runEmployer(sql, entry, {
+              ...tools, again: Boolean(options.again), rehearse, upTo, startedBy, log: one ? say : () => {}, everything: Boolean(options.all), states: statesOf(entry),
+            });
           } catch (error) {
             // The database, or a bug: said, counted, and the next employer is still read.
             failed += 1;
@@ -267,7 +297,8 @@ async function main() {
           line = `  ${entry.slug.padEnd(18)} NOT REACHED: ${result.why}`;
         } else if (c.read === undefined) {
           line = `  ${entry.slug.padEnd(18)} run ${String(result.runId).padEnd(5)} ${result.outcome.toUpperCase()}: ${result.why}  (${c.requests ?? 0} requests, ${took} s)`;
-          if (result.outcome !== 'not listed') part.push(`${entry.slug} (${result.outcome}, nothing listed: ${result.why})`);
+          if (result.outcome === 'not read') rested.push(entry.slug);
+          else if (result.outcome !== 'not listed') part.push(`${entry.slug} (${result.outcome}, nothing listed: ${result.why})`);
         } else {
           if (c.complete) whole.push(entry.slug);
           else part.push(`${entry.slug} (${result.outcome} after ${c.read} postings: ${result.why}; ${c.resume ? 'taken up there next run' : 'starts again next run'})`);
@@ -289,6 +320,7 @@ async function main() {
         `  listed in full (${whole.length}): ${whole.join(', ') || 'none'}`,
         `  cut short (${part.length}): ${part.join('; ') || 'none'}`,
         ...(unreached.length > 0 ? [`  not reached, first in line next run (${unreached.length}): ${unreached.join(', ')}`] : []),
+        ...(rested.length > 0 ? [`  not read for now, no factory where new jobs are ported from and no open job (${rested.length}): ${rested.join(', ')}`] : []),
       ].join('\n');
       await finish(one ? `${texts.join('\n\n')}\n\n${summary}` : [summary, ...lines, '', texts.join('\n\n')].join('\n'));
       if (failed > 0) process.exitCode = 1;

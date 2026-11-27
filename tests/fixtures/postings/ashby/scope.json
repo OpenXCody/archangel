@@ -1,0 +1,60 @@
+{
+ "jobs": [
+  {
+   "id": "a1",
+   "title": "Welder",
+   "department": "Manufacturing",
+   "team": null,
+   "employmentType": "FullTime",
+   "location": "Fort Worth, TX",
+   "secondaryLocations": [
+    {
+     "location": "Tucson, AZ"
+    }
+   ],
+   "publishedAt": "2026-11-18T12:00:00.000+00:00",
+   "isListed": true,
+   "jobUrl": "https://jobs.ashbyhq.com/scope/a1",
+   "descriptionHtml": "<p>You will weld steel frames at our works.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding of carbon steel</li></ul>"
+  },
+  {
+   "id": "a2",
+   "title": "Welder",
+   "department": "Manufacturing",
+   "team": null,
+   "employmentType": "FullTime",
+   "location": "Tucson, AZ",
+   "secondaryLocations": [],
+   "publishedAt": "2026-11-18T12:00:00.000+00:00",
+   "isListed": true,
+   "jobUrl": "https://jobs.ashbyhq.com/scope/a2",
+   "descriptionHtml": "<p>You will weld steel frames at our works.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding of carbon steel</li></ul>"
+  },
+  {
+   "id": "a3",
+   "title": "Welder",
+   "department": "Manufacturing",
+   "team": null,
+   "employmentType": "FullTime",
+   "location": "Wichita, KS",
+   "secondaryLocations": [],
+   "publishedAt": "2026-11-18T12:00:00.000+00:00",
+   "isListed": true,
+   "jobUrl": "https://jobs.ashbyhq.com/scope/a3",
+   "descriptionHtml": "<p>You will weld steel frames at our works.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding of carbon steel</li></ul>"
+  },
+  {
+   "id": "a4",
+   "title": "Welder",
+   "department": "Manufacturing",
+   "team": null,
+   "employmentType": "FullTime",
+   "location": "Remote",
+   "secondaryLocations": [],
+   "publishedAt": "2026-11-18T12:00:00.000+00:00",
+   "isListed": true,
+   "jobUrl": "https://jobs.ashbyhq.com/scope/a4",
+   "descriptionHtml": "<p>You will weld steel frames at our works.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding of carbon steel</li></ul>"
+  }
+ ]
+}

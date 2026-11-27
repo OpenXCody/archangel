@@ -291,9 +291,17 @@ expect "the budget cuts the listing after four of its five pages" 'applied cut f
 expect "where it stopped, and what it had seen, are kept with the run" '80 3' "$(sql "SELECT concat_ws(' ', counts->'resume'->'next'->>'offset', jsonb_array_length(counts->'resume'->'seen')) FROM intake_runs WHERE id = $L2")"
 case "$OUT" in *"myworkdayjobs.com: at most 6 requests in this run"*"requests by platform: myworkdayjobs.com 6 of 6"*"cut short (1): e2e-long (cut after 80 postings: the run's budget of 6 requests to myworkdayjobs.com is spent; taken up there next run)"*) echo "ok    the run says the budget, what it spent and what it cut";; *) echo "FAIL  budget summary: $OUT"; fail=1;; esac
 expect "the welder that left is not gone: the listing did not reach its end" '5' "$(open_jobs long)"
-# The next run: the cut listing goes first, though the other board's complete listing is older, and the budget runs out before that one.
+# The next run: the cut listing has just had its turn (the whole of that run's budget), so the board that has waited
+# longest goes first and the budget runs out before the cut listing is reached: no listing is taken up twice running.
 WORKS=$(last_run works)
-OUT=$(ingest postings --only e2e-works,e2e-long --budget 5)
+OUT=$(ingest postings --only e2e-works,e2e-long --budget 3)
+expect "the board that has waited longest is read first, to its end" 'applied read true 3' "$(counted "$(last_run works)" outcome complete requests)"
+expect "it had a run"                       't' "$(sql "SELECT $(last_run works) > $WORKS")"
+case "$OUT" in *"not reached, first in line next run (1): e2e-long"*) echo "ok    the cut listing is not taken up ahead of it, and no run is recorded for it";; *) echo "FAIL  the cut listing waits its turn: $OUT"; fail=1;; esac
+expect "no run for the cut listing"         "$L2" "$(last_run long)"
+# The run after: the cut listing has waited longest now, and is taken up where it stopped.
+WORKS=$(last_run works)
+OUT=$(ingest postings --only e2e-works,e2e-long --budget 4)
 L3=$(last_run long)
 expect "taken up two pages before the cut, with the filter and no first page" '40 60 80' "$(offsets e2elong.wd1.myworkdayjobs.com 3)"
 expect "read to its end over two runs"      'applied read true true 44 1 0 4' "$(counted "$L3" outcome complete resumed read gone jobsClosed requests)"
@@ -302,9 +310,10 @@ expect "its job waits for a second complete listing" '5' "$(open_jobs long)"
 expect "every job the listing included is seen again, the ones before the cut too" '4' "$(sql "SELECT count(*) FROM jobs WHERE source = 'postings-e2e-long' AND last_seen_at > now() - interval '5 minutes'")"
 case "$OUT" in *"not reached, first in line next run (1): e2e-works"*) echo "ok    a board the budget did not reach is said, and no run is recorded for it";; *) echo "FAIL  not reached: $OUT"; fail=1;; esac
 expect "no run"                             "$WORKS" "$(last_run works)"
-# With the budget it has by itself: the board whose complete listing is oldest goes first.
+expect "a run notes the budget its platform had, which is what makes a cut run a turn" '6 4' "$(sql "SELECT concat_ws(' ', (SELECT counts->>'budget' FROM intake_runs WHERE id = $L2), (SELECT counts->>'budget' FROM intake_runs WHERE id = $L3))")"
+# With the budget it has by itself: the board that has waited longest for its turn goes first.
 ingest postings --only e2e-long,e2e-works >/dev/null
-expect "the oldest complete listing first"  't' "$(sql "SELECT (SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-works') < (SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-long')")"
+expect "the board that has waited longest first" 't' "$(sql "SELECT (SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-works') < (SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-long')")"
 expect "gone from two complete listings: closed" "closed|No longer on the company's careers site" "$(sql "SELECT status || '|' || closed_reason FROM jobs WHERE source = 'postings-e2e-long' AND source_id = 'L1'")"
 expect "a run cut by a budget is undone like any other" 'undone' "$(ingest undo "$(last_run long)" >/dev/null; ingest undo "$L3" >/dev/null; ingest undo "$L2" >/dev/null; sql "SELECT state FROM intake_runs WHERE id = $L2")"
 expect "and the board is as the first run left it" '5 0' "$(open_jobs long) $(sql "SELECT count(*) FROM intake_records WHERE source = 'postings-e2e-long' AND gone_run_id IS NOT NULL")"
@@ -617,6 +626,129 @@ expect "the board again changes nothing"     '0 0 0 0' "$(counted "$(last_run ac
 ingest undo "$(last_run acme)" >/dev/null
 ingest undo "$RW" >/dev/null
 expect "undone, it is a welder's job again, under the title it had" "Welder|$WELDER|Welder III" "$(job 101 "concat_ws('|', j.title, j.occupation_id, j.posted_as)")"
+# --- Where new jobs are ported from: the registry's "states" (migration 0091) ----------------------------------------
+# A block of its own: its companies, its boards and its two registries (one that names no states, as the rule was
+# before; one that ports new jobs from Texas, with a line that says its own). Lone Star has a factory in Texas and one
+# in Nevada; Far West and Silver are in Nevada alone; the fourth line's company (Works) has no factory in Texas either.
+scoped() { DATABASE_URL="$DB" node "$ROOT/scripts/ingest/run.mjs" "$@" --registry "$D/scope.json" --feeds "$FEEDS" 2>&1; }
+unscoped() { DATABASE_URL="$DB" node "$ROOT/scripts/ingest/run.mjs" "$@" --registry "$D/everywhere.json" --feeds "$FEEDS" 2>&1; }
+# How many requests the stand-in has answered for one Ashby board.
+asked_board() { curl -s "$FEEDS/_requests" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).filter((r)=>r.path.endsWith('/$1')).length))"; }
+# An Ashby board of welders: each posting "id|place; place|pay" (pay as "28-34", or nothing).
+scope_board() { # name, postings...
+  local name=$1; shift
+  node -e '
+const [file, ...rows] = process.argv.slice(1);
+const jobs = rows.map((row) => {
+  const [id, places, pay] = row.split("|");
+  const [first, ...rest] = places.split(";").map((place) => place.trim());
+  const [low, high] = (pay || "").split("-");
+  return { id, title: "Welder", department: "Manufacturing", team: null, employmentType: "FullTime", location: first, secondaryLocations: rest.map((location) => ({ location })),
+    publishedAt: "2026-11-20T12:00:00.000+00:00", isListed: true, jobUrl: "https://jobs.ashbyhq.com/scope/" + id,
+    descriptionHtml: "<p>You will weld steel frames.</p><h3>Basic Qualifications</h3><ul><li>Experience in MIG welding of carbon steel</li></ul>" +
+      (pay ? "<p>Pay range: $" + low + ".00 - $" + high + ".00 per hour.</p>" : "") };
+});
+require("fs").writeFileSync(file, JSON.stringify({ jobs }));' "$D/feeds/ashby/$name.json" "$@"
+}
+scope_jobs() { sql "SELECT coalesce(string_agg(j.source_id || ':' || f.state || ':' || j.status, ' ' ORDER BY j.source_id, f.state), '') FROM jobs j JOIN factories f ON f.id = j.factory_id WHERE j.source = 'postings-e2e-$1'"; }
+SCOPE_LINES='
+    { "slug": "e2e-lone", "employer": "E2E Postings Lone Star", "company": "E2E Postings Lone Star", "system": "ashby", "board": "e2e-lone" },
+    { "slug": "e2e-far", "employer": "E2E Postings Far West", "company": "E2E Postings Far West", "system": "ashby", "board": "e2e-far" },
+    { "slug": "e2e-none", "employer": "E2E Postings None", "company": "E2E Postings Works", "system": "ashby", "board": "e2e-none" },'
+printf '{ "employers": [%s\n    { "slug": "e2e-silver", "employer": "E2E Postings Silver", "company": "E2E Postings Silver", "system": "ashby", "board": "e2e-silver" }\n  ], "leftOut": [] }\n' "$SCOPE_LINES" > "$D/everywhere.json"
+printf '{ "states": ["TX"], "employers": [%s\n    { "slug": "e2e-silver", "employer": "E2E Postings Silver", "company": "E2E Postings Silver", "system": "ashby", "board": "e2e-silver", "states": ["NV"] }\n  ], "leftOut": [] }\n' "$SCOPE_LINES" > "$D/scope.json"
+OUT=$(node "$ROOT/scripts/ingest/postings/registry.mjs" --check "$D/scope.json" 2>&1)
+case "$OUT" in *"New jobs are ported from TX; 1 line says its own (e2e-silver: NV)."*) echo "ok    the registry's check says where new jobs are ported from, and which lines say their own";; *) echo "FAIL  the states in the check: $OUT"; fail=1;; esac
+printf '{ "states": ["Texas"], "employers": [], "leftOut": [] }' > "$D/bad-states.json"
+OUT=$(node "$ROOT/scripts/ingest/run.mjs" postings --check --registry "$D/bad-states.json" 2>&1)
+case "$OUT" in *'"Texas" is not one of the 50 states or DC by its two letters'*) echo "ok    a state that is not two letters fails the check";; *) echo "FAIL  bad states: $OUT"; fail=1;; esac
+psql "$DB" -qtA -v ON_ERROR_STOP=1 >/dev/null <<'SQL'
+INSERT INTO companies (name) VALUES ('E2E Postings Lone Star'), ('E2E Postings Far West'), ('E2E Postings Silver');
+INSERT INTO factories (company_id, name, latitude, longitude, city, state)
+SELECT (SELECT id FROM companies WHERE name = c), n, lat, lng, city, st FROM (VALUES
+  ('E2E Postings Lone Star', 'E2E POSTINGS LONE STAR MESA VERDE', '30.1000', '-103.9000', 'Mesa Verde Junction', 'TX'),
+  ('E2E Postings Lone Star', 'E2E POSTINGS LONE STAR SCOPEVILLE', '40.4000', '-117.5000', 'Scopeville',          'NV'),
+  ('E2E Postings Far West',  'E2E POSTINGS FAR WEST',             '40.4500', '-117.5500', 'Farwest Flat',        'NV'),
+  ('E2E Postings Silver',    'E2E POSTINGS SILVER GULCH',         '40.3500', '-117.4500', 'Silver Gulch',        'NV')
+) AS t(c, n, lat, lng, city, st);
+SQL
+
+# Before the rule: jobs are made wherever a factory is, and a place with none waits wherever it is.
+scope_board e2e-lone '201|Scopeville, NV|28-34' '202|Mesa Verde Junction, TX|' '208|Nowhere Wells, NV|'
+scope_board e2e-far '301|Farwest Flat, NV|'
+unscoped postings --only e2e-lone,e2e-far >/dev/null
+expect "before the rule: a job in Texas and a job elsewhere; and another company's, elsewhere" '201:NV:open 202:TX:open|301:NV:open' "$(scope_jobs lone)|$(scope_jobs far)"
+expect "and a place with no factory waits, though it is outside Texas" 'nowhere wells|NV waiting' "$(sql "SELECT string_agg(place_key || ' ' || status, '; ' ORDER BY place_key) FROM posting_places WHERE source = 'postings-e2e-lone'")"
+expect "a source whose registry names no states ports from everywhere" 't' "$(sql "SELECT states IS NULL FROM intake_sources WHERE slug = 'postings-e2e-lone'")"
+J201=$(sql "SELECT id FROM jobs WHERE source = 'postings-e2e-lone' AND source_id = '201'")
+
+# With the rule. The board now has: 201 changed (elsewhere, a job of ours), 202 as it was, 203 new and elsewhere, 204 new
+# in Texas and elsewhere, 205 new at a place elsewhere with no factory, 206 new in Texas with no factory, 207 new at
+# both of those, 208 as it was (elsewhere, no factory, no job).
+scope_board e2e-lone '201|Scopeville, NV|30-36' '202|Mesa Verde Junction, TX|' '203|Scopeville, NV|' '204|Mesa Verde Junction, TX; Scopeville, NV|' \
+  '205|Nowhere Wells, NV|' '206|Marfa Lights, TX|' '207|Marfa Lights, TX; Nowhere Wells, NV|' '208|Nowhere Wells, NV|'
+scope_board e2e-silver '401|Silver Gulch, NV|' '402|Mesa Verde Junction, TX|'
+OUT=$(scoped postings)
+S1=$(last_run lone)
+case "$OUT" in *"new jobs are ported from TX (3 boards): a job already ported from elsewhere is tended as before, and no new job is made there"*"new jobs are ported from NV (1 board)"*) echo "ok    the run says where new jobs are ported from";; *) echo "FAIL  the run's states: $OUT"; fail=1;; esac
+expect "listed, set aside as outside Texas with no job of ours, kept; jobs added, changed, closed" 'applied read 8 3 5 1 1 0' "$(counted "$S1" outcome read outside kept jobsAdded jobsChanged jobsClosed)"
+expect "new jobs in Texas only: the posting in Texas and elsewhere is one job, in Texas" '201:NV:open 202:TX:open 204:TX:open' "$(scope_jobs lone)"
+expect "a posting wholly elsewhere with no job of ours is not staged" '201 202 204 206 207' "$(sql "SELECT string_agg(source_id, ' ' ORDER BY source_id) FROM intake_records WHERE source = 'postings-e2e-lone' AND gone_run_id IS NULL")"
+expect "the job that existed elsewhere before the rule follows a change to its posting, and is the same job" "open|3000|3600|$J201" "$(sql "SELECT concat_ws('|', status, pay_min, pay_max, id) FROM jobs WHERE source = 'postings-e2e-lone' AND source_id = '201'")"
+expect "it is still seen: its expiry moves with every complete listing" 't' "$(sql "SELECT last_seen_at > now() - interval '5 minutes' AND expires_at > (now() AT TIME ZONE 'UTC') + interval '13 days' FROM jobs WHERE id = '$J201'")"
+expect "no place outside Texas waits: the one that did has left the list, and only the place in Texas is on it" 'marfa lights|TX waiting' "$(sql "SELECT string_agg(place_key || ' ' || status, '; ' ORDER BY place_key) FROM posting_places WHERE source = 'postings-e2e-lone'")"
+expect "the places of kept postings that are elsewhere are counted, and make nothing" '2 2 1' "$(counted "$S1" placesOutside waiting waitingPlaces | cut -d' ' -f2-)"
+case "$OUT" in *"3 at places outside TX with no job of ours; kept 5"*"new jobs are ported from TX: 2 places of kept postings are elsewhere and have no job of ours; they make no new job and do not wait"*) echo "ok    the run's report says both";; *) echo "FAIL  the report under the rule: $OUT"; fail=1;; esac
+expect "where a source's new jobs are ported from stands on its row: the file's, or the line's own" 'postings-e2e-far TX; postings-e2e-lone TX; postings-e2e-none TX; postings-e2e-silver NV' "$(sql "SELECT string_agg(slug || ' ' || array_to_string(states, ','), '; ' ORDER BY slug) FROM intake_sources WHERE slug IN ('postings-e2e-lone', 'postings-e2e-far', 'postings-e2e-none', 'postings-e2e-silver')")"
+# A line with its own states is ported from those: a new job in Nevada, and its posting in Texas is the one set aside.
+expect "a line that says its own states: a new job there, and none in Texas" '401:NV:open|read 2 1 1' "$(scope_jobs silver)|$(counted "$(last_run silver)" outcome read outside jobsAdded | cut -d' ' -f2-)"
+# A company with no factory in the states is read while a job from its board is still open, and that job is tended.
+expect "no factory in Texas, a job still open: the board is read and the job tended" 'applied read 1 1|301:NV:open' "$(counted "$(last_run far)" outcome read kept)|$(scope_jobs far)"
+# One with neither is not read: nothing is asked of its site (the board would not have answered), and its run says so.
+expect "no factory in Texas and no open job: not read, and the run's row says so in plain words" 'failed|not read|0|new jobs are ported from TX: we list no factory of E2E Postings Works there and no job from this board is open, so the board is not read for now' "$(sql "SELECT concat_ws('|', state, counts->>'outcome', counts->>'requests', note) FROM intake_runs WHERE id = $(last_run none)")"
+expect "nothing was asked of it"            0 "$(asked_board e2e-none)"
+case "$OUT" in *"not read for now, no factory where new jobs are ported from and no open job (1): e2e-none"*) echo "ok    the run's summary names the boards that were not read";; *) echo "FAIL  not read in the summary: $OUT"; fail=1;; esac
+expect "that line is not one a person has to read each day" 'f' "$(sql "SELECT look FROM load_log WHERE load = 'postings-e2e-none' AND action = 'not read' ORDER BY id DESC LIMIT 1")"
+
+# The same boards again: nothing is new, nothing changes, nothing closes, and what is elsewhere is still set aside.
+scoped postings --only e2e-lone >/dev/null
+expect "the same board again under the rule: nothing new, changed or closed" 'applied 0 0 5 0 0 0 0 3' "$(counted "$(last_run lone)" new changed same gone jobsAdded jobsChanged jobsClosed outside)"
+# The posting behind the job elsewhere leaves the board: gone from one complete listing it stays open, from two it closes.
+scope_board e2e-lone '202|Mesa Verde Junction, TX|' '203|Scopeville, NV|' '204|Mesa Verde Junction, TX; Scopeville, NV|' '206|Marfa Lights, TX|'
+scoped postings --only e2e-lone >/dev/null
+expect "gone from one complete listing: the job elsewhere is still open" '201:NV:open 202:TX:open 204:TX:open' "$(scope_jobs lone)"
+scoped postings --only e2e-lone >/dev/null
+expect "gone from two complete listings running: closed, as before the rule" "closed|No longer on the company's careers site" "$(sql "SELECT status || '|' || closed_reason FROM jobs WHERE id = '$J201'")"
+# It returns: the job that was ours is opened again. It is not made anew, and the other posting there still makes none.
+scope_board e2e-lone '201|Scopeville, NV|30-36' '202|Mesa Verde Junction, TX|' '203|Scopeville, NV|' '204|Mesa Verde Junction, TX; Scopeville, NV|'
+scoped postings --only e2e-lone >/dev/null
+expect "the posting returns: the same job is open again, and no job elsewhere was ever made anew" "open|$J201|201:NV:open 202:TX:open 204:TX:open" "$(sql "SELECT status || '|' || id FROM jobs WHERE source = 'postings-e2e-lone' AND source_id = '201'")|$(scope_jobs lone)"
+expect "the run reopened one job and added none" '0 1' "$(counted "$(last_run lone)" jobsAdded jobsReopened | cut -d' ' -f2-)"
+# Admin Tools calls the same function when a place is pointed: a place elsewhere that an admin points makes no job either.
+sql "INSERT INTO posting_places (source, place_key, city, state, status, factory_id, decided_at) SELECT 'postings-e2e-lone', 'scopeville|NV', 'Scopeville', 'NV', 'pointed', id, now() FROM factories WHERE name = 'E2E POSTINGS LONE STAR SCOPEVILLE'" >/dev/null
+expect "pointing a place elsewhere makes no new job; the job already there is left as it is" '0 0 0|201:NV:open 202:TX:open 204:TX:open' "$(sql "SELECT concat_ws(' ', c->>'added', c->>'changed', c->>'closed') FROM posting_apply('postings-e2e-lone', $(last_run lone), 'scopeville|NV') c" 2>/dev/null)|$(scope_jobs lone)"
+sql "DELETE FROM posting_places WHERE source = 'postings-e2e-lone' AND place_key = 'scopeville|NV'" >/dev/null
+
+# The other company's last posting leaves its board: its job closes after two complete listings, and then the board,
+# with no factory in Texas and no open job, is not read; a factory in Texas brings it back.
+scope_board e2e-far
+scoped postings --only e2e-far >/dev/null
+scoped postings --only e2e-far >/dev/null
+expect "its job closes as any job does"      '301:NV:closed' "$(scope_jobs far)"
+ASKED=$(asked_board e2e-far)
+OUT=$(scoped postings --only e2e-far)
+expect "no factory in Texas and no open job left: the board is not read" 'failed|not read|0' "$(sql "SELECT concat_ws('|', state, counts->>'outcome', counts->>'requests') FROM intake_runs WHERE id = $(last_run far)")"
+expect "nothing is asked of its site"       "$ASKED" "$(asked_board e2e-far)"
+sql "INSERT INTO factories (company_id, name, latitude, longitude, city, state) SELECT id, 'E2E POSTINGS FAR WEST PECOS', '30.2000', '-103.8000', 'Pecos Bend', 'TX' FROM companies WHERE name = 'E2E Postings Far West'" >/dev/null
+scope_board e2e-far '302|Pecos Bend, TX|' '303|Farwest Flat, NV|'
+scoped postings --only e2e-far >/dev/null
+expect "a factory in Texas: the board is read again, and its new job is the one in Texas" 'applied read 2 1 1|301:NV:closed 302:TX:open' "$(counted "$(last_run far)" outcome read outside jobsAdded)|$(scope_jobs far)"
+# Undoing a run under the rule takes back what it did, the waiting list included.
+scoped undo "$(last_run lone)" >/dev/null; scoped undo "$(sql "SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-lone' AND state = 'applied'")" >/dev/null
+scoped undo "$(sql "SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-lone' AND state = 'applied'")" >/dev/null
+scoped undo "$(sql "SELECT max(id) FROM intake_runs WHERE source = 'postings-e2e-lone' AND state = 'applied'")" >/dev/null
+scoped undo "$S1" >/dev/null
+expect "undoing the runs made under the rule puts the jobs and the waiting list back as they were before it" '201:NV:open 202:TX:open|nowhere wells|NV waiting|2800' "$(scope_jobs lone)|$(sql "SELECT string_agg(place_key || ' ' || status, '; ' ORDER BY place_key) FROM posting_places WHERE source = 'postings-e2e-lone'")|$(sql "SELECT pay_min FROM jobs WHERE id = '$J201'")"
 
 cleanup
 expect "nothing of this run is left behind" '0 0 0 0 0 0 0' "$(sql "SELECT concat_ws(' ', (SELECT count(*) FROM users WHERE email LIKE '%@postings.test'), (SELECT count(*) FROM companies WHERE name LIKE 'E2E Postings %'), (SELECT count(*) FROM factories WHERE name LIKE 'E2E POSTINGS %'), (SELECT count(*) FROM intake_sources WHERE slug LIKE 'postings-e2e-%'), (SELECT count(*) FROM external_references WHERE source LIKE 'POSTINGS_E2E_%'), (SELECT count(*) FROM jobs WHERE source LIKE 'postings-e2e-%'), (SELECT count(*) FROM audit_log WHERE record_name ILIKE 'E2E Postings %'))")"

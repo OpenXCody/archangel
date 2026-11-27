@@ -1,6 +1,7 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import { db, jobs, factories, occupations } from '../db/index.js';
 import { factoryInScope } from './scope.js';
+import { INDUSTRIES } from '../../shared/industry.js';
 import { jobAsGiven } from './jobRows.js';
 
 /**
@@ -14,17 +15,34 @@ export function jobIsOpen(jobTable = 'jobs'): SQL {
 }
 
 /**
+ * The industries a factory carries (factories.primary_naics_description) that
+ * are food and drink: NAICS 311 and 312, by the names shared/industry.ts
+ * gives them.
+ */
+const FOOD_AND_DRINK: string[] = INDUSTRIES.filter((industry) => industry.code === '311' || industry.code === '312').map((industry) => industry.name);
+
+/** A job is at a food or drink factory: the factory's own industry says so. One with no industry is not. */
+function atFoodOrDrink(job: ReturnType<typeof sql.identifier>): SQL {
+  const names = sql.join(FOOD_AND_DRINK.map((name) => sql`${name}`), sql`, `);
+  return sql`(EXISTS (SELECT 1 FROM factories at_factory WHERE at_factory.id = ${job}.factory_id AND at_factory.primary_naics_description IN (${names})))`;
+}
+
+/**
  * The order a list of jobs is shown in, wherever one is listed: the newest
- * day first, and within a day one job of each company in turn (each
- * company's newest first), then the next of each. `posted_at` is the day the
- * employer's feed says, or the moment a job was first seen where the feed
- * says none, so a board that came in at once would otherwise stand as one
- * company's block. The order is a function of the rows alone (the id settles
- * what is left), so a page never repeats or skips a job.
+ * day first; within a day the jobs at a food or drink factory after every
+ * other job of that day (the owner's priority is machines, transportation and
+ * industrial equipment, and food comes last); and within each of those, one
+ * job of each company in turn (each company's newest first), then the next of
+ * each. `posted_at` is the day the employer's feed says, or the moment a job
+ * was first seen where the feed says none, so a board that came in at once
+ * would otherwise stand as one company's block. The order is a function of
+ * the rows alone (the id settles what is left), so a page never repeats or
+ * skips a job.
  */
 export function jobsInOrder(jobTable = 'jobs'): SQL {
   const job = sql.identifier(jobTable);
-  return sql`(${job}.posted_at)::date DESC, row_number() OVER (PARTITION BY (${job}.posted_at)::date, ${job}.company_id ORDER BY ${job}.posted_at DESC, ${job}.id), ${job}.posted_at DESC, ${job}.id`;
+  const food = atFoodOrDrink(job);
+  return sql`(${job}.posted_at)::date DESC, ${food}, row_number() OVER (PARTITION BY (${job}.posted_at)::date, ${food}, ${job}.company_id ORDER BY ${job}.posted_at DESC, ${job}.id), ${job}.posted_at DESC, ${job}.id`;
 }
 
 /** How many open jobs a company's, a plant's or a career's page lists: the newest. The rest are a link away, on Jobs. */
