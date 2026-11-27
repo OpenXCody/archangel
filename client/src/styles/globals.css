@@ -22,9 +22,10 @@
  * There are two surface levels and no third grey. Beside the eleven:
  * --danger (an error has to read as one), --logo-backing (a company's mark
  * is drawn for a white page) and --mask (the opaque stop of a mask: never
- * painted), the map's five and the Atlas's sixteen domain hues (--domain-*:
- * the Atlas alone is coloured, see its rules below).
- * tests/unit/theme.unit.ts holds the ink and the hues to 4.5:1 on both surfaces.
+ * painted), the map's five and the twelve hues of the Atlas's wheel, one a
+ * core group (--core-*: the Atlas alone is coloured, see its rules below).
+ * tests/unit/theme.unit.ts holds the ink and the wheel's twelve hues to
+ * 4.5:1 on both surfaces, and the hues to their own rules.
  */
 @layer base {
   :root {
@@ -55,26 +56,24 @@
     --map-border: var(--line-strong);
     --map-road: #333333;
 
-    /* The Atlas's sixteen domains (components/atlas/): the one place a kind of thing has a hue. A domain's
-       rim arc, its name and its leaves take it; a small swatch beside the domain's word in the Atlas's own
-       lists repeats it. Muted and near one lightness, neighbours on the plate far apart in hue and a step
-       apart in lightness; Safety, last, is the one with no hue. Each is held to 4.5:1 on both surfaces. */
-    --domain-materials: #dca8ae;
-    --domain-engineering: #a9a87a;
-    --domain-production: #88c4c8;
-    --domain-machining: #a99dc7;
-    --domain-fabrication: #dcaa9e;
-    --domain-assembly: #98ad84;
-    --domain-electronics: #8dc0d6;
-    --domain-automation: #b798bc;
-    --domain-semiconductor: #d6ae91;
-    --domain-battery: #87b093;
-    --domain-process: #9abbde;
-    --domain-test: #c295ad;
-    --domain-maintenance: #cbb48a;
-    --domain-quality: #7ab2a4;
-    --domain-ndt: #abb5e0;
-    --domain-safety: #999fa6;
+    /* The Atlas's wheel (components/atlas/wheel.ts, read by ink.ts): one hue for each of the twelve core groups,
+       the Fundamentals on the centre ring. A legend, not paint: a group's bar on the centre ring, the marks at
+       the rim of what is built on it, and the arcs of its fields. Eleven hues a twelfth of a turn apart (OKLCH
+       0.78 / 0.07) with the accent's own twelfth left empty: the two beside it stand 29 to 30 degrees of hue
+       from it, and far from it in strength. Neighbours on the ring are a third of a turn apart or more; Shop
+       safety has none (a grey). Each reaches 4.5:1 on both surfaces. */
+    --core-measurement-tools: #e1a7a1;
+    --core-part-inspection: #9cc49c;
+    --core-lot-control: #baafe0;
+    --core-controlled-environments: #dbac8d;
+    --core-electrical-fundamentals: #87c7b5;
+    --core-hazardous-energy: #cfa8d0;
+    --core-shop-basics: #ccb484;
+    --core-material-handling: #80c5cd;
+    --core-workplace-safety: #b7b7b7;
+    --core-hazardous-materials: #dda5ba;
+    --core-hand-tools: #b5bd8a;
+    --core-design-documentation: #8bbfde;
 
     --danger: #f87171;
     --logo-backing: #ffffff;
@@ -103,23 +102,19 @@
     --map-border: #cfcfcf;
     --map-road: #e5e5e5;
 
-    /* The Atlas's domains on white: the same hues as inks. */
-    --domain-materials: #87525a;
-    --domain-engineering: #5b5824;
-    --domain-production: #246f75;
-    --domain-machining: #5a4c78;
-    --domain-fabrication: #875448;
-    --domain-assembly: #485d31;
-    --domain-electronics: #2f6c83;
-    --domain-automation: #68476d;
-    --domain-semiconductor: #825938;
-    --domain-battery: #326143;
-    --domain-process: #42668b;
-    --domain-test: #72445e;
-    --domain-maintenance: #785f30;
-    --domain-quality: #1c6255;
-    --domain-ndt: #56608c;
-    --domain-safety: #4e5359;
+    /* The wheel's core groups on white: the same hues as inks (OKLCH 0.52 / 0.085). */
+    --core-measurement-tools: #945550;
+    --core-part-inspection: #48764a;
+    --core-lot-control: #6c5f95;
+    --core-controlled-environments: #8e5b36;
+    --core-electrical-fundamentals: #247966;
+    --core-hazardous-energy: #825784;
+    --core-shop-basics: #7f6528;
+    --core-material-handling: #117780;
+    --core-workplace-safety: #696969;
+    --core-hazardous-materials: #8f536b;
+    --core-hand-tools: #676f31;
+    --core-design-documentation: #307093;
 
     --danger: #b91c1c;
   }
@@ -1012,487 +1007,179 @@ input {
 }
 
 /*
- * The Atlas of Manufacturing (components/atlas/): every skill in one radial
- * tree, drawn as an instrument: the skills are the picture, the structure a
- * whisper, colour a legend at the edge. The branches are one faint skeleton
- * of curves in ink; each domain's rim hairline and the tint of its leaves are
- * its hue (--domain-* in the token file, handed to whatever carries
- * `data-domain` as --domain-hue); the names are ink. The one accent marks a
- * career laid over it and the thing selected, and under a career the plate
- * steps back to ink so the accent reads alone, the domains the career reaches
- * keeping their hue on the rim. A person's own skills are bright ink. Lines
- * keep their width however far the plate is enlarged (non-scaling strokes);
- * the camera's move is one transform on one group, so turning and enlarging
- * re-renders nothing.
+ * The Atlas of Manufacturing (components/atlas/): one screen. The wheel is a
+ * canvas and a display (wheel.ts draws it in ink it reads from the tokens:
+ * ink.ts); the list beside it, under it on a phone, is the control, and
+ * whatever is chosen in the list is named on the wheel in the same words.
+ * Colour is a legend: one muted hue for each of the twelve core groups
+ * (--core-* in the token file), handed to whatever carries `data-core` as
+ * --core-hue: a field's small bars in the list and the ring of a core
+ * group's dot. The one accent is a career laid over the wheel; a person's own
+ * skills are bright ink.
+ *
+ * Here are the rules a class cannot say in the markup: the page's grid, which
+ * turns from stage over list to stage beside list, and the list's rails, dots
+ * and legend bars. Everything else is on the elements.
  */
-[data-domain='materials'] { --domain-hue: var(--domain-materials); }
-[data-domain='engineering'] { --domain-hue: var(--domain-engineering); }
-[data-domain='production'] { --domain-hue: var(--domain-production); }
-[data-domain='machining'] { --domain-hue: var(--domain-machining); }
-[data-domain='fabrication'] { --domain-hue: var(--domain-fabrication); }
-[data-domain='assembly'] { --domain-hue: var(--domain-assembly); }
-[data-domain='electronics'] { --domain-hue: var(--domain-electronics); }
-[data-domain='automation'] { --domain-hue: var(--domain-automation); }
-[data-domain='semiconductor'] { --domain-hue: var(--domain-semiconductor); }
-[data-domain='battery'] { --domain-hue: var(--domain-battery); }
-[data-domain='process'] { --domain-hue: var(--domain-process); }
-[data-domain='test'] { --domain-hue: var(--domain-test); }
-[data-domain='maintenance'] { --domain-hue: var(--domain-maintenance); }
-[data-domain='quality'] { --domain-hue: var(--domain-quality); }
-[data-domain='ndt'] { --domain-hue: var(--domain-ndt); }
-[data-domain='safety'] { --domain-hue: var(--domain-safety); }
-/* The domain's hue beside its word, in the Atlas's own lists: a short upright bar, a piece of its rim. */
-.domain-swatch {
-  display: inline-block;
-  flex: none;
-  width: 3px;
-  height: 0.875rem;
-  border-radius: 1.5px;
-  background: var(--domain-hue, var(--text-3));
-}
-.domain-swatch[data-tall] {
-  height: 1.125rem;
-}
-.atlas-plate {
-  display: block;
-  width: 100%;
-  height: auto;
+[data-core='measurement-tools'] { --core-hue: var(--core-measurement-tools); }
+[data-core='part-inspection'] { --core-hue: var(--core-part-inspection); }
+[data-core='lot-control'] { --core-hue: var(--core-lot-control); }
+[data-core='controlled-environments'] { --core-hue: var(--core-controlled-environments); }
+[data-core='electrical-fundamentals'] { --core-hue: var(--core-electrical-fundamentals); }
+[data-core='hazardous-energy'] { --core-hue: var(--core-hazardous-energy); }
+[data-core='shop-basics'] { --core-hue: var(--core-shop-basics); }
+[data-core='material-handling'] { --core-hue: var(--core-material-handling); }
+[data-core='workplace-safety'] { --core-hue: var(--core-workplace-safety); }
+[data-core='hazardous-materials'] { --core-hue: var(--core-hazardous-materials); }
+[data-core='hand-tools'] { --core-hue: var(--core-hand-tools); }
+[data-core='design-documentation'] { --core-hue: var(--core-design-documentation); }
+
+/* A working view like the map, never a scrolling document: the list scrolls inside itself. */
+:root:has([data-atlas-page]) body {
   overflow: hidden;
-  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+/* Stage over list on a phone, as tall as the screen is wide at most; side by side from a tablet lying down. */
+.atlas-main {
+  display: grid;
+  grid-template-rows: minmax(0, min(100vw, 50%)) minmax(0, 1fr);
+  min-height: 0;
+}
+/* A phone held upright: the wheel takes all the list's first rows can spare (Fundamentals, the word over the
+   fields and two of them: 190px), so under the header and the tab row it stands as large as it does alone. */
+@media (max-width: 559px) and (orientation: portrait) {
+  .atlas-main {
+    grid-template-rows: minmax(0, min(100vw, max(50%, calc(100% - 190px)))) minmax(0, 1fr);
+  }
+}
+.atlas-stage {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-.atlas-plate path,
-.atlas-plate circle,
-.atlas-plate line {
-  vector-effect: non-scaling-stroke;
-}
-.atlas-camera {
-  transition: transform 0.7s cubic-bezier(0.3, 0.1, 0.2, 1);
-}
-.atlas-plate[data-still] .atlas-camera {
-  transition: none;
-}
-/* The branches from the centre to the groups: a hairline in ink, well behind the skills. */
-.atlas-skeleton {
-  fill: none;
-  stroke: var(--text-2);
-  stroke-opacity: 0.2;
-  stroke-width: 0.75px;
-}
-.atlas-root {
-  fill: var(--bg);
-  stroke: var(--text-2);
-  stroke-opacity: 0.5;
-  stroke-width: 1px;
-}
-/* A skill: a small mark tinted with its domain's hue, brighter the more careers use it (its opacity is drawn with it). */
-.atlas-leaf {
-  fill: var(--domain-hue, var(--text-2));
-}
-/* The rim: one hairline per domain, in its hue. The legend the names are set over. */
-.atlas-ring {
-  fill: none;
-  stroke: var(--domain-hue, var(--line-strong));
-  stroke-width: 1.5px;
-}
-/* A career is laid over the atlas: the plate is ink again, and only the accent and the reached domains' rims are coloured. */
-.atlas-base[data-dim] [data-domain] {
-  --domain-hue: initial;
-}
-.atlas-base {
-  transition: opacity 0.3s ease;
-}
-/* A career is laid over the atlas: everything else steps back. */
-.atlas-base[data-dim] {
-  opacity: 0.42;
-}
-/* A person's own marks are the bright ones: the plate under them is a little quieter. */
-.atlas-base[data-marked]:not([data-dim]) {
-  opacity: 0.72;
-}
-/*
- * A domain is open: the plate steps back to a whisper and the domain is drawn
- * again over it at full strength (OpenDomain), so nothing is veiled by a
- * shape and no edge is drawn across the plate. An open group's skills are
- * drawn again over the rest of the domain, which steps back a little.
- */
-.atlas-plate:not([data-atlas-view='whole']) .atlas-base {
-  opacity: 0.09;
-}
-.atlas-open-domain {
-  animation: atlas-arrive 0.3s ease both;
-}
-.atlas-plate[data-still] .atlas-open-domain {
-  animation: none;
-}
-.atlas-open-domain[data-group] .atlas-open-rest {
-  opacity: 0.45;
-}
-.atlas-open-leaf {
-  fill: var(--domain-hue, var(--text-2));
-}
-/* An open group's own branches, on from its tip to each of its skills. */
-.atlas-stems {
-  fill: none;
-  stroke: var(--text-2);
-  stroke-opacity: 0.55;
-  stroke-width: 0.75px;
-  animation: atlas-arrive 0.3s ease 0.3s both;
-}
-.atlas-plate[data-still] .atlas-stems {
-  animation: none;
-}
-/* The domains' names on the rim: ink. The hairline under each is its colour. */
-.atlas-name {
-  fill: var(--text-2);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  transition: fill 0.2s ease;
-}
-.atlas-name[data-off] {
-  fill: var(--text-3);
-}
-.atlas-name[data-on] {
-  fill: var(--text-1);
-}
-.atlas-names[data-away] {
-  opacity: 0;
-}
-.atlas-names {
-  transition: opacity 0.3s ease;
-}
-.atlas-hover {
-  fill: var(--text-1);
-  fill-opacity: 0.045;
-  pointer-events: none;
-}
-/* The names beside an open domain: level, in one column right of the rim. */
-.atlas-label {
-  fill: var(--text-2);
-  font-weight: 500;
-}
-.atlas-label[data-atlas-label='skill'] {
-  fill: var(--text-1);
-}
-/* A career is laid over the atlas: its skills are the bright ones, the group's others plain. */
-.atlas-plate[data-atlas-over] .atlas-label[data-atlas-label='skill']:not([data-lit]):not([data-on]) {
-  fill: var(--text-2);
-}
-.atlas-label[data-step],
-.atlas-label[data-quiet] {
-  fill: var(--text-3);
-}
-.atlas-label[data-on] {
-  fill: var(--text-1);
-  font-weight: 600;
-}
-.atlas-label[data-lit] {
-  fill: var(--accent);
-}
-.atlas-leader {
-  fill: none;
-  stroke: var(--text-3);
-  stroke-opacity: 0.55;
-  stroke-width: 0.75px;
-}
-.atlas-leader[data-step] {
-  stroke-opacity: 0.3;
-}
-.atlas-leader[data-on] {
-  stroke: var(--accent);
-  stroke-opacity: 1;
-  stroke-width: 1px;
-}
-/* Enlarged, the plate runs past the frame on the left: its edges fade out instead of being cut. */
-.atlas-plate:not([data-atlas-view='whole']) {
-  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.25rem, var(--mask) calc(100% - 1.25rem), transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.25rem, var(--mask) calc(100% - 1.25rem), transparent);
-  mask-composite: intersect;
-}
-.atlas-labels {
-  animation: atlas-arrive 0.3s ease 0.45s both;
-}
-.atlas-plate[data-still] .atlas-labels {
-  animation: none;
-}
-@keyframes atlas-arrive {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-/* A career laid over the atlas: its branches, smooth curves from the centre, and its skills, in the accent. */
-.atlas-lit {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.25px;
-  stroke-linecap: round;
-}
-/* A second career: its own branches thinner and quieter, solid; its skills open rings. */
-.atlas-lit[data-second] {
-  stroke-width: 1px;
-  stroke-opacity: 0.55;
-}
-.atlas-lit[data-shared] {
-  stroke-width: 2px;
-}
-.atlas-lit-dot {
-  fill: var(--accent);
-  stroke: var(--bg);
-  stroke-width: 0.75px;
-}
-/* The second career's own skills: the same accent, as an open ring. */
-.atlas-lit-dot[data-second] {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 1.5px;
-}
-/* What both careers share: the disc inside the ring. */
-.atlas-lit-halo {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.25px;
-}
-/* A person's own skills: the product's mark, held filled and bright, learning half. */
-.atlas-mark {
-  fill: var(--text-1);
-  stroke: var(--bg);
-  stroke-width: 1px;
-}
-.atlas-mark[data-status='learning'] {
-  fill: var(--bg);
-  stroke: var(--text-1);
-  stroke-width: 1.25px;
-}
-.atlas-mark[data-lit] {
-  stroke: var(--accent);
-  stroke-width: 1.75px;
-}
-.atlas-mark-half {
-  fill: var(--text-1);
-}
-.atlas-chosen {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5px;
-}
-.atlas-chosen-arc {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2.5px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .atlas-camera,
-  .atlas-base,
-  .atlas-names,
-  .atlas-name {
-    transition: none;
-  }
-  .atlas-labels,
-  .atlas-open-domain,
-  .atlas-stems {
-    animation: none;
-  }
-}
-/* On a phone the drawing runs out to the screen's edges. On a wide screen it is as large as fits the window under the page's tabs. */
-.atlas-frame {
-  width: auto;
-  margin-inline: -0.75rem;
-}
-@media (min-width: 640px) {
-  .atlas-frame {
-    width: 100%;
-    margin-inline: auto;
-  }
-}
-@media (min-width: 1024px) {
-  .atlas-frame {
-    max-width: max(30rem, calc(100dvh - 16rem));
-  }
-}
-
-/*
- * A career, part walked (components/atlas/: the Walk layer, GoalPlate).
- * While a seeker fills the one career laid over the atlas in, a skill of it
- * still ahead is an open mark in the accent; the way from the
- * centre out to each held one is drawn bright over the career's branches;
- * and the centre is the ring of how much is held, which closes when the
- * career is whole. Bright is the person; the accent is the career.
- */
-.atlas-lit-dot[data-ahead] {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 1.25px;
-}
-/* The career's own branches step back a little under the walked ones. */
-.atlas-plate[data-atlas-walking] .atlas-lit {
-  stroke-opacity: 0.8;
-}
-.atlas-walked {
-  fill: none;
-  stroke: var(--text-1);
-  stroke-width: 1.5px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-/*
- * What moves is a drawing of its own over the plate (`.atlas-moving`, under
- * the same camera), so a frame of its motion paints a handful of elements and
- * never the plate. The way to the skill just marked is drawn in from the
- * centre (dashes need the stroke in the drawing's units), its mark arrives as
- * the line gets there, and one ring opens from the leaf and is gone. The
- * lasting line and mark on the plate wait unseen until then.
- */
-.atlas-stack {
-  position: relative;
-}
-.atlas-moving {
+.atlas-stage canvas {
   position: absolute;
   inset: 0;
+  display: block;
   width: 100%;
+  max-width: none;
   height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  will-change: transform;
 }
-.atlas-moving[data-still] .atlas-camera {
-  transition: none;
+.atlas-panel {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  border-top: 1px solid var(--line);
+  padding-block: 8px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.atlas-moving path,
-.atlas-moving circle {
-  vector-effect: non-scaling-stroke;
-}
-.atlas-moving .atlas-walk-in {
-  vector-effect: none;
-  fill: none;
-  stroke: var(--text-1);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  animation: atlas-walk-in 0.42s cubic-bezier(0.4, 0, 0.6, 1) both;
-}
-.atlas-walked[data-arriving],
-.atlas-mark-at[data-arriving] {
-  opacity: 0;
-}
-.atlas-mark-in {
-  fill: var(--text-1);
-  stroke: var(--bg);
-  stroke-width: 1px;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: atlas-mark-in 0.22s ease-out 0.34s both;
-}
-.atlas-pulse {
-  fill: none;
-  stroke: var(--text-1);
-  stroke-width: 1px;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: atlas-pulse 0.6s ease-out 0.38s both;
-}
-@keyframes atlas-walk-in {
-  from {
-    stroke-dashoffset: 1;
+@media (min-width: 560px) and (max-width: 899px) and (orientation: landscape) and (max-height: 560px) {
+  .atlas-main {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) min(360px, 46vw);
   }
-  to {
-    stroke-dashoffset: 0;
+  .atlas-panel {
+    border-top: 0;
+    border-left: 1px solid var(--line);
   }
 }
-@keyframes atlas-mark-in {
-  from {
-    opacity: 0;
-    transform: scale(0.4);
+@media (min-width: 900px) {
+  .atlas-main {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) 420px;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes atlas-pulse {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  15% {
-    opacity: 0.7;
-  }
-  to {
-    opacity: 0;
-    transform: scale(2.6);
+  .atlas-panel {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    padding: 16px 24px 48px;
   }
 }
-/* The ring at the centre: the same one the career's page carries, in the plate's own units so it can move. */
-.atlas-share-bed {
-  fill: var(--bg);
+/* The list's rows hang by rails from the row they are built on: straight past a row, an elbow into one, both where more follow. */
+.atlas-rail {
+  position: relative;
+  flex: none;
+  width: 18px;
 }
-.atlas-moving .atlas-share-track,
-.atlas-moving .atlas-share {
-  vector-effect: none;
-  fill: none;
+.atlas-rail[data-rail='v']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8px;
+  border-left: 1px solid var(--line-strong);
 }
-.atlas-share-track {
-  stroke: var(--line-strong);
+.atlas-rail[data-rail^='e']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8px;
+  width: 10px;
+  height: 50%;
+  border-bottom: 1px solid var(--line-strong);
+  border-left: 1px solid var(--line-strong);
+  border-bottom-left-radius: 5px;
 }
-.atlas-share {
-  stroke: var(--text-1);
-  transition: stroke-dasharray 0.36s cubic-bezier(0.3, 0.1, 0.2, 1), opacity 0.2s ease;
+.atlas-rail[data-rail='et']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  left: 8px;
+  border-left: 1px solid var(--line-strong);
 }
-.atlas-share-whole {
-  animation: atlas-arrive 0.3s ease 0.2s both;
+/* A row's dot: a group; a core group, a ring in its hue; under a career, whether its skills there are all had, some, or none. */
+.atlas-dot {
+  display: grid;
+  flex: none;
+  width: 18px;
+  place-items: center;
 }
-.atlas-moving[data-still] .atlas-share-whole {
-  animation: none;
+.atlas-dot > span {
+  display: block;
+  box-sizing: border-box;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-3);
 }
-.atlas-share-whole circle {
-  fill: var(--text-1);
+.atlas-dot > span[data-dot='need'] {
+  background: var(--accent);
 }
-.atlas-moving .atlas-share-whole path {
-  vector-effect: none;
-  fill: none;
-  stroke: var(--bg);
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.atlas-dot > span[data-dot='gap'] {
+  border: 2px solid var(--accent);
+  background: var(--bg);
 }
-/* Enlarged, the moving drawing runs past the frame as the plate does, and fades at the same edges. */
-.atlas-moving:not([data-atlas-view='whole']) {
-  -webkit-mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, var(--mask) 1.75rem), linear-gradient(to bottom, transparent, var(--mask) 1.75rem, var(--mask) calc(100% - 1.75rem), transparent);
-  mask-composite: intersect;
+.atlas-dot > span[data-dot='part'] {
+  border: 2px solid var(--accent);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--bg), inset 0 0 0 5px var(--accent);
 }
-/* With motion off nothing arrives: the line and the mark are simply there, and the ring is where it should be. */
-@media (prefers-reduced-motion: reduce) {
-  .atlas-moving [data-atlas-arriving] {
-    display: none;
-  }
-  .atlas-walked[data-arriving],
-  .atlas-mark-at[data-arriving] {
-    opacity: 1;
-  }
-  .atlas-share-whole {
-    animation: none;
-  }
-  .atlas-share,
-  .atlas-moving .atlas-camera {
-    transition: none;
-  }
+.atlas-dot > span[data-dot='root'] {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--core-hue, var(--text-3));
+  background: var(--bg);
 }
-/* Walked, a skill of the career is the person's: bright, with no rim of the career's colour left on it. */
-.atlas-plate[data-atlas-walking] .atlas-mark[data-lit][data-status='held'] {
-  stroke: var(--bg);
-  stroke-width: 1px;
+/* A field's legend: one short upright bar for each core group it stands on, in that group's hue. */
+.atlas-sw {
+  display: block;
+  width: 3px;
+  height: 15px;
+  border-radius: 1.5px;
+  background: var(--core-hue, var(--text-3));
 }
 
 /*
- * A career as a small plate (GoalPlate): the size of a thumb. Lines and dots
- * keep their width at any size; the accent is the career, bright is what the
- * person holds of it.
+ * A career as a small plate (GoalPlate): the wheel at rest at the size of a
+ * thumb. Its ground is the five rings as hairlines; the career's route is the
+ * accent, from the centre ring out to the rim; what the person holds of it is
+ * bright over that. Lines keep their width at any size.
  */
 .goal-plate {
   display: block;
@@ -1500,42 +1187,22 @@ input {
   overflow: visible;
 }
 .goal-plate path,
-.goal-plate-ring,
-.goal-plate-root {
+.goal-plate-ring {
   vector-effect: non-scaling-stroke;
   fill: none;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   stroke-linejoin: round;
 }
 .goal-plate-ring {
   stroke: var(--text-3);
-  stroke-opacity: 0.55;
-  stroke-width: 1px;
-  stroke-linecap: butt;
-}
-.goal-plate-root {
-  stroke: var(--text-3);
-  stroke-opacity: 0.7;
-  stroke-width: 1px;
+  stroke-opacity: 0.4;
+  stroke-width: 0.75px;
 }
 .goal-plate-career {
   stroke: var(--accent);
-  stroke-opacity: 0.85;
-  stroke-width: 0.75px;
-}
-.goal-plate-walked {
-  stroke: var(--text-1);
-  stroke-width: 1.25px;
-}
-.goal-plate-ahead {
-  stroke: var(--accent);
-  stroke-width: 2.5px;
-}
-.goal-plate-learning {
-  stroke: var(--text-2);
-  stroke-width: 3px;
+  stroke-width: 1px;
 }
 .goal-plate-held {
   stroke: var(--text-1);
-  stroke-width: 3.5px;
+  stroke-width: 1.25px;
 }

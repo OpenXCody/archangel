@@ -24,7 +24,7 @@
       "groups": [
         {
           "slug": "heat-treatment",
-          "name": "Heat treatment",
+          "name": "Heat treat",
           "what": "Changing a metal's hardness and structure in a furnace: relieving stress, annealing, hardening, case hardening, vacuum and pressure cycles.",
           "skills": [
             {
@@ -78,7 +78,7 @@
         },
         {
           "slug": "furnace-pyrometry",
-          "name": "Furnace pyrometry",
+          "name": "Pyrometry",
           "what": "Proving that a furnace or autoclave measures and holds the temperature it claims.",
           "skills": [
             {
@@ -155,7 +155,7 @@
         },
         {
           "slug": "surface-treatment",
-          "name": "Surface treatment",
+          "name": "Plating",
           "what": "Treating metal in chemical and electrolytic baths: conversion coating, passivation, anodizing, electropolishing and plating.",
           "skills": [
             {
@@ -198,7 +198,7 @@
         },
         {
           "slug": "peening-and-thermal-spray",
-          "name": "Peening and thermal spray",
+          "name": "Thermal spray",
           "what": "Changing a surface by impact or by sprayed coating: shot peening for fatigue life, thermal spray for wear and heat.",
           "skills": [
             {
@@ -213,7 +213,7 @@
         },
         {
           "slug": "paint-pretreatment",
-          "name": "Paint pretreatment",
+          "name": "Pretreatment",
           "what": "Getting a surface ready to hold paint: stripping and blasting, phosphate conversion and electrocoat primer.",
           "skills": [
             {
@@ -232,7 +232,7 @@
         },
         {
           "slug": "paint-application",
-          "name": "Paint application",
+          "name": "Painting",
           "what": "Putting paint, powder and sealer on: masking, sealing seams, spraying by gun and by robot, powder coating, matching color and repairing defects.",
           "skills": [
             {
@@ -317,7 +317,7 @@
         },
         {
           "slug": "printing",
-          "name": "Printing",
+          "name": "Pressroom",
           "what": "Putting ink on paper, board, labels and film on offset, flexographic, digital and screen presses, and holding its color by measurement.",
           "skills": [
             {
@@ -367,7 +367,7 @@
         },
         {
           "slug": "composite-fabrication",
-          "name": "Composite fabrication",
+          "name": "Layup",
           "what": "Building a laminate: cutting and kitting plies, preparing the tool, laying up by hand and by machine, winding, infusing, and trimming the cured part.",
           "skills": [
             {
@@ -433,7 +433,7 @@
         },
         {
           "slug": "composite-curing",
-          "name": "Composite curing",
+          "name": "Curing",
           "what": "Bagging a layup and curing it in an autoclave or oven, from thermocouple placement to writing and controlling the cycle.",
           "skills": [
             {
@@ -468,7 +468,7 @@
         },
         {
           "slug": "composite-bonding",
-          "name": "Composite bonding",
+          "name": "Bonding",
           "what": "Joining composite and metal details with adhesive: surface preparation, film and paste adhesives, secondary bonds and co-cure.",
           "skills": [
             {
@@ -518,7 +518,7 @@
         },
         {
           "slug": "yarn-making",
-          "name": "Yarn making",
+          "name": "Spinning",
           "what": "Turning fiber into yarn: opening and carding, spinning, winding and twisting, and piecing up ends.",
           "skills": [
             {
@@ -542,7 +542,7 @@
         {
           "slug": "fabric-forming",
           "name": "Fabric forming",
-          "what": "Turning yarn or fiber into fabric: warp preparation, weaving, knitting, tufting, braiding and nonwoven lines.",
+          "what": "Turning yarn or fiber into fabric: warp preparation, weaving, knitting, tufting, braiding and nonwoven lines, and inspecting and grading the fabric that comes off them.",
           "skills": [
             {
               "name": "Braiding Machine Operation",
@@ -567,12 +567,16 @@
             {
               "name": "Warp Preparation",
               "level": 2
+            },
+            {
+              "name": "Fabric Inspection",
+              "level": 2
             }
           ]
         },
         {
           "slug": "textile-dyeing-and-finishing",
-          "name": "Dyeing and finishing",
+          "name": "Dyehouse",
           "what": "Giving a textile its color and its final width, hand and performance: dyeing, finishing, and working out the dye recipe.",
           "skills": [
             {
@@ -598,8 +602,8 @@
       "groups": [
         {
           "slug": "design-documentation",
-          "name": "CAD and drawings",
-          "what": "The model, the drawing and the controlled data a shop builds from: drafting in two dimensions, modeling in three, assemblies and released revisions.",
+          "name": "CAD",
+          "what": "The model, the drawing and the controlled data a shop builds from: drafting in two dimensions, modeling in three, assemblies and released revisions, and answering a question from production data with a script.",
           "skills": [
             {
               "name": "Engineering Drawing Creation",
@@ -624,12 +628,16 @@
             {
               "name": "Engineering Change Management",
               "level": 2
+            },
+            {
+              "name": "Data Analysis and Scripting",
+              "level": 2
             }
           ]
         },
         {
           "slug": "pattern-design",
-          "name": "Pattern design",
+          "name": "Patternmaking",
           "what": "Drafting, grading and marking the patterns sewn products are cut from, and correcting them from fittings.",
           "skills": [
             {
@@ -757,8 +765,8 @@
         },
         {
           "slug": "manufacturing-engineering",
-          "name": "Manufacturing engineering",
-          "what": "Designing how the work is done: instructions, time standards, balanced lines, error-proof stations and the data that shows what is happening.",
+          "name": "Industrial engineering",
+          "what": "Designing how the work is done: instructions, time standards, balanced lines and error-proof stations.",
           "skills": [
             {
               "name": "Work Instruction Writing",
@@ -774,10 +782,6 @@
             },
             {
               "name": "Error Proofing",
-              "level": 2
-            },
-            {
-              "name": "Data Analysis and Scripting",
               "level": 2
             },
             {
@@ -865,7 +869,7 @@
         {
           "slug": "lot-control",
           "name": "Lot control",
-          "what": "Keeping every lot tied to its recipe, materials and history as it moves through the plant, from the mark on the part to the record in the system.",
+          "what": "Keeping every lot tied to its recipe, materials and history as it moves through the plant, from the materials weighed out for a batch and the mark on the part to the record in the system.",
           "skills": [
             {
               "name": "Part Marking",
@@ -880,6 +884,10 @@
               "level": 1
             },
             {
+              "name": "Weighing and Dispensing",
+              "level": 1
+            },
+            {
               "name": "Process Recipe Execution",
               "level": 2
             },
@@ -891,7 +899,7 @@
         },
         {
           "slug": "controlled-environments",
-          "name": "Controlled environments",
+          "name": "Cleanroom and ESD",
           "what": "Working in rooms where particles and static are the enemy: gowning, cleanroom conduct and electrostatic discharge control.",
           "skills": [
             {
@@ -910,7 +918,7 @@
         },
         {
           "slug": "foreign-object-control",
-          "name": "Foreign object control",
+          "name": "FOD",
           "what": "Keeping loose hardware, debris and tools out of flight hardware.",
           "skills": [
             {
@@ -948,7 +956,7 @@
         },
         {
           "slug": "continuous-improvement",
-          "name": "Continuous improvement",
+          "name": "Lean",
           "what": "The lean and Six Sigma methods a plant uses to organize an area, standardize the work, measure its losses and remove them.",
           "skills": [
             {
@@ -1045,7 +1053,7 @@
         {
           "slug": "cnc-machining",
           "name": "CNC machining",
-          "what": "Running machining centers and lathes, from three-axis milling and turning to multi-axis, Swiss-type and large aerospace and casting work.",
+          "what": "Running machining centers and lathes: three-axis milling and turning, Swiss-type work and the machining of large structural castings.",
           "skills": [
             {
               "name": "CNC Milling",
@@ -1062,7 +1070,14 @@
             {
               "name": "Swiss-Type Machining",
               "level": 2
-            },
+            }
+          ]
+        },
+        {
+          "slug": "multi-axis-machining",
+          "name": "Multi-axis",
+          "what": "The advanced end of CNC machining: lathes with live tooling and sub-spindles, five-axis machining centers, and milling the isogrid panels of tanks and fuselages.",
+          "skills": [
             {
               "name": "Multi-Axis Turning",
               "level": 3
@@ -1152,7 +1167,7 @@
         },
         {
           "slug": "electrical-discharge-machining",
-          "name": "Electrical discharge machining",
+          "name": "EDM",
           "what": "Cutting hardened metal with a spark, by wire or by shaped electrode.",
           "skills": [
             {
@@ -1186,7 +1201,7 @@
         },
         {
           "slug": "woodworking-machines",
-          "name": "Woodworking machines",
+          "name": "Wood machining",
           "what": "The machines of cabinet, furniture, sign and millwork plants: stationary machines, panel saws, CNC routers, edgebanders, moulders and wide-belt sanders.",
           "skills": [
             {
@@ -1290,7 +1305,7 @@
         },
         {
           "slug": "resistance-welding",
-          "name": "Resistance welding",
+          "name": "Spot welding",
           "what": "Spot welding sheet by hand gun, pedestal or robot, and keeping the electrodes in condition.",
           "skills": [
             {
@@ -1309,7 +1324,7 @@
         },
         {
           "slug": "beam-and-friction-welding",
-          "name": "Beam and friction welding",
+          "name": "Beam welding",
           "what": "Machine welding without an arc: laser welding and brazing, friction stir and electron beam.",
           "skills": [
             {
@@ -1332,7 +1347,7 @@
         },
         {
           "slug": "brazing-methods",
-          "name": "Brazing methods",
+          "name": "Brazing",
           "what": "Joining with a filler that melts below the base metal, by torch and in the furnace.",
           "skills": [
             {
@@ -1374,7 +1389,7 @@
         },
         {
           "slug": "cutting-processes",
-          "name": "Cutting processes",
+          "name": "Cutting",
           "what": "Cutting plate and sheet to shape by flame, plasma, laser and waterjet.",
           "skills": [
             {
@@ -1397,7 +1412,7 @@
         },
         {
           "slug": "sheet-metal-work",
-          "name": "Sheet metal work",
+          "name": "Sheet metal",
           "what": "Laying out, bending and forming sheet and plate into finished shapes.",
           "skills": [
             {
@@ -1470,7 +1485,7 @@
         },
         {
           "slug": "stamping-and-dies",
-          "name": "Stamping and dies",
+          "name": "Stamping",
           "what": "Running presses and the dies in them, from operating and setting a die to fitting, spotting and trying one out.",
           "skills": [
             {
@@ -1540,7 +1555,7 @@
         },
         {
           "slug": "mill-forming",
-          "name": "Rolling and extrusion",
+          "name": "Rolling",
           "what": "Shaping metal in a mill: hot and cold rolling and setting the stands, roll forming and welded tube, and extruding aluminum.",
           "skills": [
             {
@@ -1660,7 +1675,7 @@
         },
         {
           "slug": "foundry-casting",
-          "name": "Foundry casting",
+          "name": "Foundry",
           "what": "Casting in sand and in ceramic shells: molds, cores, wax patterns, pouring and knockout.",
           "skills": [
             {
@@ -1695,7 +1710,7 @@
         },
         {
           "slug": "plastics-molding",
-          "name": "Plastics molding",
+          "name": "Plastics",
           "what": "Making plastic parts: injection molding from the press to the process, extrusion and blow molding.",
           "skills": [
             {
@@ -1738,7 +1753,7 @@
         },
         {
           "slug": "rubber-processing",
-          "name": "Rubber processing",
+          "name": "Rubber",
           "what": "Mixing, forming and vulcanizing rubber, and building tires.",
           "skills": [
             {
@@ -1761,7 +1776,7 @@
         },
         {
           "slug": "glass",
-          "name": "Glass forming and fabrication",
+          "name": "Glass",
           "what": "Forming hot glass into containers, and cutting, edging, tempering, laminating and building insulating units from flat glass, with the inspection both need.",
           "skills": [
             {
@@ -1796,7 +1811,7 @@
         },
         {
           "slug": "additive-manufacturing",
-          "name": "Additive manufacturing",
+          "name": "3D printing",
           "what": "Printing parts in metal and polymer: handling the powder, preparing and running the build and finishing what comes out.",
           "skills": [
             {
@@ -1823,7 +1838,7 @@
         },
         {
           "slug": "corrugating-and-converting",
-          "name": "Corrugating and converting",
+          "name": "Converting",
           "what": "Combining corrugated board, and cutting, folding, gluing, slitting and rewinding paper and board into products.",
           "skills": [
             {
@@ -1858,7 +1873,7 @@
         },
         {
           "slug": "print-finishing",
-          "name": "Print finishing",
+          "name": "Bindery",
           "what": "The bindery: cutting, folding, stitching, binding and foil stamping printed sheets.",
           "skills": [
             {
@@ -1908,7 +1923,7 @@
         },
         {
           "slug": "dental-laboratory",
-          "name": "Dental laboratory",
+          "name": "Dental lab",
           "what": "Making crowns, bridges and dentures to a prescription: models and dies, dental CAD, milling and sintering, ceramics and dentures.",
           "skills": [
             {
@@ -1935,7 +1950,7 @@
         },
         {
           "slug": "ophthalmic-lenses",
-          "name": "Ophthalmic lenses",
+          "name": "Ophthalmic",
           "what": "Making prescription spectacle lenses: surfacing, coating, edging and mounting, and verifying the power.",
           "skills": [
             {
@@ -1958,7 +1973,7 @@
         },
         {
           "slug": "jewelry-making",
-          "name": "Jewelry making",
+          "name": "Jewelry",
           "what": "The bench work of jewelry: fabrication and repair in precious metal, and setting stones.",
           "skills": [
             {
@@ -1980,17 +1995,9 @@
       "groups": [
         {
           "slug": "assembly-practice",
-          "name": "Assembly practice",
-          "what": "What every assembler does at a station: hand and torque tools, securing fasteners, checking the build and reworking it.",
+          "name": "Workmanship",
+          "what": "What every assembler does at a station: installing thread inserts, securing fasteners with safety wire, checking the build and reworking it.",
           "skills": [
-            {
-              "name": "Assembly Hand Tool Use",
-              "level": 1
-            },
-            {
-              "name": "Torque Wrench Use",
-              "level": 1
-            },
             {
               "name": "Threaded Insert Installation",
               "level": 2
@@ -2014,14 +2021,25 @@
           ]
         },
         {
-          "slug": "precision-mechanical-assembly",
-          "name": "Precision mechanical assembly",
-          "what": "Fitting bearings and interference fits, balancing what rotates and building engines and gear trains.",
+          "slug": "hand-tools",
+          "name": "Hand tools",
+          "what": "Using the hand and power tools of a station without harming the fastener or the part, and tightening fasteners to a specified torque and sequence.",
           "skills": [
             {
-              "name": "Bearing Installation",
-              "level": 2
+              "name": "Assembly Hand Tool Use",
+              "level": 1
             },
+            {
+              "name": "Torque Wrench Use",
+              "level": 1
+            }
+          ]
+        },
+        {
+          "slug": "precision-mechanical-assembly",
+          "name": "Precision assembly",
+          "what": "Making interference fits, balancing what rotates and building engines and gear trains.",
+          "skills": [
             {
               "name": "Press and Shrink Fitting",
               "level": 2
@@ -2041,8 +2059,23 @@
           ]
         },
         {
+          "slug": "mechanical-fundamentals",
+          "name": "Power transmission",
+          "what": "The parts that carry motion: fitting rolling bearings, and aligning, tensioning and replacing belt and chain drives.",
+          "skills": [
+            {
+              "name": "Bearing Installation",
+              "level": 2
+            },
+            {
+              "name": "Belt and Chain Drive Maintenance",
+              "level": 2
+            }
+          ]
+        },
+        {
           "slug": "medical-device-assembly",
-          "name": "Medical device assembly",
+          "name": "Medical devices",
           "what": "The assembly processes of medical devices: work under the microscope, light-cure bonding and the thermal forming of catheters.",
           "skills": [
             {
@@ -2061,8 +2094,8 @@
         },
         {
           "slug": "fluid-system-assembly",
-          "name": "Fluid system assembly",
-          "what": "Building the tubes and fittings that carry fluid and proving them: fitting make-up, tube bending, precision cleaning, and proof and leak tests.",
+          "name": "Fluid systems",
+          "what": "Building the tubes and fittings that carry fluid and proving them: fitting make-up, tube bending, precision cleaning, proof and leak tests, and plumbing fresh water and drain lines.",
           "skills": [
             {
               "name": "Tube Fitting Make-Up",
@@ -2083,12 +2116,16 @@
             {
               "name": "Bolted Flange Joint Assembly",
               "level": 2
+            },
+            {
+              "name": "Potable Water and Drain Plumbing",
+              "level": 2
             }
           ]
         },
         {
           "slug": "machine-tool-building",
-          "name": "Machine tool building",
+          "name": "Machine tools",
           "what": "Building a machine tool and making it accurate: guides, ballscrews and spindles, scraping and alignment, then measuring and compensating its errors.",
           "skills": [
             {
@@ -2127,7 +2164,7 @@
         },
         {
           "slug": "structural-fastening",
-          "name": "Structural fastening",
+          "name": "Fastening",
           "what": "Fastening aircraft structure: knowing the fastener, preparing the hole and installing rivets, pins, lockbolts and nutplates.",
           "skills": [
             {
@@ -2170,7 +2207,7 @@
         },
         {
           "slug": "cabinetmaking",
-          "name": "Cabinet and furniture making",
+          "name": "Cabinetmaking",
           "what": "Building cabinets, furniture and millwork: hand-tool work, joinery, casework, hardware, veneering and curved work.",
           "skills": [
             {
@@ -2201,7 +2238,7 @@
         },
         {
           "slug": "truss-assembly",
-          "name": "Truss and wall panel assembly",
+          "name": "Trusses",
           "what": "Sawing, jigging, plating and pressing trusses and framing wall panels in a component plant.",
           "skills": [
             {
@@ -2224,7 +2261,7 @@
         },
         {
           "slug": "airframe-assembly",
-          "name": "Airframe assembly",
+          "name": "Airframe",
           "what": "Building an airframe: sealing and shimming joints, installing skins, lines and control surfaces, joining major sections and rigging the controls.",
           "skills": [
             {
@@ -2259,7 +2296,7 @@
         },
         {
           "slug": "vehicle-body-assembly",
-          "name": "Vehicle body assembly",
+          "name": "Vehicle body",
           "what": "Building a vehicle body from stamped panels: mechanical joining, structural adhesive, hemming, framing, fitting closures and finishing the metal.",
           "skills": [
             {
@@ -2290,7 +2327,7 @@
         },
         {
           "slug": "vehicle-final-assembly",
-          "name": "Vehicle final assembly",
+          "name": "Vehicle assembly",
           "what": "The stations of a vehicle's final line, from routing the harness to marrying the powertrain and filling the fluids.",
           "skills": [
             {
@@ -2325,8 +2362,8 @@
         },
         {
           "slug": "rv-and-modular-building",
-          "name": "RV and modular building",
-          "what": "Building the living space of an RV or a factory-built home on a line: laminated walls and roof, roofing, plumbing, propane, and the cabinets and interior.",
+          "name": "RV assembly",
+          "what": "Building the living space of an RV or a factory-built home on a line: laminated walls and roof, roofing, propane, and the cabinets and interior.",
           "skills": [
             {
               "name": "Cabinet and Interior Installation",
@@ -2334,10 +2371,6 @@
             },
             {
               "name": "LP Gas System Installation",
-              "level": 2
-            },
-            {
-              "name": "Potable Water and Drain Plumbing",
               "level": 2
             },
             {
@@ -2352,7 +2385,7 @@
         },
         {
           "slug": "rocket-engine-build",
-          "name": "Rocket engine build",
+          "name": "Rocket engines",
           "what": "Making and assembling a liquid rocket engine: injectors and cooling channels, valves and turbopumps, the engine itself and its refurbishment.",
           "skills": [
             {
@@ -2383,7 +2416,7 @@
         },
         {
           "slug": "launch-vehicle-integration",
-          "name": "Launch vehicle integration",
+          "name": "Rockets",
           "what": "Installing the tanks, pressure vessels, steering and separation hardware of a launch vehicle, and mating the sections of a missile.",
           "skills": [
             {
@@ -2410,7 +2443,7 @@
         },
         {
           "slug": "spacecraft-integration",
-          "name": "Spacecraft integration",
+          "name": "Spacecraft",
           "what": "Building a satellite or spacecraft: structure and units, insulation, thrusters, fluid loops and the mechanisms that deploy.",
           "skills": [
             {
@@ -2437,7 +2470,7 @@
         },
         {
           "slug": "recovery-and-reuse",
-          "name": "Recovery and reuse",
+          "name": "Recovery",
           "what": "The hardware that brings a vehicle back and the inspection that lets it fly again: heat shield tiles, parachutes and post-flight inspection.",
           "skills": [
             {
@@ -2460,7 +2493,7 @@
         },
         {
           "slug": "survival-equipment",
-          "name": "Survival equipment",
+          "name": "Survival gear",
           "what": "Sewing, inspecting and servicing the gear that keeps aircrew alive.",
           "skills": [
             {
@@ -2525,7 +2558,7 @@
         },
         {
           "slug": "footwear-and-leather-goods",
-          "name": "Footwear and leather goods",
+          "name": "Footwear",
           "what": "Cutting leather and building shoes and boots on the last.",
           "skills": [
             {
@@ -2544,7 +2577,7 @@
         },
         {
           "slug": "weapons-and-munitions",
-          "name": "Weapons and munitions",
+          "name": "Ordnance",
           "what": "Building up, inspecting and maintaining guns, missiles, torpedoes and ammunition.",
           "skills": [
             {
@@ -2598,7 +2631,7 @@
       "groups": [
         {
           "slug": "soldering-and-rework",
-          "name": "Soldering and rework",
+          "name": "Soldering",
           "what": "Soldering by hand to the IPC standards, judging the joint, finding the failed part and replacing it.",
           "skills": [
             {
@@ -2637,7 +2670,7 @@
         },
         {
           "slug": "board-assembly-line",
-          "name": "Board assembly line",
+          "name": "SMT",
           "what": "Running and programming the machines that build a circuit board: paste printing, placement, reflow, wave soldering and automatic inspection.",
           "skills": [
             {
@@ -2676,7 +2709,7 @@
         },
         {
           "slug": "pcb-fabrication",
-          "name": "Circuit board fabrication",
+          "name": "PCB fabrication",
           "what": "Making bare printed circuit boards: imaging the layers, pressing multilayers, drilling and routing the panels, and testing every net.",
           "skills": [
             {
@@ -2699,7 +2732,7 @@
         },
         {
           "slug": "coating-and-potting",
-          "name": "Coating and potting",
+          "name": "Encapsulation",
           "what": "Protecting a finished circuit with conformal coating or resin.",
           "skills": [
             {
@@ -2714,7 +2747,7 @@
         },
         {
           "slug": "cable-and-harness-assembly",
-          "name": "Cable and harness assembly",
+          "name": "Wire harness",
           "what": "Building wiring: crimping and terminating wire, assembling connectors and harnesses, securing bundles, bonding and grounding, coaxial and fiber cables.",
           "skills": [
             {
@@ -2761,7 +2794,7 @@
         },
         {
           "slug": "electromechanical-assembly",
-          "name": "Electromechanical assembly",
+          "name": "Electromechanical",
           "what": "Building boards, wiring and devices into a finished enclosure: the box build and the industrial control panel.",
           "skills": [
             {
@@ -2814,7 +2847,7 @@
         },
         {
           "slug": "transformer-build",
-          "name": "Transformer build",
+          "name": "Transformers",
           "what": "Building power and distribution transformers: winding the coils, stacking the core, assembling core and coil, drying and filling the tank, and the routine tests.",
           "skills": [
             {
@@ -2841,7 +2874,7 @@
         },
         {
           "slug": "server-integration",
-          "name": "Server integration",
+          "name": "Servers",
           "what": "Building servers and racks: installing components, mounting and cabling the rack, then configuring firmware, storage and the operating system.",
           "skills": [
             {
@@ -2872,7 +2905,7 @@
         },
         {
           "slug": "consumer-device-assembly",
-          "name": "Consumer device assembly",
+          "name": "Consumer devices",
           "what": "Assembling phones, laptops and similar devices: battery, display, camera, seals and sensor calibration.",
           "skills": [
             {
@@ -2899,7 +2932,7 @@
         },
         {
           "slug": "communication-terminals",
-          "name": "Communication terminals",
+          "name": "Comm terminals",
           "what": "Building the radio and laser terminals that carry data to and between satellites.",
           "skills": [
             {
@@ -2914,7 +2947,7 @@
         },
         {
           "slug": "optics",
-          "name": "Optics",
+          "name": "Precision optics",
           "what": "Building and proving optics: handling and cleaning them, polishing them, aligning them, cementing and bonding them, and testing them by interferometer.",
           "skills": [
             {
@@ -2941,7 +2974,7 @@
         },
         {
           "slug": "fielded-electronic-systems",
-          "name": "Fielded electronic systems",
+          "name": "Electronic systems",
           "what": "Keeping radar, sonar, radio, navigation and weapon electronics working after they leave the factory.",
           "skills": [
             {
@@ -3022,7 +3055,7 @@
         },
         {
           "slug": "plc-programming",
-          "name": "PLC programming",
+          "name": "PLCs",
           "what": "Programming and troubleshooting the controllers that run a machine, and the operator screens that go with them.",
           "skills": [
             {
@@ -3045,7 +3078,7 @@
         },
         {
           "slug": "motion-and-drives",
-          "name": "Motion and drives",
+          "name": "Drives",
           "what": "Setting up the drives that turn motors and axes, and tuning servo loops.",
           "skills": [
             {
@@ -3064,7 +3097,7 @@
         },
         {
           "slug": "industrial-networks",
-          "name": "Networks and SCADA",
+          "name": "Networks",
           "what": "The networks that tie controllers, drives and plant software together, and the system that gathers and shows their data.",
           "skills": [
             {
@@ -3083,7 +3116,7 @@
         },
         {
           "slug": "robot-programming",
-          "name": "Industrial robots",
+          "name": "Robotics",
           "what": "Running, programming and maintaining industrial robots: the teach pendant, end-of-arm tooling, programs, mastering and offline simulation.",
           "skills": [
             {
@@ -3110,7 +3143,7 @@
         },
         {
           "slug": "robot-cell-engineering",
-          "name": "Cell design and machine safety",
+          "name": "Robot cells",
           "what": "Designing a robot cell and the controls that protect people: tooling, layout, safeguarding and safety circuits.",
           "skills": [
             {
@@ -3159,7 +3192,7 @@
       "groups": [
         {
           "slug": "contamination-control",
-          "name": "Contamination control",
+          "name": "Wafers",
           "what": "Handling wafers without damaging or contaminating them, and counting the particles a room, a liquid or a tool adds.",
           "skills": [
             {
@@ -3209,7 +3242,7 @@
         },
         {
           "slug": "thin-film-deposition",
-          "name": "Thin film deposition",
+          "name": "Deposition",
           "what": "Putting films on a wafer from gases and sputter targets: CVD, PVD, epitaxy and atomic layer deposition.",
           "skills": [
             {
@@ -3290,7 +3323,7 @@
         },
         {
           "slug": "diffusion-and-implant",
-          "name": "Diffusion and implant",
+          "name": "Diffusion",
           "what": "Growing oxide, annealing and doping wafers in furnaces, lamp tools and implanters.",
           "skills": [
             {
@@ -3344,7 +3377,7 @@
         },
         {
           "slug": "defect-and-yield",
-          "name": "Defect and yield",
+          "name": "Yield",
           "what": "Finding defects on wafers, naming them and tracing them, with tool sensor data, back to the step that caused them.",
           "skills": [
             {
@@ -3410,7 +3443,7 @@
         },
         {
           "slug": "probe-and-final-test",
-          "name": "Probe and final test",
+          "name": "Chip test",
           "what": "Testing every die on the wafer and every packaged device electrically.",
           "skills": [
             {
@@ -3455,7 +3488,7 @@
       "groups": [
         {
           "slug": "electrode-manufacturing",
-          "name": "Electrode manufacturing",
+          "name": "Electrodes",
           "what": "Making the electrode: mixing slurry, coating and drying it on foil, calendering and slitting.",
           "skills": [
             {
@@ -3552,7 +3585,7 @@
         },
         {
           "slug": "module-and-pack-assembly",
-          "name": "Module and pack assembly",
+          "name": "Battery packs",
           "what": "Building cells into modules and packs: interconnects and busbars, cooling, high-voltage wiring, management electronics and sealing.",
           "skills": [
             {
@@ -3591,7 +3624,7 @@
         },
         {
           "slug": "electric-motor-build",
-          "name": "Electric motor build",
+          "name": "Motors",
           "what": "Building a traction motor: winding or hairpin stators, impregnation, rotor magnets, housing and final assembly.",
           "skills": [
             {
@@ -3626,7 +3659,7 @@
         },
         {
           "slug": "pack-and-motor-testing",
-          "name": "Pack and motor testing",
+          "name": "Powertrain test",
           "what": "Proving a finished pack or drive unit at the end of the line: leak tests and the electrical and performance tests.",
           "skills": [
             {
@@ -3652,8 +3685,8 @@
       "groups": [
         {
           "slug": "gmp-and-sanitation",
-          "name": "GMP and sanitation",
-          "what": "Working the way a regulated plant must: good manufacturing practice, food safety controls, cleaning and sanitizing, and proving a process by validation.",
+          "name": "GMP",
+          "what": "Working the way a regulated plant must: good manufacturing practice, food safety controls, and cleaning and sanitizing.",
           "skills": [
             {
               "name": "Current Good Manufacturing Practice",
@@ -3674,7 +3707,14 @@
             {
               "name": "Clean-in-Place Operation",
               "level": 2
-            },
+            }
+          ]
+        },
+        {
+          "slug": "validation",
+          "name": "Validation",
+          "what": "Proving that a regulated process does what it must: qualifying equipment and the process, validating cleaning and thermal cycles, and writing the food safety plan.",
+          "skills": [
             {
               "name": "Process Validation",
               "level": 3
@@ -3730,7 +3770,7 @@
         },
         {
           "slug": "meat-processing",
-          "name": "Meat and poultry processing",
+          "name": "Meat",
           "what": "Turning animals into meat: humane handling and stunning, dressing the carcass, the antimicrobial step, breaking it into cuts, boning and trimming, keeping the knife, and cooking and smoking processed meat.",
           "skills": [
             {
@@ -3788,7 +3828,7 @@
         },
         {
           "slug": "dairy-processing",
-          "name": "Dairy processing",
+          "name": "Dairy",
           "what": "Making milk into product: separating and standardizing it, making cheese in the vat, and ripening and grading it.",
           "skills": [
             {
@@ -3822,7 +3862,7 @@
         },
         {
           "slug": "fermented-beverages",
-          "name": "Brewing, winemaking and distilling",
+          "name": "Fermentation",
           "what": "Making beer, wine and spirits: mashing grain, crushing and pressing fruit, managing the fermentation, clarifying and filtering, distilling, aging in barrels and blending.",
           "skills": [
             {
@@ -3888,7 +3928,7 @@
         },
         {
           "slug": "filling-and-packaging",
-          "name": "Filling and packaging",
+          "name": "Packaging",
           "what": "Filling and closing containers and running the packaging line and its in-line checks.",
           "skills": [
             {
@@ -3923,13 +3963,9 @@
         },
         {
           "slug": "tablet-manufacturing",
-          "name": "Tablet manufacturing",
-          "what": "Making solid-dose drug product: weighing and dispensing, granulating and blending, compressing and coating tablets.",
+          "name": "Solid dose",
+          "what": "Making solid-dose drug product: granulating and blending, compressing and coating tablets.",
           "skills": [
-            {
-              "name": "Weighing and Dispensing",
-              "level": 1
-            },
             {
               "name": "Granulation and Blending",
               "level": 2
@@ -3950,7 +3986,7 @@
         },
         {
           "slug": "aseptic-processing",
-          "name": "Aseptic processing",
+          "name": "Aseptic",
           "what": "Making sterile product without contaminating it: qualified gowning, aseptic technique, filling and freeze drying.",
           "skills": [
             {
@@ -4008,7 +4044,7 @@
         },
         {
           "slug": "laboratory-analysis",
-          "name": "Laboratory analysis",
+          "name": "QC lab",
           "what": "The quality control laboratory's chemical and microbiological tests on product, water and the manufacturing environment.",
           "skills": [
             {
@@ -4059,7 +4095,7 @@
         },
         {
           "slug": "food-product-development",
-          "name": "Food product development",
+          "name": "Food science",
           "what": "Designing a food product and proving it: formulating to a target, judging it by panel, testing how long it keeps, and making the label true and legal.",
           "skills": [
             {
@@ -4082,7 +4118,7 @@
         },
         {
           "slug": "chemical-laboratory",
-          "name": "Chemical laboratory",
+          "name": "Chem lab",
           "what": "The chemistry laboratory's work: wet chemistry, spectroscopy and mass spectrometry, its records system, and proving its methods.",
           "skills": [
             {
@@ -4144,7 +4180,7 @@
         },
         {
           "slug": "refining-units",
-          "name": "Refinery units",
+          "name": "Refining",
           "what": "Running the continuous, high-temperature units of a refinery or petrochemical plant: fired heaters, process gas compressors and catalytic reactors.",
           "skills": [
             {
@@ -4163,7 +4199,7 @@
         },
         {
           "slug": "pulp-and-paper",
-          "name": "Pulp and paper making",
+          "name": "Pulp and paper",
           "what": "Making pulp, paper, board and tissue: cooking, washing and bleaching pulp, preparing stock, running the paper machine's wet and dry ends, creping and coating, and testing pulp and paper.",
           "skills": [
             {
@@ -4229,7 +4265,7 @@
         },
         {
           "slug": "wood-panels",
-          "name": "Wood drying and panels",
+          "name": "Wood panels",
           "what": "Drying lumber in kilns, and making plywood, LVL, OSB, particleboard and MDF: peeling, drying, resin blending, forming and hot pressing.",
           "skills": [
             {
@@ -4260,7 +4296,7 @@
         },
         {
           "slug": "kilns-and-mills",
-          "name": "Kilns and grinding mills",
+          "name": "Kilns",
           "what": "Firing and grinding minerals: rotary kilns for cement and lime, tunnel and periodic kilns for brick and ceramics, and the mills that grind raw meal, coal and cement.",
           "skills": [
             {
@@ -4279,7 +4315,7 @@
         },
         {
           "slug": "fuels",
-          "name": "Fuels and cryogenics",
+          "name": "Fuels",
           "what": "Proving fuel fit to use, and making and storing liquid oxygen and nitrogen.",
           "skills": [
             {
@@ -4294,7 +4330,7 @@
         },
         {
           "slug": "nuclear-plant-operations",
-          "name": "Nuclear plant operations",
+          "name": "Nuclear power",
           "what": "Running a reactor plant and controlling its radiation and chemistry.",
           "skills": [
             {
@@ -4325,12 +4361,8 @@
         {
           "slug": "electrical-test",
           "name": "Electrical test",
-          "what": "Measuring and proving circuits with bench instruments: the multimeter and oscilloscope, continuity and high-voltage insulation tests.",
+          "what": "Measuring and proving circuits with bench instruments: the oscilloscope, and continuity and high-voltage insulation tests.",
           "skills": [
-            {
-              "name": "Multimeter Testing",
-              "level": 1
-            },
             {
               "name": "Oscilloscope Measurement",
               "level": 2
@@ -4405,7 +4437,7 @@
         },
         {
           "slug": "data-bus-testing",
-          "name": "Data bus testing",
+          "name": "Data bus",
           "what": "Checking the data buses that link the electronic units of a vehicle or aircraft.",
           "skills": [
             {
@@ -4451,7 +4483,7 @@
         },
         {
           "slug": "environmental-testing",
-          "name": "Environmental testing",
+          "name": "Environmental test",
           "what": "Stressing a product with heat, vibration, vacuum and time to prove it survives and to learn how long it will last.",
           "skills": [
             {
@@ -4482,7 +4514,7 @@
         },
         {
           "slug": "vehicle-end-of-line-testing",
-          "name": "Vehicle end-of-line testing",
+          "name": "Vehicle test",
           "what": "The checks a finished vehicle passes before it leaves the plant: alignment, lamps, driver-assistance sensors, rolls, water, noises and final inspection.",
           "skills": [
             {
@@ -4517,7 +4549,7 @@
         },
         {
           "slug": "propulsion-testing",
-          "name": "Propulsion testing",
+          "name": "Propulsion test",
           "what": "Running motors and engines on a stand or dynamometer and reading the data they produce.",
           "skills": [
             {
@@ -4540,7 +4572,7 @@
         },
         {
           "slug": "launch-site-operations",
-          "name": "Launch site operations",
+          "name": "Launch pad",
           "what": "Ground operations at a test stand or launch pad: cryogenic propellants, couplings and umbilicals, loading, and raising the vehicle.",
           "skills": [
             {
@@ -4574,25 +4606,9 @@
       "groups": [
         {
           "slug": "equipment-maintenance",
-          "name": "Equipment maintenance",
-          "what": "Keeping production machines running: work orders, lubrication and scheduled upkeep, drives, conveyors, pumps and gearboxes, leveling and alignment, laser optics, and finding why a tool has stopped.",
+          "name": "Machine repair",
+          "what": "Keeping production machines running: conveyors, pumps and gearboxes, leveling and alignment, laser optics, and finding why a tool has stopped.",
           "skills": [
-            {
-              "name": "CMMS Use",
-              "level": 1
-            },
-            {
-              "name": "Machine Lubrication",
-              "level": 1
-            },
-            {
-              "name": "Preventive Maintenance",
-              "level": 2
-            },
-            {
-              "name": "Belt and Chain Drive Maintenance",
-              "level": 2
-            },
             {
               "name": "Conveyor Maintenance",
               "level": 2
@@ -4624,8 +4640,27 @@
           ]
         },
         {
+          "slug": "machine-care",
+          "name": "Machine care",
+          "what": "Looking after a machine before it fails: work orders and the machine's history, lubrication and scheduled upkeep.",
+          "skills": [
+            {
+              "name": "CMMS Use",
+              "level": 1
+            },
+            {
+              "name": "Machine Lubrication",
+              "level": 1
+            },
+            {
+              "name": "Preventive Maintenance",
+              "level": 2
+            }
+          ]
+        },
+        {
           "slug": "textile-machine-repair",
-          "name": "Textile machine repair",
+          "name": "Textile machines",
           "what": "The fixer's work: setting, timing and repairing spinning machines, looms, knitting and tufting machines, and sewing machines.",
           "skills": [
             {
@@ -4653,12 +4688,8 @@
         {
           "slug": "electrical-maintenance",
           "name": "Electrical maintenance",
-          "what": "The plant electrician's work: reading the schematic, wiring and testing motors, running conduit, troubleshooting motor controls and working on 480 V power.",
+          "what": "The plant electrician's work: wiring and testing motors, running conduit, troubleshooting motor controls and working on 480 V power.",
           "skills": [
-            {
-              "name": "Electrical Schematic Reading",
-              "level": 1
-            },
             {
               "name": "Three-Phase Motor Wiring",
               "level": 2
@@ -4686,8 +4717,23 @@
           ]
         },
         {
+          "slug": "electrical-fundamentals",
+          "name": "Electrical basics",
+          "what": "What all electrical work starts from: reading the electrical drawing, and measuring voltage, current, resistance and continuity with a multimeter.",
+          "skills": [
+            {
+              "name": "Multimeter Testing",
+              "level": 1
+            },
+            {
+              "name": "Electrical Schematic Reading",
+              "level": 1
+            }
+          ]
+        },
+        {
           "slug": "power-generation-and-distribution",
-          "name": "Power generation and distribution",
+          "name": "Power systems",
           "what": "Making electrical power and getting it to the load.",
           "skills": [
             {
@@ -4753,7 +4799,7 @@
         },
         {
           "slug": "reliability-methods",
-          "name": "Reliability methods",
+          "name": "Reliability",
           "what": "Maintaining by condition and by the numbers: thermography, oil and vibration analysis, and reliability metrics.",
           "skills": [
             {
@@ -4780,7 +4826,7 @@
         },
         {
           "slug": "vacuum-and-utilities",
-          "name": "Vacuum and utilities",
+          "name": "Vacuum",
           "what": "Running vacuum systems and finding their leaks, and the utilities a plant depends on: ultrapure water, compressed air, chillers and air handling.",
           "skills": [
             {
@@ -4811,7 +4857,7 @@
         },
         {
           "slug": "plant-utilities",
-          "name": "Plant utilities",
+          "name": "Utilities",
           "what": "The steam, cooling and water a plant runs on.",
           "skills": [
             {
@@ -4838,7 +4884,7 @@
         },
         {
           "slug": "engines-and-power-plants",
-          "name": "Engines and power plants",
+          "name": "Engines",
           "what": "Running and repairing the engines and plants that drive ships, vehicles and generators.",
           "skills": [
             {
@@ -4873,7 +4919,7 @@
         },
         {
           "slug": "vehicles-and-heavy-equipment",
-          "name": "Vehicles and heavy equipment",
+          "name": "Vehicle repair",
           "what": "Repairing wheeled and tracked vehicles and earthmoving equipment.",
           "skills": [
             {
@@ -5006,7 +5052,7 @@
         },
         {
           "slug": "aircraft-structural-repair",
-          "name": "Aircraft structural repair",
+          "name": "Airframe repair",
           "what": "Repairing aircraft structure to the manufacturer's manual: corrosion treatment and sheet metal repair.",
           "skills": [
             {
@@ -5032,8 +5078,8 @@
       "groups": [
         {
           "slug": "measurement-tools",
-          "name": "Measurement tools",
-          "what": "The instruments an inspector or machinist measures a part with, from calipers, micrometers, indicators and pin gauges to gauge blocks, surface plate setups, profilometers and comparators.",
+          "name": "Measuring",
+          "what": "The instruments an inspector or machinist measures a part with first: calipers, micrometers, dial indicators and pin gauges.",
           "skills": [
             {
               "name": "Caliper Measurement",
@@ -5050,7 +5096,14 @@
             {
               "name": "Pin and Plug Gauge Use",
               "level": 1
-            },
+            }
+          ]
+        },
+        {
+          "slug": "precision-measurement",
+          "name": "Precision measurement",
+          "what": "The finer instruments of the inspection bench: height, bore and thread gauges, gauge blocks, surface plate setups, profilometers and comparators.",
+          "skills": [
             {
               "name": "Height Gauge Measurement",
               "level": 2
@@ -5083,7 +5136,7 @@
         },
         {
           "slug": "part-inspection",
-          "name": "Part inspection",
+          "name": "Inspection",
           "what": "Inspecting parts against the drawing: reading its geometric tolerances, checking in process, sampling a lot, the first article and the record.",
           "skills": [
             {
@@ -5104,10 +5157,6 @@
             },
             {
               "name": "First Article Inspection",
-              "level": 2
-            },
-            {
-              "name": "Fabric Inspection",
               "level": 2
             }
           ]
@@ -5137,7 +5186,7 @@
         },
         {
           "slug": "coordinate-metrology",
-          "name": "Coordinate metrology",
+          "name": "CMM",
           "what": "Measuring in three dimensions against the model: coordinate measuring machines, scanners and laser trackers.",
           "skills": [
             {
@@ -5203,7 +5252,7 @@
         },
         {
           "slug": "statistical-methods",
-          "name": "Statistical methods",
+          "name": "Statistics",
           "what": "Using data to control and understand a process: control charts, capability, measurement system studies and designed experiments.",
           "skills": [
             {
@@ -5253,7 +5302,7 @@
         },
         {
           "slug": "quality-planning",
-          "name": "Quality planning and audit",
+          "name": "Quality planning",
           "what": "Planning quality into a process before it runs, and auditing the system that holds it: failure mode analysis, the control plan, the approval package and the quality system audit.",
           "skills": [
             {
@@ -5287,7 +5336,7 @@
       "groups": [
         {
           "slug": "visual-methods",
-          "name": "Visual methods",
+          "name": "Visual",
           "what": "Examining a surface by eye, directly or through a borescope.",
           "skills": [
             {
@@ -5302,7 +5351,7 @@
         },
         {
           "slug": "penetrant-methods",
-          "name": "Penetrant methods",
+          "name": "Penetrant",
           "what": "Finding surface-breaking flaws with liquid penetrant: visible and fluorescent inspection and the checks that keep a line valid.",
           "skills": [
             {
@@ -5321,7 +5370,7 @@
         },
         {
           "slug": "magnetic-particle-methods",
-          "name": "Magnetic particle methods",
+          "name": "Magnetic particle",
           "what": "Finding surface and near-surface flaws in steel by magnetizing it: yoke and bench inspection, dry and wet fluorescent particles, and proving the field.",
           "skills": [
             {
@@ -5340,7 +5389,7 @@
         },
         {
           "slug": "ultrasonic-methods",
-          "name": "Ultrasonic methods",
+          "name": "Ultrasonic",
           "what": "Inspecting with sound: thickness, calibration on reference blocks, straight and angle beam, immersion scanning, sizing flaws, phased array and time-of-flight diffraction.",
           "skills": [
             {
@@ -5379,7 +5428,7 @@
         },
         {
           "slug": "radiographic-methods",
-          "name": "Radiographic methods",
+          "name": "Radiography",
           "what": "Making a radiograph on film or a detector and reading it: exposure and image quality, film processing, digital and real-time systems, interpretation and computed tomography.",
           "skills": [
             {
@@ -5410,7 +5459,7 @@
         },
         {
           "slug": "eddy-current-methods",
-          "name": "Eddy current methods",
+          "name": "Eddy current",
           "what": "Finding cracks and measuring conductivity with induced currents: surface inspection, bolt holes, aircraft structure and arrays.",
           "skills": [
             {
@@ -5437,7 +5486,7 @@
         },
         {
           "slug": "composite-inspection",
-          "name": "Composite inspection",
+          "name": "Composite NDT",
           "what": "Finding disbonds, delaminations, porosity and impact damage in composite and bonded structure.",
           "skills": [
             {
@@ -5464,7 +5513,7 @@
         },
         {
           "slug": "ndt-procedure-development",
-          "name": "NDT procedure development",
+          "name": "NDT procedures",
           "what": "The Level III work behind an inspection: writing the procedure and designing the reference standard it is calibrated on.",
           "skills": [
             {
@@ -5486,7 +5535,7 @@
       "groups": [
         {
           "slug": "workplace-safety",
-          "name": "Workplace safety",
+          "name": "Shop safety",
           "what": "The habits and protective equipment every person on a floor needs, and the training for work at height and in confined spaces.",
           "skills": [
             {
@@ -5548,7 +5597,7 @@
         },
         {
           "slug": "hazardous-materials",
-          "name": "Hazardous materials",
+          "name": "Hazmat",
           "what": "Handling chemicals, dusts, process gases and explosives so nobody is exposed and nothing spills, burns or goes off.",
           "skills": [
             {

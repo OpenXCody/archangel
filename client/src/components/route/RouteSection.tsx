@@ -15,7 +15,7 @@ interface RouteSectionProps {
  * A section of a route (the employer's editor of a company's version): a run
  * of skills of one skill group. One button, a full finger tall, that opens
  * and closes its rows: the group's name with how many skills of the path are
- * in it ("Measurement tools · 4"), then the chevron. Closed, the names of its
+ * in it ("Measuring · 4"), then the chevron. Closed, the names of its
  * skills stand under the group's in one quiet line (`SkillNames`), and its
  * rows are hidden and out of the tab order; open, the rows say the rest.
  */

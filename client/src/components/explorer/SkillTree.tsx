@@ -3,11 +3,12 @@ import { ArrowRight } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
 import type { TaxonomyDomain } from '../../lib/api';
 import { useKept } from '../../lib/kept';
+import { atlasHref } from '../atlas/state';
 import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../layout/Panel';
 
 /**
- * The Skills list in the taxonomy's own order: the Atlas, as a list, in the
- * contained system (`components/layout/Panel.tsx`).
+ * The Skills list in the taxonomy's own order, in the contained system
+ * (`components/layout/Panel.tsx`).
  *
  * Each domain is a `Band`: a raised bar with its name at section size and how
  * many skills and groups it holds, closed when the page arrives, so the list
@@ -17,8 +18,9 @@ import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../
  * panel each, the width of the page: the group's name and size over its
  * skills, which stand in columns that read down (two from a tablet, three
  * from a laptop). A skill is its name alone: its level is said on its page.
- * The domain ends in the way to it on the atlas, a button, and the next
- * domain begins with its own bar, which nobody can miss.
+ * The domain ends in the way to the atlas, a button, opened on the field
+ * that holds most of that domain's groups (`atlasHref`), and the next domain
+ * begins with its own bar, which nobody can miss.
  */
 export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
   // A list narrowed to one domain is that domain, open, whatever the person did to its bar in the whole list:
@@ -48,7 +50,7 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
             open={isOpen(open, domain.slug)}
             onToggle={() => toggle(domain.slug)}
             actions={
-              <Link to={`/atlas?domain=${encodeURIComponent(domain.slug)}`} className={secondaryActionClass} data-band-atlas>
+              <Link to={atlasHref({ domain: domain.slug })} className={secondaryActionClass} data-band-atlas>
                 {domain.name} on the atlas
                 <ArrowRight aria-hidden="true" className="h-4 w-4 text-text-2" />
               </Link>

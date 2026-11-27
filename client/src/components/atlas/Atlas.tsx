@@ -1,321 +1,318 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, X } from 'lucide-react';
-import { cn, focusRing, plural } from '@/lib/utils';
-import type { OccupationDetail } from '../../lib/api';
-import { recordQuery, useTaxonomy } from '../../lib/queries';
-import { useVersion } from '../../lib/versions';
-import { useMySkills } from '../../lib/seeker';
-import { useViewer } from '../../lib/viewer';
-import { ApiError, errorMessage } from '../../lib/http';
-import CareerPicker from '../account/CareerPicker';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
+import { kindLine } from '@shared/military';
+import type { Occupation } from '../../lib/api';
+import { recordQuery } from '../../lib/queries';
+import { isNoVersion, useVersion } from '../../lib/versions';
 import { LoadError } from '../account/parts';
 import SkillsViewSwitch from '../explorer/SkillsViewSwitch';
-import AtlasDrawing, { type AtlasMarks, type AtlasOverlay, type AtlasTarget } from './AtlasDrawing';
-import AtlasPanel, { LitSign } from './AtlasPanel';
-import type { AtlasLayout } from './layout';
-import PlateSkeleton from './PlateSkeleton';
-import { atlasLayoutOf } from './useAtlasLayout';
-import { useFreshMark } from './useFreshMark';
 import { useSkillMarks } from '../path/useSkillMarks';
+import AtlasList, { type AtlasListHandle, type CareerBlock } from './AtlasList';
+import CareerSheet from './CareerSheet';
+import { EDGE, FUNDAMENTALS, HEAD, RIM, RR, chosen, modeOf, wordsOf, type Hit, type Mode, type Selection } from './camera';
+import { layOver, type AtlasModel } from './model';
+import { ATLAS_BUTTON, BAR_WIDTH, careerName } from './parts';
 import { atlasHref, readAtlasState } from './state';
+import { useAtlasModel } from './useAtlasModel';
+import { addressOf, leadingField, onlySkillMoved, viewOf } from './view';
+import { createWheel, type Overlay, type ShownName, type Wheel } from './wheel';
 
 /**
- * The Atlas of Manufacturing: every skill in one radial tree. The centre is
- * manufacturing; its sixteen domains branch into skill groups and those into
- * skills, each set further out the higher its level, so the foundation reads
- * as the inner band and the specialties as the rim. A career can be laid over
- * it, and a second over the first.
+ * The Atlas of Manufacturing: one screen. The wheel is a display (a canvas:
+ * wheel.ts); the list beside it, under it on a phone, is the control, and
+ * whatever is chosen in the list is named on the wheel in the same words.
  *
- * Everything the page shows is in its address (see `state.ts`). The drawing
- * waits for one request, the taxonomy; a career is one more.
+ * Everything the page shows is in its address (state.ts), read against the
+ * wheel (view.ts): what is open, the career laid over it, a company's version
+ * of that career, a military career under it. The wheel changes nothing by
+ * itself: a press on it becomes an address, and the address comes back as
+ * what the wheel is told. The drawing waits for one request, the taxonomy; a
+ * career is one more.
  */
+
+/** What a script can ask the page: the wheel as it stands, and the model it draws. */
+export interface AtlasHandle {
+  model: AtlasModel;
+  shown: () => ShownName[];
+  line: (skill: number) => [number, number, number, number];
+  size: () => { W: number; H: number; dpr: number };
+  mode: () => Mode;
+  cam: () => { cx: number; cy: number; R: number; core: number };
+  geom: { RR: readonly number[]; RIM: number; HEAD: number; EDGE: number };
+}
+
+declare global {
+  interface Window {
+    __atlas?: AtlasHandle;
+  }
+}
+
+/** True when a failed read means "there is no such career", not "the request failed". */
+const isMissing = (error: unknown): boolean => error instanceof Error && /not found|invalid id/i.test(error.message);
 
 function useCareer(id: string | null | undefined) {
   return useQuery({ ...recordQuery('occupations', id), enabled: Boolean(id), staleTime: 5 * 60_000, retry: false });
 }
 
-/** A career's skills as positions on the plate. A skill the taxonomy does not hold has no leaf to light. */
-function leavesOf(layout: AtlasLayout, career: Pick<OccupationDetail, 'skills'> | { skills: { id: string }[] } | undefined): Set<number> | null {
-  if (!career) return null;
-  const leaves = new Set<number>();
-  for (const skill of career.skills) {
-    const leaf = layout.leafById.get(skill.id);
-    if (leaf) leaves.add(leaf.index);
+/** A career's skills as places on the wheel. A skill the wheel does not hold has no line to light. */
+function placesOf(model: AtlasModel, skills: readonly { id: string }[]): number[] {
+  const out: number[] = [];
+  for (const skill of skills) {
+    const s = model.skillById.get(skill.id);
+    if (s !== undefined && !out.includes(s)) out.push(s);
   }
-  return leaves;
-}
-
-const domainsOf = (layout: AtlasLayout, leaves: ReadonlySet<number>) => new Set([...leaves].map((index) => layout.leaves[index].domain)).size;
-
-const TEXT_BUTTON = cn(
-  'inline-flex min-h-11 items-center text-sm text-text-1 underline transition-colors sm:min-h-9',
-  focusRing
-);
-
-interface CareerLineProps {
-  sign: 'first' | 'second';
-  id: string;
-  /** The career's read, or a company's version of it: what the line names and whether it failed. */
-  career: { data?: { title: string }; isError: boolean; error: unknown };
-  /** Where the name leads: the career's page unless said. */
-  to?: string;
-  /** What to say when it is not there: that the career is not in the catalogue, unless said. */
-  missing?: string;
-  /** What follows the career's name: "17 skills across 4 domains". */
-  facts: string | null;
-  removeTo: string;
-}
-
-/** One career laid over the atlas: its sign, its name, what is lit, and the way to take it off. */
-function CareerLine({ sign, id, career, to, missing = 'That career is not in the catalogue.', facts, removeTo }: CareerLineProps) {
-  const title = career.data?.title;
-  return (
-    <div className="flex min-h-11 items-center gap-2.5 text-sm" data-atlas-career={id}>
-      <LitSign kind={sign} />
-      <p className="min-w-0 flex-1 leading-snug text-text-2">
-        {career.isError ? (
-          // A link to a career that is gone, or was mistyped: said in the product's own word.
-          <span role="alert">
-            {career.error instanceof ApiError && career.error.status >= 400 && career.error.status < 500 ? missing : errorMessage(career.error)}
-          </span>
-        ) : title ? (
-          <>
-            <Link to={to ?? `/occupations/${id}`} className={cn('font-medium text-text-1 hover:underline', focusRing)}>
-              {title}
-            </Link>
-            {facts && <span data-atlas-career-facts>{` · ${facts}`}</span>}
-          </>
-        ) : (
-          <span aria-hidden="true" className="inline-block h-3.5 w-44 max-w-full animate-pulse rounded bg-surface align-middle" />
-        )}
-      </p>
-      <Link
-        to={removeTo}
-        replace
-        aria-label={title ? `Take ${title} off the atlas` : 'Take this career off the atlas'}
-        className={cn('-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-text-3 transition-colors hover:text-text-1', focusRing)}
-      >
-        <X aria-hidden="true" className="h-4 w-4" />
-      </Link>
-    </div>
-  );
+  return out;
 }
 
 export default function Atlas() {
-  const taxonomy = useTaxonomy();
+  const { taxonomy, model } = useAtlasModel();
   const [params] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const state = useMemo(() => readAtlasState(params), [params]);
-  const layout = taxonomy.data ? atlasLayoutOf(taxonomy.data) : null;
 
-  // What is open, from the address: a skill opens its group, a group its domain.
-  const leaf = (layout && state.skill && layout.leafById.get(state.skill)) || null;
-  const group = layout ? (leaf ? layout.groups[leaf.group] : (state.group && layout.groupBySlug.get(state.group)) || null) : null;
-  const domain = layout ? (group ? layout.domains[group.domain] : (state.domain && layout.domainBySlug.get(state.domain)) || null) : null;
-
-  // The careers laid over it.
-  // The first is the career itself, or with `at` a company's version of it: the same skills with the company's changes.
+  // ---- the careers the address names -------------------------------------------------------------------------------
+  // The career itself, or with `at` a company's version of it: the same skills with the company's changes.
   const career = useCareer(state.at ? null : state.career);
   const version = useVersion(state.at, state.career, Boolean(state.at));
-  const first = state.at ? version : career;
-  const second = useCareer(state.career ? state.with : null);
-  const overlay: AtlasOverlay | null = useMemo(() => {
-    if (!layout) return null;
-    const a = leavesOf(layout, first.data);
-    const b = leavesOf(layout, second.data);
-    if (!a || (a.size === 0 && (!b || b.size === 0))) return null;
-    return { first: a, second: b };
-  }, [layout, first.data, second.data]);
+  const rating = useCareer(state.career ? state.from : null);
+  const careerGone = !state.at && career.isError && isMissing(career.error);
+  const atGone = Boolean(state.at) && version.isError && isNoVersion(version.error);
+  // Only a military career lies under another.
+  const fromGone = (rating.isError && isMissing(rating.error)) || Boolean(rating.data && !rating.data.service);
 
-  // A seeker's own skills, in the product's one mark. Nobody else has marks.
-  const viewer = useViewer();
-  const mine = useMySkills(viewer.signedIn && viewer.seeker);
-  const marks: AtlasMarks | null = useMemo(() => {
-    if (!layout || !viewer.seeker || !mine.data) return null;
-    const found = new Map<number, 'held' | 'learning'>();
-    for (const skill of mine.data) {
-      const at = layout.leafById.get(skill.skillId);
-      if (at) found.set(at.index, skill.status);
-    }
-    return found;
-  }, [layout, viewer.seeker, mine.data]);
+  // ---- the address, read against the wheel ---------------------------------------------------------------------------
+  const view = useMemo(
+    () => (model && taxonomy.data ? viewOf(model, taxonomy.data, state, { career: careerGone, at: atGone, from: fromGone }) : null),
+    [model, taxonomy.data, state, careerGone, atGone, fromGone]
+  );
+  // Anything the address names that is not there (or a word from an older Atlas) is cleaned from it.
+  const here = location.pathname + location.search;
+  const proper = view ? atlasHref(view.address) : null;
+  useEffect(() => {
+    if (proper && proper !== here) navigate(proper, { replace: true });
+  }, [proper, here, navigate]);
 
-  // With one career laid over it, a seeker fills that career in here as on its own page: the panel's tags for
-  // its skills carry the mark, and the plate draws what is held as walked.
-  const { marks: skillMarks } = useSkillMarks();
-  const { marking, fresh } = useFreshMark(overlay ? skillMarks : null, layout);
-  const walking = Boolean(viewer.seeker && viewer.signedIn && overlay && !overlay.second);
+  const { core, field, group, skill } = view?.selection ?? { core: false, field: -1, group: -1, skill: -1 };
+  const selection: Selection = useMemo(() => ({ core, field, group, skill }), [core, field, group, skill]);
+  const mode: Mode = model ? modeOf(model, selection) : 'rest';
 
-  const [preview, setPreview] = useState<AtlasTarget | null>(null);
-  const [picking, setPicking] = useState(false);
-  useEffect(() => setPicking(false), [state.career, state.with]);
+  // ---- what is laid over the wheel -----------------------------------------------------------------------------------
+  const first = state.at ? version.data : career.data;
+  const under = state.from && !fromGone ? rating.data : undefined;
+  const need = useMemo(() => (model && first ? placesOf(model, first.skills) : null), [model, first]);
+  const have = useMemo(() => (model && need && under ? new Set(placesOf(model, under.skills)) : null), [model, need, under]);
+  // A seeker fills the one career in here: bright is the person, the accent is the career. Nobody else has marks.
+  const { marks } = useSkillMarks();
+  const walking = marks !== null && need !== null && !state.from;
+  const heldKey = walking && model ? need.filter((s) => marks.statusOf(model.S[s].id) === 'held').join(',') : null;
+  const held = useMemo(() => (heldKey === null ? null : new Set(heldKey ? heldKey.split(',').map(Number) : [])), [heldKey]);
+  const overlay: Overlay | null = useMemo(() => (need ? { need, have, held } : null), [need, have, held]);
+  const laid = useMemo(() => (model ? layOver(model, need, have) : null), [model, need, have]);
 
-  const choose = useCallback(
-    (target: AtlasTarget) => {
-      setPreview(null);
-      navigate(
-        atlasHref({
-          career: state.career,
-          with: state.with,
-          at: state.at,
-          ...(target.leaf ? { skill: target.leaf.id } : target.group ? { group: target.group.slug } : { domain: target.domain.slug }),
-        })
-      );
+  const block: CareerBlock | null = useMemo(() => {
+    if (!state.career || !first || !need) return null;
+    const title = 'company' in first ? first.title : careerName(first);
+    const kind = 'company' in first ? null : kindLine(first.kind, first.code);
+    const total = need.length;
+    let eyebrow = kind ?? 'Career';
+    if (have && under) eyebrow = `${need.filter((s) => have.has(s)).length} of ${total} carry over from ${careerName(under)}`;
+    else if (held && held.size > 0) eyebrow = `${held.size} of ${total} held`;
+    return {
+      eyebrow,
+      name: title,
+      to: state.at ? `/occupations/${state.career}?at=${encodeURIComponent(state.at)}` : `/occupations/${state.career}`,
+      rated: Boolean(state.from),
+    };
+  }, [state.career, state.at, state.from, first, need, have, under, held]);
+
+  // ---- choosing ------------------------------------------------------------------------------------------------------
+  const list = useRef<AtlasListHandle>(null);
+  const laidOver = useMemo(() => ({ career: state.career, at: state.at, from: state.from }), [state.career, state.at, state.from]);
+  const go = useCallback(
+    (next: Selection, how: { reveal?: boolean } = {}) => {
+      if (!model) return;
+      const href = atlasHref({ ...addressOf(model, next), ...laidOver });
+      if (href === here) {
+        if (how.reveal) list.current?.reveal();
+        return;
+      }
+      if (how.reveal) list.current?.reveal('change');
+      // Back steps through what was opened; a skill chosen or let go inside its group is no step.
+      navigate(href, { replace: onlySkillMoved(selection, next) });
     },
-    [navigate, state.career, state.with, state.at]
+    [model, laidOver, here, navigate, selection]
   );
 
-  const title = leaf?.name ?? group?.name ?? domain?.name;
+  // ---- the wheel -----------------------------------------------------------------------------------------------------
+  const stage = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const wheel = useRef<Wheel | null>(null);
+  const fresh = useRef(true);
+  const [hover, setHover] = useState<Hit | null>(null);
+  // The wheel is made once for a model; what a press on it does follows the address of the moment.
+  const choose = useRef<(hit: Hit) => void>(() => undefined);
+  choose.current = (hit) => {
+    if (model) go(chosen(model, hit), { reveal: true });
+  };
+  const drawn = model !== null && model.N > 0;
+  useEffect(() => {
+    if (!model || !drawn || !canvas.current || !stage.current) return;
+    const made = createWheel({ canvas: canvas.current, stage: stage.current, model, onChoose: (hit) => choose.current(hit), onHover: setHover });
+    wheel.current = made;
+    fresh.current = true;
+    window.__atlas = { model, shown: made.shown, line: made.line, size: made.size, mode: made.mode, cam: made.cam, geom: { RR, RIM, HEAD, EDGE } };
+    return () => {
+      made.destroy();
+      wheel.current = null;
+      delete window.__atlas;
+      setHover(null);
+    };
+  }, [model, drawn]);
+  // On arrival the wheel stands where the address says at once; after that it turns there.
+  useEffect(() => {
+    if (!wheel.current) return;
+    wheel.current.set(selection, overlay, { instant: fresh.current });
+    fresh.current = false;
+  }, [model, drawn, selection, overlay]);
+  const point = useCallback((hit: Hit | null) => wheel.current?.point(hit), []);
+
+  // ---- the careers' sheet --------------------------------------------------------------------------------------------
+  const [picking, setPicking] = useState<'career' | 'from' | null>(null);
+  const lay = useRef<HTMLButtonElement>(null);
+  const pick = (picked: Occupation) => {
+    const kind = picking;
+    setPicking(null);
+    if (!model) return;
+    list.current?.toTop();
+    if (kind === 'from') {
+      // A rating keeps what is open.
+      const href = atlasHref({ ...addressOf(model, selection), career: state.career, at: state.at, from: picked.id });
+      if (href !== here) navigate(href);
+      return;
+    }
+    // A career opens the field that holds most of its skills.
+    const open = (fieldSlug: string | null) => {
+      list.current?.toTop();
+      navigate(atlasHref({ field: fieldSlug, career: picked.id }));
+    };
+    queryClient
+      .fetchQuery({ ...recordQuery('occupations', picked.id), staleTime: 5 * 60_000 })
+      .then((read) => {
+        const f = leadingField(layOver(model, placesOf(model, read.skills), null).fields);
+        open(f >= 0 ? model.F[f].slug : null);
+      })
+      .catch(() => open(null));
+  };
+  const none = () => {
+    const kind = picking;
+    setPicking(null);
+    if (!model) return;
+    list.current?.toTop();
+    const kept = kind === 'from' ? { career: state.career, at: state.at } : {};
+    const href = atlasHref({ ...addressOf(model, selection), ...kept });
+    if (href !== here) navigate(href);
+  };
+
+  // ---- what the page is called ---------------------------------------------------------------------------------------
+  const title = model ? (skill >= 0 ? model.S[skill].name : group >= 0 ? model.G[group].name : field >= 0 ? model.F[field].name : core ? FUNDAMENTALS : null) : null;
   useEffect(() => {
     document.title = title ? `${title} · Atlas · Archangel` : 'Atlas of Manufacturing · Archangel';
   }, [title]);
 
-  const open = { domain: domain?.slug, group: group?.slug, skill: leaf?.id };
-  const facts = useMemo(() => {
-    if (!layout || !overlay) return { first: null, second: null, both: null };
-    const a = overlay.first;
-    const b = overlay.second;
-    const count = (leaves: ReadonlySet<number>) =>
-      leaves.size === 0 ? 'no skills recorded' : `${plural(leaves.size, 'skill', 'skills')} across ${plural(domainsOf(layout, leaves), 'domain', 'domains')}`;
-    if (!b) {
-      // To a person filling the career in, the line says how much of it they hold, in Profile's words.
-      let held = 0;
-      if (walking) for (const index of a) if (marks?.get(index) === 'held') held += 1;
-      return { first: walking && a.size > 0 ? `${held} of ${plural(a.size, 'skill', 'skills')} held` : count(a), second: null, both: null };
-    }
-    let shared = 0;
-    for (const index of a) if (b.has(index)) shared += 1;
-    return {
-      first: plural(a.size, 'skill', 'skills'),
-      second: plural(b.size, 'skill', 'skills'),
-      both: { shared, first: a.size - shared, second: b.size - shared },
-    };
-  }, [layout, overlay, walking, marks]);
+  // The Skills list narrowed to the group that is chosen here, and its domain.
+  const chosenGroup = model && group >= 0 ? model.G[group].slug : null;
+  const chosenDomain = useMemo(
+    () => (chosenGroup && taxonomy.data ? (taxonomy.data.domains.find((domain) => domain.groups.some((each) => each.slug === chosenGroup))?.slug ?? null) : null),
+    [chosenGroup, taxonomy.data]
+  );
 
-  const label = layout
-    ? `The Atlas of Manufacturing: ${layout.leaves.length} skills in ${layout.groups.length} skill groups and ${layout.domains.length} domains, drawn as a radial tree. The same tree follows as a list.`
-    : 'The Atlas of Manufacturing';
+  const words = model && hover ? wordsOf(model, hover) : null;
+  const failed = state.at ? version : career;
+  const careerNote =
+    state.career && failed.isError && !careerGone && !atGone ? (
+      <LoadError error={failed.error} onRetry={() => void failed.refetch()} retrying={failed.isFetching} className="mb-2" />
+    ) : null;
 
   return (
-    <div data-atlas>
-      <div className="mt-2 flex min-h-11 flex-wrap items-center justify-between gap-x-6 sm:mt-4">
-        <SkillsViewSwitch current="atlas" domain={domain?.slug} group={group?.slug} />
-        {!state.with && (
-          <button type="button" aria-expanded={picking} onClick={() => setPicking((on) => !on)} className={TEXT_BUTTON} data-atlas-lay>
-            {state.career ? 'Compare with another career' : 'Lay a career over the atlas'}
+    <div className="flex min-h-0 flex-1 flex-col" data-atlas data-atlas-mode={drawn ? mode : undefined}>
+      <h1 className="sr-only">Atlas of Manufacturing</h1>
+      {/* The bar's hairline runs the screen's width over the stage and the list; what it holds stands in the page's. */}
+      <div className="touch-none border-b border-line" data-atlas-bar>
+        <div className={cn('flex items-center gap-3 py-2 sm:py-2.5', BAR_WIDTH)}>
+          <SkillsViewSwitch current="atlas" domain={chosenDomain} group={chosenGroup} />
+          <div className="min-w-0 flex-1" />
+          <button ref={lay} type="button" aria-haspopup="dialog" onClick={() => setPicking('career')} className={cn(ATLAS_BUTTON, 'min-w-0')} data-atlas-lay>
+            <span className="block truncate leading-[22px] min-[900px]:max-w-[360px]">
+              {block ? (under ? `${careerName(under)} → ${block.name}` : block.name) : 'Lay a career over'}
+            </span>
           </button>
-        )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <div className="relative order-2 min-w-0 lg:order-1">
-          {taxonomy.isError && !layout ? (
-            <LoadError error={taxonomy.error} onRetry={() => void taxonomy.refetch()} retrying={taxonomy.isFetching} className="mt-4" />
-          ) : !layout ? (
-            <PlateSkeleton className="atlas-frame mx-auto" />
-          ) : layout.leaves.length === 0 ? (
-            <p className="py-16 text-center text-sm text-text-2">None yet.</p>
+      {taxonomy.isError && !model ? (
+        <div className="p-4">
+          <LoadError error={taxonomy.error} onRetry={() => void taxonomy.refetch()} retrying={taxonomy.isFetching} />
+        </div>
+      ) : model && !drawn ? (
+        <p className="py-16 text-center text-sm text-text-2">None yet.</p>
+      ) : (
+        <div className="atlas-main flex-1">
+          <div ref={stage} className="atlas-stage" data-atlas-stage aria-busy={!model || undefined}>
+            <canvas ref={canvas} role="img" aria-label="The Atlas of Manufacturing drawn as a wheel. The list beside it holds the same tree as words." />
+            {drawn && mode !== 'rest' && (
+              <Link
+                to={atlasHref(laidOver)}
+                data-atlas-whole
+                className={cn(ATLAS_BUTTON, 'absolute left-[max(12px,env(safe-area-inset-left,0px))] top-2 min-h-8 bg-bg px-2.5 py-1')}
+              >
+                Whole atlas
+              </Link>
+            )}
+            <p
+              aria-hidden="true"
+              data-atlas-readout
+              className="pointer-events-none absolute right-4 top-3 hidden max-w-[60%] truncate text-right text-[12px] tracking-[0.02em] text-text-3 min-[900px]:block"
+            >
+              {words &&
+                [
+                  { text: words.where, strong: false },
+                  { text: words.group, strong: true },
+                  { text: words.skill, strong: false },
+                ]
+                  .filter((word) => word.text)
+                  .map((word, at) => (
+                    <span key={at}>
+                      {at > 0 && ' · '}
+                      <span className={word.strong ? 'font-medium text-text-1' : undefined}>{word.text}</span>
+                    </span>
+                  ))}
+            </p>
+          </div>
+          {model && laid ? (
+            <AtlasList
+              ref={list}
+              model={model}
+              selection={selection}
+              laid={laid}
+              have={have}
+              career={block}
+              careerNote={careerNote}
+              marks={walking ? marks : null}
+              onSelect={go}
+              onPoint={point}
+              onPickRating={() => setPicking('from')}
+            />
           ) : (
-            <div className="atlas-frame relative mx-auto">
-              <AtlasDrawing
-                layout={layout}
-                domain={domain}
-                group={group}
-                leaf={leaf}
-                overlay={overlay}
-                marks={marks}
-                walk={walking}
-                fresh={fresh}
-                preview={preview}
-                onPreview={setPreview}
-                onChoose={choose}
-                label={label}
-              />
-              {domain && (
-                <Link
-                  to={atlasHref({ career: state.career, with: state.with, at: state.at })}
-                  data-atlas-whole
-                  className={cn(
-                    'absolute left-0 top-0 inline-flex h-11 items-center gap-1.5 rounded-lg bg-bg/85 pr-3 text-sm text-text-2 transition-colors hover:text-text-1',
-                    focusRing
-                  )}
-                >
-                  <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-                  Whole atlas
-                </Link>
-              )}
-              {!domain && !overlay && (
-                <p className="mx-auto mt-1 max-w-md text-center text-xs leading-relaxed text-text-3 [text-wrap:balance]" data-atlas-key>
-                  Fundamentals sit nearest the centre, Advanced at the rim. A brighter mark is a skill more careers use.
-                </p>
-              )}
-            </div>
+            <div className="atlas-panel" aria-busy="true" />
           )}
         </div>
+      )}
 
-        {/* Beside the drawing on a wide screen. On a phone its two parts sit above and below the drawing. */}
-        <div className="contents lg:order-2 lg:block">
-        {(picking || state.career) && (
-          <div className="order-1 mb-3 min-w-0 lg:mb-5" data-atlas-careers>
-            {state.career && (
-              <CareerLine
-                sign="first"
-                id={state.career}
-                career={first}
-                to={state.at ? `/occupations/${state.career}?at=${encodeURIComponent(state.at)}` : undefined}
-                missing={state.at ? 'That company has no version of this career.' : undefined}
-                facts={facts.first}
-                removeTo={atlasHref({ ...open, career: state.with })}
-              />
-            )}
-            {state.career && state.with && (
-              <CareerLine sign="second" id={state.with} career={second} facts={facts.second} removeTo={atlasHref({ ...open, career: state.career, at: state.at })} />
-            )}
-            {facts.both && (
-              <p className="flex flex-wrap items-center gap-x-2 pb-1 pt-0.5 text-sm text-text-2" data-atlas-shared>
-                <LitSign kind="shared" />
-                <span>
-                  {facts.both.shared === 0 ? 'No skill in common' : `${plural(facts.both.shared, 'skill', 'skills')} in common`}
-                  {` · ${facts.both.first} and ${facts.both.second} of their own`}
-                </span>
-              </p>
-            )}
-            {picking && (
-              <div className="pb-1 pt-1.5">
-                <label htmlFor="atlas-career" className="sr-only">
-                  {state.career ? 'Compare with another career' : 'Lay a career over the atlas'}
-                </label>
-                <CareerPicker
-                  id="atlas-career"
-                  value={null}
-                  onChange={(career) => {
-                    if (!career) return;
-                    navigate(atlasHref({ ...open, career: state.career ?? career.id, with: state.career ? career.id : null, at: state.at }));
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {layout && layout.leaves.length > 0 && (
-          <AtlasPanel
-            layout={layout}
-            domain={domain}
-            group={group}
-            leaf={leaf}
-            state={state}
-            overlay={overlay}
-            marks={marks}
-            marking={marking}
-            onPreview={setPreview}
-            className="order-3 mt-5 lg:mt-0"
-          />
-        )}
-        </div>
-      </div>
+      <CareerSheet picking={picking} onPick={pick} onNone={none} onClose={() => setPicking(null)} fallback={lay} />
     </div>
   );
 }

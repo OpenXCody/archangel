@@ -28,8 +28,8 @@ import { OpenChevron } from './Panel';
  *   ends on a node, on the spine, or on the edge of a card.
  * - A node is one row, the same height everywhere (44px for a name of one
  *   line), running to the frame's right edge: its mark, its name with its
- *   figure straight after it in meta ink ("Composite fabrication · 10
- *   skills"), and at the row's right end what it does: a chevron pointing
+ *   figure straight after it in meta ink ("Measuring · 4 skills"), and at
+ *   the row's right end what it does: a chevron pointing
  *   right goes to another page (`TreeLink`), one pointing down opens
  *   something here (`TreeToggle`), up while it is open. A node that only
  *   names what hangs off it (a ladder's "Comes from" down a phone) is

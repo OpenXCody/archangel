@@ -3,7 +3,8 @@ import { useLocation, useNavigationType, useSearchParams } from 'react-router-do
 import { useQuery } from '@tanstack/react-query';
 import { statsApi } from '../lib/api';
 import { readStored, writeStored } from '../lib/storage';
-import { PageContainer, PageHeader } from '../components/layout/Page';
+import { cn } from '@/lib/utils';
+import { PageContainer, PageHeader, pageWidthClass } from '../components/layout/Page';
 import ExploreNav, { isBrowseTab, type BrowseTab, type ExploreView } from '../components/explorer/ExploreNav';
 import ExploreOverview from '../components/explorer/ExploreOverview';
 import BrowseList, { LIST_NOUN, counted } from '../components/explorer/BrowseList';
@@ -97,7 +98,7 @@ function useScrollMemory(key: string) {
 }
 
 /** One view of the page; remounted per view so each remembers its own scroll. */
-function View({ view }: { view: ExploreView }) {
+function View({ view }: { view: Exclude<ExploreView, 'atlas'> }) {
   useScrollMemory(`explore.scroll.${view}`);
   if (view === 'overview') {
     return (
@@ -108,20 +109,29 @@ function View({ view }: { view: ExploreView }) {
     );
   }
   if (view === 'industries') return <IndustryList />;
-  if (view === 'atlas') return <AtlasView />;
   return <BrowseList tab={view} />;
 }
 
 /**
- * The Atlas. Its one request, the taxonomy, is asked for here, at once, so it
- * travels while the drawing's code is fetched rather than after it.
+ * The Atlas: a working view like the map, as tall as the window under the
+ * header, never a scrolling page. Explore's tab row stays over it, on the
+ * same two edges as on the other views, so the person is still in Explore,
+ * and gives its place up on a screen too short to spare it. Its one request,
+ * the taxonomy, is asked for here, at once, so it travels while the drawing's
+ * code is fetched rather than after it.
  */
 function AtlasView() {
   useTaxonomy();
   return (
-    <Suspense fallback={<div aria-busy="true" aria-label="Loading" className="min-h-[70vh]" />}>
-      <Atlas />
-    </Suspense>
+    <div className="flex h-[calc(100dvh-57px)] flex-col overflow-hidden" data-atlas-page>
+      {/* In the page's width, where the tab row stands on Explore's other views. */}
+      <div className={cn(pageWidthClass, '[@media(max-height:519px)]:hidden')}>
+        <ExploreNav active="atlas" />
+      </div>
+      <Suspense fallback={<div aria-busy="true" aria-label="Loading" className="flex-1" />}>
+        <Atlas />
+      </Suspense>
+    </div>
   );
 }
 
@@ -130,10 +140,11 @@ function AtlasView() {
  * of the product as a tab: the industries (/industries), then a list of every
  * company, factory, career and skill (/explore?tab=companies, factories,
  * occupations, skills). The skills are also drawn, as the Atlas (/atlas),
- * under the Skills tab. One heading and one tab row for all of them; the tab
- * row sits straight under the heading, so it is in the same place on every
- * view. What a view holds is said by the view, as its first line: the four
- * figures on the overview, a list's own count under its filters.
+ * under the Skills tab: a view as tall as the window, with the tab row and no
+ * heading over it. One heading and one tab row for the rest; the tab row sits
+ * straight under the heading, so it is in the same place on each of them.
+ * What a view holds is said by the view, as its first line: the four figures
+ * on the overview, a list's own count under its filters.
  */
 export default function Explore() {
   const { pathname } = useLocation();
@@ -147,6 +158,7 @@ export default function Explore() {
         ? tab
         : 'overview';
 
+  if (view === 'atlas') return <AtlasView />;
   return (
     // The Factories list stands in four columns on a very wide screen, and the page is wider for it there.
     <PageContainer className={view === 'factories' ? 'min-[1600px]:max-w-[96rem]' : undefined}>
