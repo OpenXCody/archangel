@@ -2354,9 +2354,11 @@ test("a seeker's progress on a company's version counts its skills, and a make t
     if (next) {
       expect((await page.request.put(`${API}/me/skills/${next.id}`, { data: { status: 'held' } })).ok()).toBe(true);
       await page.reload({ waitUntil: 'domcontentloaded' });
-      // What the person opened holds for the visit: every group is still open.
-      await expect(node(next)).toHaveAttribute('data-status', 'held');
       await expect(whole).toHaveText(`${skill ? 2 : 1} of ${skills.length} held`);
+      // Loaded again the page arrives closed, whatever was open on it; open, the skill carries its mark.
+      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
+      await openAll.click();
+      await expect(node(next)).toHaveAttribute('data-status', 'held');
     }
     await expectTree(tree, "a seeker on a company's version");
     await assertHealthyLayout(page, '/occupations/:id?at=company seeker');
