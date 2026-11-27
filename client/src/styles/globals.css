@@ -32,6 +32,8 @@
     color-scheme: dark;
 
     --radius: 0.5rem;
+    /* The header's height with its hairline (components/layout/Layout.tsx): what holds under it, a Band, stands this far down. */
+    --header-height: 57px;
 
     --bg: #0e0e0f;
     --surface: #18181a;
@@ -454,12 +456,12 @@ input {
 }
 
 /*
- * Skill paths (components/path/, components/route/).
+ * Skill paths (components/path/, components/route/, components/layout/Tree.tsx).
  *
  * A tag is one skill; a group box holds a group's tags; a career's path is a
- * route, stops down one trunk. Lines are hairlines in the strong border
- * colour; what a person holds is lit and the rest is quiet. Nothing here
- * names a colour of its own.
+ * connector tree on its page and stops down the page in the employer's
+ * editor. Lines are hairlines in the strong border colour; what a person
+ * holds is lit and the rest is quiet. Nothing here names a colour of its own.
  */
 @layer components {
   /*
@@ -528,12 +530,11 @@ input {
   }
 
   /*
-   * The route (components/route/): a career's path as stops down one line,
-   * at every width. The trunk is one hairline through the centre of every
-   * mark: each line of the route draws the stretch beside itself, so it is
-   * whole however tall a row turns out, with nothing to measure. A mark is 44
-   * px square and stands on the trunk; --route-pad is the room above and
-   * under a line.
+   * The route (components/route/Route.tsx): a career's path cut into its
+   * stops, down the page, as the employer's editor of a company's version
+   * draws it. Its rows are switches (tags), so it has no trunk and nothing
+   * stands on one. --route-mark is a full finger; --route-pad is the room
+   * above and under a section's line.
    */
   .route {
     --route-mark: 44px;
@@ -546,28 +547,7 @@ input {
     min-width: 0;
     max-width: 35rem;
   }
-  /* The side column is the wide screen's; the block above the route is the narrow one's. */
-  .route-side {
-    display: none;
-  }
-  @media (min-width: 1024px) {
-    .route[data-route-two] {
-      grid-template-columns: minmax(0, 1fr) 288px;
-      column-gap: 4rem;
-      align-items: start;
-    }
-    .route[data-route-two] .route-next {
-      display: none;
-    }
-    .route[data-route-two] > .route-side {
-      display: block;
-      position: sticky;
-      top: 5.5rem;
-      min-width: 0;
-      padding-top: 14px;
-    }
-  }
-  /* A mark's glyph stands 12px inside its button: the stops are drawn that far left, so marks line up with the heading above them. */
+  /* A tag's box stands 12px inside its button: the stops are drawn that far left, so they line up with the heading above them. */
   .route-stops {
     margin: 0 0 0 -12px;
     padding: 0;
@@ -585,48 +565,7 @@ input {
     min-width: 0;
     padding: var(--route-pad) 0;
   }
-  .route-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: calc(var(--route-mark) / 2 - 0.5px);
-    width: 1px;
-    background-color: var(--line-strong);
-  }
-  .route-item[data-first]::before {
-    top: calc(var(--route-pad) + var(--route-mark) / 2);
-  }
-  .route-item[data-last]::before {
-    bottom: auto;
-    height: calc(var(--route-pad) + var(--route-mark) / 2);
-  }
-  .route-item[data-first][data-last]::before {
-    display: none;
-  }
-  /* What stands on the trunk: a mark, a section's ring, or a dot. Each covers the line behind it. */
-  .route-node {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex: none;
-    width: var(--route-mark);
-    height: var(--route-mark);
-    align-items: center;
-    justify-content: center;
-  }
-  .route-node > svg {
-    border-radius: 9999px;
-    background-color: var(--bg);
-  }
-  .route-dot {
-    width: 9px;
-    height: 9px;
-    border: 1.5px solid var(--text-3);
-    border-radius: 9999px;
-    background-color: var(--bg);
-  }
-  /* A section's line: the group's name in small capitals, a figure, the chevron. */
+  /* A section's line: the group's name, how many skills, the chevron. */
   .route-head {
     --route-pad: 6px;
   }
@@ -639,11 +578,9 @@ input {
     align-items: flex-start;
     gap: 10px;
     padding-right: 4px;
+    padding-left: 12px;
     border-radius: var(--radius);
     text-align: left;
-  }
-  .route-head-button > .route-node {
-    margin-right: -2px;
   }
   /* The chevron stands level with the group's name, on the first line. */
   .route-head-button > svg {
@@ -670,7 +607,7 @@ input {
   .route-head-count::before {
     content: ' ';
   }
-  /* One quiet line of the skills' names, two at most: secondary ink, a seeker's held ones in full ink. */
+  /* A closed section: one quiet line of its skills' names, two at most, in secondary ink. */
   .route-head-names {
     display: block;
     margin-top: 1px;
@@ -681,52 +618,385 @@ input {
   .route-head-names > [data-name] {
     overflow-wrap: anywhere;
   }
-  /* A skill's row: the name opens the skill's page, and wraps when it is long. */
-  .route-row-name {
-    display: flex;
-    flex: 1 1 auto;
+  /*
+   * The connector tree (components/layout/Tree.tsx): a root, and nodes
+   * joined to it by hairlines. Every line is the strong hairline, is whole,
+   * and ends on a node's mark, on a spine, or on the line a parent sends to
+   * its branch; nothing else is drawn.
+   *
+   * The measures every line is placed by: a node's row has --tree-pad before
+   * its mark, the mark stands in a box --tree-mark wide, and the middle of a
+   * node's first line is --tree-mid from its top (12px of room and a 20px
+   * line), so the lines meet a node there whatever wraps under it. A branch
+   * stands --tree-indent in from its parent's edge, its spine --tree-spine
+   * in: the root's branch across, in the room between the root and its
+   * column; down, and every nested branch at every width, under the parent's
+   * mark. An elbow runs from the spine to the edge of its node's ring.
+   */
+  .tree {
+    --tree-line: var(--line-strong);
+    --tree-pad: 8px;
+    --tree-mark: 16px;
+    --tree-gap: 10px;
+    --tree-mid: 22px;
+    --tree-ring: 9px;
+    --tree-dot: 11px;
+    --tree-reach: calc(var(--tree-pad) + (var(--tree-mark) - var(--tree-ring)) / 2);
+    --tree-text: calc(var(--tree-pad) + var(--tree-mark) + var(--tree-gap));
+    /* How far under the middle of a node's first line its mark ends: half a ring, half a seeker's mark. */
+    --tree-under: calc(var(--tree-ring) / 2);
     min-width: 0;
-    min-height: var(--route-mark);
-    flex-direction: column;
-    justify-content: center;
-    padding: 6px 8px 6px 8px;
-    font-size: 15px;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-    color: var(--text-1);
   }
-  .route-row[data-route-state='held'] .route-row-name,
-  .route-row[data-route-state='later'] .route-row-name {
-    color: var(--text-2);
+  .tree[data-layout='wide'] {
+    --tree-indent: 40px;
+    --tree-spine: 20px;
+    display: grid;
+    align-items: start;
+    column-gap: 0;
+    row-gap: 10px;
   }
-  .route-row[data-route-state='next'] .route-row-name {
-    font-weight: 600;
+  .tree[data-layout='stacked'] {
+    --tree-indent: 24px;
+    --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
   }
-  .route-row-word {
+
+  /*
+   * Across: a ladder is three columns, each side under its label when there
+   * are two sides, the career in the middle of what hangs off it. When a side
+   * runs past three careers (`data-top`), the career and both sides start on
+   * the first row instead, so each label stands straight over its first node
+   * and the career's line meets each spine at its top, as a career's skills
+   * do.
+   */
+  .tree[data-layout='wide'][data-shape='ladder'] {
+    align-items: center;
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-top] {
+    align-items: start;
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-before][data-after] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 1fr);
+    grid-template-areas: 'lb . la' 'before this after';
+  }
+  /* One side only: no labels (the section's heading says which side it is), so no row for them. */
+  .tree[data-layout='wide'][data-shape='ladder'][data-after]:not([data-before]) {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
+    grid-template-areas: 'this after';
+  }
+  .tree[data-layout='wide'][data-shape='ladder'][data-before]:not([data-after]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
+    grid-template-areas: 'before this';
+  }
+  /*
+   * Across: a tree is its root, only as wide as its few words need, and its
+   * branch in the next column, level with the first node, its rows running
+   * to the frame's right edge as a ladder's do; what a node of it opens
+   * stands under that node, in the same column. Its lines are measured as a
+   * ladder's are, so the two read as one drawing.
+   */
+  .tree[data-layout='wide'][data-shape='tree'] {
+    grid-template-columns: fit-content(16rem) minmax(0, 1fr);
+    grid-template-areas: 'this after';
+  }
+  /* Two trees on one page (a military career's skills, then the careers they reach) keep their spines on one upright. */
+  .tree[data-layout='wide'][data-shape='tree'] .tree-root {
+    min-width: 7.5rem;
+  }
+  .tree[data-layout='wide'] .tree-this,
+  .tree[data-layout='wide'] .tree-side {
+    display: contents;
+  }
+  .tree[data-layout='wide'] .tree-root {
+    grid-area: this;
+  }
+  .tree[data-layout='wide'] .tree-side[data-side='before'] > .tree-branch {
+    grid-area: before;
+  }
+  .tree[data-layout='wide'] .tree-side[data-side='after'] > .tree-branch {
+    grid-area: after;
+  }
+
+  /* A column's label, over the marks, only across: down, a ladder's sides are nodes of their own (`TreeHeading`). */
+  .tree-label {
+    min-width: 0;
+  }
+  .tree[data-layout='wide'] .tree-label {
+    padding-left: var(--tree-reach);
+  }
+  .tree[data-layout='wide'] .tree-label[data-for='before'] {
+    grid-area: lb;
+  }
+  .tree[data-layout='wide'] .tree-label[data-for='after'] {
+    grid-area: la;
+    padding-left: calc(var(--tree-indent) + var(--tree-reach));
+  }
+
+  /* A mark, in its box: a ring, or the root's filled dot. A seeker's mark on a skill is the product's own. */
+  .tree-mark {
     display: flex;
     flex: none;
-    height: var(--route-mark);
+    width: var(--tree-mark);
+    height: 20px;
     align-items: center;
-    padding: 0 4px 0 8px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-1);
+    justify-content: center;
   }
-  /* The ladder: one label and the careers beside it, wrapping under it on a narrow screen. */
-  .route-ladder {
+  .tree-dot {
+    width: var(--tree-ring);
+    height: var(--tree-ring);
+    border: 1.5px solid var(--text-3);
+    border-radius: 9999px;
+  }
+  .tree-mark[data-mark='root'] .tree-dot {
+    width: var(--tree-dot);
+    height: var(--tree-dot);
+    border-color: var(--text-1);
+    background-color: var(--text-1);
+  }
+  /*
+   * Open and closed: a closed node is a quiet ring and its name at body
+   * weight; an open one is the same ring in full ink, heavier, and its name
+   * is heavier. Fill is never a node's state: a filled mark is the root, or a
+   * skill a seeker holds (the product's check), so an open skill is never
+   * taken for a held one. A seeker's own mark stays as it is either way. A
+   * node that only names its branch (`TreeHeading`) opens nothing, so its
+   * ring stays quiet.
+   */
+  .tree-item[data-open] > .tree-node .tree-row:not([data-tree-heading]) .tree-dot {
+    border-width: 2px;
+    border-color: var(--text-1);
+  }
+  .tree-item[data-open] > .tree-node .tree-name {
+    font-weight: 600;
+  }
+
+  /* The root: the filled dot and the name, with its line out to each branch. */
+  .tree-root {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
+    min-width: 0;
     align-items: flex-start;
-    gap: 0 16px;
+    gap: var(--tree-gap);
+    padding: 12px 0 12px var(--tree-pad);
+    text-wrap: balance;
   }
-  /* A route whose rows are another control (the employer's editor): no trunk, and nothing stands on it. */
-  .route[data-route-plain] .route-item::before {
+  /* Across, the line out runs from the name to the spine of the branch after it; the line in, from the spine before it to the dot. */
+  .tree[data-layout='wide'][data-after] .tree-root::after {
+    content: '';
+    flex: 1 1 12px;
+    min-width: 12px;
+    height: 0;
+    margin-top: 10px;
+    margin-right: calc(-1 * var(--tree-spine));
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='wide'][data-before] .tree-root::before {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: calc(-1 * var(--tree-spine));
+    width: calc(var(--tree-spine) + var(--tree-pad) + (var(--tree-mark) - var(--tree-dot)) / 2);
+    border-top: 1px solid var(--tree-line);
+  }
+  /* Down, the spine runs into the dot from above and on from under it. */
+  .tree[data-layout='stacked'][data-before] .tree-root::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--tree-spine);
+    height: calc(var(--tree-mid) - var(--tree-dot) / 2);
+    border-left: 1px solid var(--tree-line);
+  }
+  .tree[data-layout='stacked'][data-after] .tree-root::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--tree-mid) + var(--tree-dot) / 2);
+    bottom: 0;
+    left: var(--tree-spine);
+    border-left: 1px solid var(--tree-line);
+  }
+
+  /* A branch: its nodes, each with its elbow and its length of the spine, from the first node's middle to the last's. */
+  .tree-branch {
+    position: relative;
+    min-width: 0;
+    padding-left: var(--tree-indent);
+  }
+  .tree-item,
+  .tree-node {
+    position: relative;
+    min-width: 0;
+  }
+  .tree-item::before {
+    content: '';
+    position: absolute;
+    top: var(--tree-mid);
+    left: calc(var(--tree-spine) - var(--tree-indent));
+    width: calc(var(--tree-indent) - var(--tree-spine) + var(--tree-reach));
+    border-top: 1px solid var(--tree-line);
+  }
+  .tree-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--tree-spine) - var(--tree-indent));
+    border-left: 1px solid var(--tree-line);
+  }
+  .tree-item:last-child::after {
+    bottom: auto;
+    height: calc(var(--tree-mid) + 1px);
+  }
+  /*
+   * Across, the root's line meets its branch's spine at the first node; down,
+   * and in every nested branch, the parent's line comes into the spine from
+   * above.
+   */
+  .tree[data-layout='wide'] .tree-side > .tree-branch > .tree-item:first-child::after {
+    top: var(--tree-mid);
+  }
+  .tree[data-layout='wide'] .tree-side > .tree-branch > .tree-item:only-child::after {
     display: none;
   }
-  .route[data-route-plain] .route-head-button {
-    padding-left: 12px;
+  /* A nested branch, at every width: indented under its node, its spine straight under the node's mark. */
+  .tree-branch[data-nested] {
+    --tree-indent: 24px;
+    --tree-spine: calc(var(--tree-pad) + var(--tree-mark) / 2);
+  }
+  /* On a phone each level steps in less, so a card three levels in keeps its width. */
+  @media (max-width: 639px) {
+    .tree[data-layout='stacked'],
+    .tree .tree-branch[data-nested] {
+      --tree-indent: 16px;
+    }
+  }
+  /*
+   * A ladder's side of one career stands level with the career: its first
+   * line on the career's own line, whatever wraps under it, so the elbow and
+   * the career's line are one straight stroke. (The side is centred on the
+   * career by the grid; the node is moved down by half of what its extra
+   * lines add.)
+   */
+  .tree[data-layout='wide'][data-shape='ladder']:not([data-top]) .tree-side > .tree-branch > .tree-item:only-child {
+    transform: translateY(calc(50% - var(--tree-mid)));
+  }
+  /* Across, a branch before the root is mirrored: each elbow leaves its node's right end for a spine on the right. */
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] {
+    padding-left: 0;
+    padding-right: var(--tree-indent);
+  }
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] > .tree-item::before {
+    left: 100%;
+    width: var(--tree-spine);
+  }
+  .tree[data-layout='wide'] .tree-branch[data-side='before'] > .tree-item::after {
+    left: calc(100% + var(--tree-spine));
+  }
+  /* Down, a branch before the root runs on past its last node into the root under it. */
+  .tree[data-layout='stacked'] .tree-branch[data-side='before'] > .tree-item::after {
+    bottom: 0;
+    height: auto;
+  }
+  .tree[data-layout='stacked'] .tree-branch[data-side='before'] > .tree-item:first-child::after {
+    top: var(--tree-mid);
+  }
+
+  /*
+   * A node that is open, at every width: its line runs on down from under its
+   * mark to the foot of its row, where its branch's spine or its card's top
+   * edge takes it up. A seeker's mark is a little larger than a ring, so the
+   * line starts a little lower under it.
+   */
+  .tree-node:has(.tree-mark[data-mark='held'], .tree-mark[data-mark='learning']) {
+    --tree-under: 7px;
+  }
+  .tree-item[data-open] > .tree-node::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--tree-mid) + var(--tree-under));
+    bottom: 0;
+    left: calc(var(--tree-pad) + var(--tree-mark) / 2);
+    border-left: 1px solid var(--tree-line);
+  }
+
+  /*
+   * A node's row. Its fill under the pointer and its focus ring are one box
+   * that starts just after the mark, so the elbow runs up to the ring and
+   * stops there, and neither the fill nor the ring is ever laid over a line
+   * or the mark; the ring is the accent's 2px, drawn inside that box.
+   */
+  .tree-row {
+    position: relative;
+    isolation: isolate;
+  }
+  .tree-row::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 0 calc(var(--tree-pad) + var(--tree-mark) + 2px);
+    border-radius: 6px;
+    pointer-events: none;
+    transition: background-color 150ms;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    button.tree-row:hover::after,
+    a.tree-row:hover::after {
+      background-color: var(--surface-hover);
+    }
+  }
+  .tree-row:focus-visible {
+    outline: none;
+  }
+  .tree-row:focus-visible::after {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tree-row::after {
+      transition: none;
+    }
+  }
+
+  /*
+   * A node's card: what it is, opened straight under it as the node's body. A
+   * hairline frame of the lines' own strength with no fill, its left edge
+   * straight under the node's mark, so the line that runs down from the mark
+   * runs on as the card's edge: that corner is square, the other three 8px.
+   * Its words start under the node's name. It spans its row, to the frame's
+   * right edge; its words keep a reading measure (60 characters), and where
+   * it is wide enough its parts stand two abreast (`.tree-card-columns`).
+   */
+  .tree-card {
+    min-width: 0;
+    margin-left: calc(var(--tree-pad) + var(--tree-mark) / 2);
+    padding: 14px 16px 12px calc(var(--tree-gap) + var(--tree-mark) / 2 - 1px);
+    border: 1px solid var(--tree-line);
+    border-radius: 0 8px 8px 8px;
+    container-type: inline-size;
+  }
+  .tree[data-layout='stacked'] .tree-card {
+    padding-right: 12px;
+  }
+  .tree-card-body > p,
+  .tree-card-part {
+    max-width: 60ch;
+  }
+  .tree-card-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  @container (min-width: 40rem) {
+    .tree-card-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 32px;
+    }
+    .tree-card-columns > :only-child {
+      grid-column: 1 / -1;
+    }
+  }
+  /* The room under a card before the next node, inside the node's own item so its spine runs on through it. */
+  .tree-item:has(> .tree-card) {
+    padding-bottom: 12px;
   }
 
   @media (prefers-reduced-motion: reduce) {

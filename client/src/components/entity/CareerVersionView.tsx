@@ -1,18 +1,19 @@
-import { useEffect, useId } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { plural } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ErrorNote, LoadError } from '../account/parts';
-import { signInPath, useAccount } from '../../lib/account';
+import { useAccount } from '../../lib/account';
 import { type OccupationDetail } from '../../lib/api';
 import { isNoVersion, useVersion, type Version } from '../../lib/versions';
 import { useViewer } from '../../lib/viewer';
-import { BackLink, DetailHeader, EmptyState } from '../layout/Page';
-import { SkillTag, SkillTags } from '../path/SkillTag';
-import { shareOf, type PlacedSkill } from '../path/model';
+import { BackLink, DetailHeader, DetailSection, EmptyState } from '../layout/Page';
+import { secondaryActionClass } from '../layout/Panel';
+import { type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { Route } from '../route/Route';
-import { type Head, OpenJobsSection, SkillsHeading } from './parts';
+import { CareerLadderSection } from '../route/CareerLadder';
+import { SkillGroups } from '../route/SkillGroups';
+import { type Head, OpenJobsSection } from './parts';
 import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
 
 /** Where a company's people change its version of a career: Your jobs, with the version in the address. */
@@ -22,15 +23,18 @@ export function versionEditorPath(companyId: string, occupationId: string): stri
 
 /**
  * A company's version of a career ("Boeing CNC Operator"): the career's own
- * page, at the company. The same heading block and the same route, drawn from
- * the standard's skills with the company's changes applied: a skill it adds
- * says "Added", one it leaves out is not drawn (a line under the path says how
- * many, and opens them), and a skill's tag names the makes the company runs.
+ * page, at the company. The same heading block and the same tree of skills,
+ * drawn from the standard's skills with the company's changes applied: a
+ * skill it adds says "Added", one it leaves out is not among the groups (the
+ * tree's last node, "Left out of the standard", says how many and opens
+ * their names), and a skill's node names the makes the company runs. A
+ * version that changes nothing is the standard's tree, with neither.
  *
  * A seeker's marks and progress work as on the standard, counted against the
  * version's skills; a make the company runs that the person has run too is
- * brighter. One line under the name leads to the company and back to the
- * standard.
+ * brighter. The tags under the name lead to the company and back to the
+ * standard. After the skills, where the career leads: the same ladder as the
+ * standard's page (`CareerLadderSection`).
  */
 export default function CareerVersionView({ data, at, head }: { data: OccupationDetail; at: string; head: Head }) {
   const version = useVersion(at, data.id);
@@ -76,8 +80,7 @@ export default function CareerVersionView({ data, at, head }: { data: Occupation
 
 function VersionPage({ data, version, head }: { data: OccupationDetail; version: Version; head: Head }) {
   // Marks and progress are a seeker's: a visitor, or someone here to hire, reads the same route without them.
-  const { marks, canSignIn, error: markError, ranMakes } = useSkillMarks();
-  const { pathname, search } = useLocation();
+  const { marks, error: markError, ranMakes } = useSkillMarks();
   const { data: account } = useAccount();
   const viewer = useViewer();
 
@@ -85,20 +88,21 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
   const standard = `/occupations/${data.id}`;
 
   // The version's path: each skill with the makes the company runs, the person's own among them lit.
-  const skills: PlacedSkill[] = version.skills.map((skill) => ({
-    id: skill.id,
-    name: skill.name,
-    level: skill.level,
-    group: skill.group,
-    domain: skill.domain,
-    howLearned: skill.howLearned,
-    added: skill.added,
-    makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
-  }));
-  const whole = marks && !marks.pending && skills.length > 0 ? shareOf(skills, marks) : null;
-  const headingId = useId();
-  const leftOut = version.leftOut;
-  const same = leftOut.length === 0 && !skills.some((skill) => skill.added);
+  const skills: PlacedSkill[] = useMemo(
+    () =>
+      version.skills.map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        level: skill.level,
+        group: skill.group,
+        domain: skill.domain,
+        howLearned: skill.howLearned,
+        description: skill.description,
+        added: skill.added,
+        makes: skill.makes.filter((make) => make.runs).map((make) => ({ name: make.name, lit: ranMakes.has(make.id) })),
+      })),
+    [version.skills, ranMakes]
+  );
 
   // The company's own people, and an admin, change it from here.
   const user = account?.user;
@@ -113,7 +117,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           canEdit ? (
             <Link
               to={versionEditorPath(company.id, data.id)}
-              className="inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline"
+              className={cn(secondaryActionClass, 'px-3 sm:h-9')}
               data-version-edit
             >
               Edit
@@ -131,52 +135,24 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
         </RecordTags>
       </DetailHeader>
 
-      <section id="skills" aria-labelledby={headingId} className="mt-12 scroll-mt-20">
-        {marks && <ErrorNote error={markError} className="mb-3" />}
-        {skills.length === 0 && (
-          <>
-            <SkillsHeading id={headingId} held={null} />
-            <p className="mt-3 text-sm text-text-2">None yet.</p>
-          </>
-        )}
-        {/* The same skills by group as the standard's page, the company's changes applied. */}
-        <Route
-          grouped
+      {skills.length === 0 ? (
+        <DetailSection id="skills" title="Skills">
+          <p className="text-sm text-text-2">None yet.</p>
+        </DetailSection>
+      ) : (
+        // The same skills by group as the standard's page, the company's changes applied.
+        <SkillGroups
           skills={skills}
           marks={marks}
-          comesFrom={data.comesFrom}
-          leadsTo={data.leadsTo}
           keepAs={`${data.id}@${company.id}`}
-          heading={<SkillsHeading id={headingId} held={whole} />}
+          before={marks && <ErrorNote error={markError} className="mb-3" />}
+          // What the company leaves out of the standard is not among the groups: the tree's last node holds it, closed.
+          leftOut={version.leftOut}
         />
+      )}
 
-        {/* What the company leaves out of the standard is not drawn: one line says how many, and opens them. */}
-        {leftOut.length > 0 && (
-          <details className="group mt-4" data-left-out>
-            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-sm text-text-1 underline [&::-webkit-details-marker]:hidden">
-              {plural(leftOut.length, 'skill', 'skills')} of the standard path left out
-            </summary>
-            <SkillTags className="mt-1">
-              {leftOut.map((skill) => (
-                <SkillTag key={skill.id} skill={{ id: skill.id, name: skill.name }} className="grow-0 text-text-2" />
-              ))}
-            </SkillTags>
-          </details>
-        )}
-        {same && skills.length > 0 && (
-          <p className="mt-4 text-sm text-text-3" data-version-same>
-            The same skills as the standard path.
-          </p>
-        )}
-        {canSignIn && (
-          <p className="mt-4 text-sm text-text-3">
-            <Link to={signInPath(`${pathname}${search}`)} className="text-text-1 underline">
-              Sign in
-            </Link>{' '}
-            to see which of these skills you have.
-          </p>
-        )}
-      </section>
+      {/* Where the career stands among careers: the ladder is the career's own, so it is the standard page's, and each career on it opens its standard page. */}
+      <CareerLadderSection comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
 
       {/* Open jobs for this career at this company. */}
       {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}

@@ -1,12 +1,12 @@
-// A career's path as a route (shared/route.ts): how a path is cut into stops,
-// which skills are next, and how much is held. `npm run test:unit`. No
-// browser, no database.
+// A career's path, cut for drawing (shared/route.ts): into stops, by skill
+// group, and how much of it is held; and what a career's page must never
+// draw again. `npm run test:unit`. No browser, no database.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildRoute, groupRoute, nextOf, routeSkills, shareOf, NEXT_SKILLS, type RouteStatus } from '../../shared/route';
+import { buildRoute, groupRoute, routeSkills, shareOf, type RouteStatus } from '../../shared/route';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const group = (slug: string) => ({ slug, name: slug.replace(/-/g, ' ') });
@@ -53,28 +53,7 @@ test('a section\'s key holds while marks change: it is the group and the skill t
   assert.deepEqual(buildRoute(skills).map((stop) => stop.key), buildRoute([...skills]).map((stop) => stop.key));
 });
 
-const ids = (skills: { id: string }[]) => skills.map((each) => each.id).join(' ');
 const path6 = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => ({ id }));
-
-test('next is the first three skills not held, in the route\'s order', () => {
-  assert.equal(NEXT_SKILLS, 3);
-  assert.equal(ids(nextOf(path6, () => false)), 'a b c');
-  assert.equal(ids(nextOf(path6, (id) => id === 'a' || id === 'b')), 'c d e');
-  assert.equal(ids(nextOf(path6, (id) => id !== 'f')), 'f', 'fewer than three are left');
-  assert.equal(ids(nextOf(path6, () => true)), '', 'everything held: nothing is next');
-  assert.equal(ids(nextOf([], () => false)), '');
-});
-
-test('a skill being learned is not held, so it is still next and keeps its place', () => {
-  const status: Record<string, RouteStatus> = { a: 'held', b: 'learning', d: 'learning' };
-  const held = (id: string) => status[id] === 'held';
-  assert.equal(ids(nextOf(path6, held)), 'b c d', 'learning does not move a skill ahead of the route');
-});
-
-test('skills held out of order are passed over: nothing is gated', () => {
-  assert.equal(ids(nextOf(path6, (id) => id === 'c' || id === 'e')), 'a b d');
-  assert.equal(ids(nextOf(path6, (id) => id === 'a' || id === 'f')), 'b c d');
-});
 
 test('the share counts held skills; learning is counted apart and never as held', () => {
   const status: Record<string, RouteStatus> = { a: 'held', b: 'held', c: 'learning' };
@@ -127,4 +106,78 @@ test('by group, a path is each group once, where the route first reaches it, wit
   assert.deepEqual(route.map((stop) => stop.key), ['cnc', 'inspection']);
   // Every skill is there once.
   assert.deepEqual(routeSkills(route).map((each) => each.id).sort(), ['a', 'b', 'c']);
+});
+
+/** Every source file of the client, as paths from the repository's root with forward slashes. */
+const clientFiles = (dir = 'client/src'): string[] =>
+  readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory() ? clientFiles(`${dir}/${entry.name}`) : /\.(tsx?|css)$/.test(entry.name) ? [`${dir}/${entry.name}`] : []
+  );
+const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
+
+// The owner found NEXT and THEN, the column beside a career's skills and the line above them confusing. They are
+// gone from the client, not hidden: no part draws them and no style is kept for them.
+test('no skill is called next: nothing in the client draws NEXT or THEN, a column beside a path or a line above it', () => {
+  const said = clientFiles().filter((file) => /NextUp|RouteSide|RouteLadder|RouteRow\b|data-next(?![-\w])|data-next-up|data-route-aside|route-row-word|route-side|route-next/.test(read(file)));
+  assert.deepEqual(said, []);
+});
+
+// A career's page, a company's version of it and the trees they are drawn with ask nobody to sign in: the owner
+// asked for no sign-in prompt there at all, and a loose line of text that asks is the mistake he named.
+test("a career's page and its trees hold no way to sign in", () => {
+  const pages = [
+    'client/src/components/entity/OccupationDetailView.tsx',
+    'client/src/components/entity/CareerVersionView.tsx',
+    'client/src/components/route/SkillGroups.tsx',
+    'client/src/components/route/SkillPreview.tsx',
+    'client/src/components/route/CareerLadder.tsx',
+    'client/src/components/reach/CivilianReach.tsx',
+    'client/src/components/layout/Tree.tsx',
+    'client/src/components/layout/Panel.tsx',
+  ];
+  for (const file of pages) assert.doesNotMatch(read(file), /signInPath|canSignIn|sign-in|Sign in/, file);
+});
+
+// A tree's root is the page's own record, whose name the page's heading says once: no caller hands a root a
+// title to say again.
+test("no tree's root is given the record's name", () => {
+  const roots = clientFiles()
+    .flatMap((file) => [...read(file).matchAll(/<TreeRoot\b[^>]*>([^<]*)<\/TreeRoot>/g)].map((match) => `${file}: ${match[1].trim()}`))
+    .sort();
+  assert.deepEqual(roots, [
+    "client/src/components/reach/CivilianReach.tsx: {plural(careers.length, 'career', 'careers')}",
+    'client/src/components/route/CareerLadder.tsx: This career',
+    "client/src/components/route/SkillGroups.tsx: {plural(skills.length, 'skill', 'skills')}",
+  ]);
+  // And every root in the client is one of those: none is written another way.
+  const written = clientFiles().reduce((count, file) => count + (read(file).match(/<TreeRoot\b/g) ?? []).length, 0);
+  assert.equal(written, roots.length);
+});
+
+// Everything arrives closed. What a person opened is kept for the way back alone (`useKept`: in memory, by the
+// entry of the browser's history), so a page loaded again starts closed: none of the parts that open in place
+// reads or writes browser storage.
+test('what a person opened on a tree or the Skills list is never put in browser storage', () => {
+  const parts = [
+    'client/src/lib/kept.ts',
+    'client/src/components/route/SkillGroups.tsx',
+    'client/src/components/route/CareerLadder.tsx',
+    'client/src/components/reach/CivilianReach.tsx',
+    'client/src/components/explorer/SkillTree.tsx',
+    'client/src/components/layout/Tree.tsx',
+    'client/src/components/layout/Panel.tsx',
+  ];
+  for (const file of parts) assert.doesNotMatch(read(file), /lib\/storage|readStored|writeStored|sessionStorage|localStorage/, file);
+  for (const file of ['client/src/components/route/SkillGroups.tsx', 'client/src/components/reach/CivilianReach.tsx', 'client/src/components/explorer/SkillTree.tsx']) {
+    assert.match(read(file), /useKept</, `${file} keeps what is open with useKept`);
+  }
+});
+
+// Fill means one thing in a tree: the root, or a skill a seeker holds. An open node says so by its ring's ink,
+// its name and its line, so no rule for an open node gives its ring a fill (an open skill read as a held one).
+test("an open node's ring is never filled", () => {
+  const css = read('client/src/styles/globals.css');
+  const open = [...css.matchAll(/([^{}]*\[data-open\][^{}]*\.tree-dot[^{}]*)\{([^}]*)\}/g)];
+  assert.ok(open.length > 0, 'the stylesheet says how an open node is marked');
+  for (const [, selector, body] of open) assert.doesNotMatch(body, /background/, selector.trim());
 });

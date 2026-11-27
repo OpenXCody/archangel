@@ -52,6 +52,8 @@ export interface PlacedSkill extends PathSkillItem {
   domain: TaxonomyRef | null;
   /** How the skill is learned, in the catalogue's sentence: sent with a career's path. */
   howLearned?: string | null;
+  /** What the skill is, in the catalogue's words: sent with a career's path, and what its preview says first. */
+  description?: string | null;
 }
 
 export type MarkStatus = SkillStatus | 'none';

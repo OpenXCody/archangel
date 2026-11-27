@@ -2,6 +2,7 @@ import type { ReactNode, ElementType } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '@/lib/utils';
+import { panelClass, panelRowClass } from './Panel';
 
 /**
  * Page shell primitives. Every routed page composes these so width, gutters,
@@ -39,8 +40,9 @@ import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '
  *        site a button in its facts panel that opens the company's page; on
  *        a job posted here a form, so it is the Apply section that follows
  *        the job's facts.
- *   2. Sections (`DetailSection`: small grey capitals, no counts), always in
- *      this order, leaving out what the page does not have:
+ *   2. Sections (`DetailSection`, headed by `SectionHeading`: 20px / 600, the
+ *      section size of every page, no counts), always in this order, leaving
+ *      out what the page does not have:
  *      a. what it is: the page's own content (a factory's people and what it
  *         makes, a career's path, how a skill is learned, an industry's
  *         figures, a job's terms);
@@ -49,13 +51,15 @@ import { cn, focusRing, labelClass, pageTitleClass, sectionHeadingClass } from '
  *      d. the records it leads to, in the product's own order (the order
  *         of Explore's tabs): companies, factories, careers, skills;
  *      (Where a fact was read is not shown on the page.)
- *   3. Every list of records is a `RecordList` of `RecordRow`s: rows with a
- *      hairline between them and no box around them, the name, at most one
- *      grey line under it, and a chevron (or the row's figure) at the right. No icon per row: a list
- *      under the heading CAREERS does not need a briefcase on every line. A
+ *   3. Every list of records is a `RecordList` of `RecordRow`s: one panel
+ *      (`Panel.tsx`: a hairline frame, 8px corner) holding rows with a
+ *      hairline between them, the name, at most one grey line under it, and a
+ *      chevron (or the row's figure) at the right. No icon per row: a list
+ *      under the heading Careers does not need a briefcase on every line. A
  *      company's mark may lead its row, and a skill's row may carry the mark
  *      that says whether the person has it. A list longer than its cut ends
- *      in `ShowAll`. Two other shapes exist, each for one thing: a table of
+ *      in `ShowAll`, and a list that leads on to a fuller one in
+ *      `PanelFooterLink`, each the panel's last row (`footer`). Two other shapes exist, each for one thing: a table of
  *      figures by place (`FigureList` in `components/industry/parts.tsx`),
  *      and chips for places that open on the map (a career's leading states).
  *   4. Words: a place is "City, ST"; the tab is the page's name and
@@ -258,18 +262,52 @@ interface DetailSectionProps {
   children: ReactNode;
 }
 
-/** A titled part of a detail page: small grey capitals, the same on all six. */
-export function DetailSection({ id, title, note, column, action, description, className, children }: DetailSectionProps) {
+/**
+ * A section's heading row, on every page: the name at section size (20px /
+ * 600), a quiet word or figure beside it, an action at the right. What follows
+ * it is the section's own, in panels.
+ */
+export function SectionHeading({
+  id,
+  title,
+  note,
+  action,
+  description,
+  className,
+}: {
+  id?: string;
+  title: ReactNode;
+  note?: ReactNode;
+  action?: ReactNode;
+  description?: ReactNode;
+  className?: string;
+}) {
   return (
-    <section id={id} className={cn('mt-12 scroll-mt-20', className)}>
-      <div className={cn('flex items-baseline justify-between gap-3', description ? 'mb-1' : 'mb-3')}>
+    <div className={cn('mb-4', className)} data-section-heading>
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className={labelClass}>{title}</h2>
+          <h2 id={id} className={sectionHeadingClass}>
+            {title}
+          </h2>
           {note}
         </div>
-        {column ? <span className={cn(labelClass, 'shrink-0')}>{column}</span> : action}
+        {action}
       </div>
-      {description && <p className="mb-3 text-sm text-text-2">{description}</p>}
+      {description && <p className="mt-0.5 max-w-prose text-sm text-text-2">{description}</p>}
+    </div>
+  );
+}
+
+/** A titled part of a detail page: its heading at section size, the same on all six. */
+export function DetailSection({ id, title, note, column, action, description, className, children }: DetailSectionProps) {
+  return (
+    <section id={id} className={cn('mt-14 scroll-mt-20', className)}>
+      <SectionHeading
+        title={title}
+        note={note}
+        description={description}
+        action={column ? <span className={cn(labelClass, 'shrink-0 self-end')}>{column}</span> : action}
+      />
       {children}
     </section>
   );
@@ -279,11 +317,11 @@ export function DetailSection({ id, title, note, column, action, description, cl
 export const sectionLinkClass = cn('shrink-0 text-sm text-text-1 underline transition-colors', focusRing);
 
 /**
- * A list of records: rows with a hairline between them and no box around
- * them. The rows carry the lines (`RecordRow`, or `rowClass`); the list itself
- * has no fill, border or padding.
+ * A list of records: one panel (`Panel.tsx`), its rows parted by hairlines.
+ * The rows carry the lines (`RecordRow`, or `rowClass`); the panel is the
+ * frame. Kept by name for the footprint's map, which stands in the same frame.
  */
-export const recordListClass = '';
+export const recordListClass = panelClass;
 
 /**
  * A row that is one link or button, under the pointer: the fill reaches a
@@ -292,11 +330,17 @@ export const recordListClass = '';
  */
 export const rowHoverClass = '-mx-3 rounded-lg px-3 transition-colors hover:bg-surface-hover';
 
-export function RecordList({ children, className, ...rest }: { children: ReactNode; className?: string } & Record<`data-${string}`, string | undefined>) {
+export function RecordList({
+  children,
+  footer,
+  className,
+  ...rest
+}: { children: ReactNode; footer?: ReactNode; className?: string } & Record<`data-${string}`, string | undefined>) {
   return (
-    <ul className={cn(recordListClass, className)} {...rest}>
-      {children}
-    </ul>
+    <div className={cn(panelClass, className)} data-record-list>
+      <ul {...rest}>{children}</ul>
+      {footer}
+    </div>
   );
 }
 
@@ -346,14 +390,13 @@ export function RecordRow({
 }: RecordRowProps & Record<`data-${string}`, string | undefined>) {
   return (
     <li className={cn('border-t border-line first:border-t-0', below ? 'block' : 'flex items-stretch', className)} {...rest}>
-      {/* A mark stands 12px inside its button: the button is drawn that far left, so the mark sits on the page's edge. */}
-      {control && <span className="-ml-3 flex shrink-0 items-center">{control}</span>}
+      {control && <span className="flex shrink-0 items-center pl-1">{control}</span>}
       <Link
         to={to}
         state={state}
         className={cn(
-          'group flex min-h-[52px] min-w-0 flex-1 items-center gap-3 rounded-lg py-2.5 transition-colors hover:bg-surface-hover focus-visible:-outline-offset-2',
-          control ? '-mr-3 pr-3' : '-mx-3 px-3'
+          'group flex min-h-[52px] min-w-0 flex-1 items-center gap-3 py-2.5 pr-4 transition-colors hover:bg-surface-hover focus-visible:-outline-offset-2',
+          control ? 'pl-1' : 'pl-4'
         )}
       >
         {lead}
@@ -371,21 +414,41 @@ export function RecordRow({
           <ChevronRight className="h-4 w-4 shrink-0 text-text-3 group-hover:text-text-1" aria-hidden="true" />
         )}
       </Link>
-      {below && <div className="-mt-1 min-w-0 pb-3">{below}</div>}
+      {below && <div className="-mt-1 min-w-0 px-4 pb-3">{below}</div>}
     </li>
   );
 }
 
-/** The text action under a list that was cut: "Show all 19", then "Show fewer". */
-export function ShowAll({ open, total, onToggle }: { open: boolean; total: number; onToggle: () => void }) {
+/**
+ * The way to the rest of a list that was cut: "Show all 19", then "Show
+ * fewer". Inside a panel (a `RecordList`'s `footer`) it is the panel's last
+ * row; under a stack of panels (`alone`) it is one more panel-shaped button.
+ * `label` says what "all" is where the count alone would not ("Show all 9 it
+ * comes from", when only one side of a ladder was cut).
+ */
+export function ShowAll({
+  open,
+  total,
+  label,
+  onToggle,
+  alone = false,
+  ...rest
+}: { open: boolean; total: number; label?: string; onToggle: () => void; alone?: boolean } & Record<`data-${string}`, string | undefined>) {
   return (
     <button
+      {...rest}
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className={cn('mt-1 inline-flex min-h-11 items-center text-sm font-medium text-text-1 underline hover:no-underline', focusRing)}
+      className={cn(
+        panelRowClass,
+        'min-h-11 justify-between text-sm font-medium text-text-1',
+        alone ? 'mt-2 rounded-lg border border-line' : 'border-t border-line'
+      )}
+      data-show-all
     >
-      {open ? 'Show fewer' : `Show all ${total.toLocaleString()}`}
+      <span>{open ? 'Show fewer' : (label ?? `Show all ${total.toLocaleString()}`)}</span>
+      <ChevronRight aria-hidden="true" className={cn('h-4 w-4 shrink-0 text-text-2 transition-transform motion-reduce:transition-none', open ? '-rotate-90' : 'rotate-90')} />
     </button>
   );
 }
