@@ -373,14 +373,15 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await expect(page.locator('[data-skill-group]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+&group=[a-z0-9-]+$/);
   await expect(page.locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
 
-  // A skill with others in its group is shown among them: the group's frame, this skill the one tag that is not a link.
+  // A skill with others in its group is shown among them: the frame the Skills list draws a group in, this skill the one row that is not a link.
   const path = (await (await request.get(`${API}/occupations/${career}`)).json()) as { skills: Array<{ id: string }> };
   for (const each of path.skills) {
     const detail = (await (await request.get(`${API}/skills/${each.id}`)).json()) as { name: string; group: { name: string }; groupSkills: unknown[] };
     if (detail.groupSkills.length === 0) continue;
     await page.goto(`/skills/${each.id}`, { waitUntil: 'domcontentloaded' });
     const group = page.locator('#group [data-group-box]');
-    await expect(group.locator('legend')).toContainText(detail.group.name);
+    await expect(group.locator('h3')).toHaveText(detail.group.name);
+    await expect(page.locator('#group [data-panel]'), 'the group stands in the shared frame').toHaveCount(1);
     await expect(group.locator('[data-skill-tag]')).toHaveCount(detail.groupSkills.length + 1);
     await expect(group.locator('[data-skill-tag][data-current]')).toHaveText(detail.name);
     await expect(group.locator('[data-skill-tag][data-current] a')).toHaveCount(0);
@@ -3102,7 +3103,7 @@ test("a job from a company's careers site: the company's variant as its title, i
 });
 
 
-test('a job a company posted here by hand lists the skills it chose, by group, as before', async ({ page }) => {
+test('a job a company posted here by hand lists the skills it chose as the same tree a posting\'s are', async ({ page }) => {
   await standInForPostedJobs(page, { byHand: true });
   await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
   // It keeps the title its poster wrote, with no line under it, its career as the tag, and its tab as running text names it.
@@ -3112,10 +3113,16 @@ test('a job a company posted here by hand lists the skills it chose, by group, a
   await expect(page).toHaveTitle('CNC Machinist at Space Exploration Technologies · Archangel');
   const skills = page.locator('#skills');
   await expect(skills.locator('h2')).toHaveText('Skills');
-  await expect(skills).toContainText('The skills Space Exploration Technologies lists for this job.');
+  // No sentence under the heading; one frame, the tree, every group closed on arrival.
+  await expect(skills.locator('p')).toHaveCount(0);
   const path = page.locator('[data-job-path="job"]');
-  await expect(path.locator('[data-job-groups]')).toHaveCount(1);
-  await expect(path.locator('[data-group-box] [data-skill-tag]')).toHaveCount(3);
+  await expect(path.locator('[data-skill-groups]')).toHaveCount(1);
+  await expect(path.locator('[data-job-groups], [data-group-box]'), 'the older boxes are gone').toHaveCount(0);
+  await expect(path.locator('[data-skill-tag]')).toHaveCount(0);
+  const openAll = skills.locator('[data-route-open-all]');
+  if (await openAll.count()) await openAll.click();
+  else await path.locator('button[aria-expanded="false"]').first().click();
+  await expect(path.locator('[data-skill-tag]')).toHaveCount(3);
   await expect(path.locator(`[data-skill-tag="${SKILL(6)}"]`)).toContainText('Optional');
   await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).not.toContainText('Optional');
   // Nothing of a posting's page: no list of what a posting names, no career's range, no equipment.

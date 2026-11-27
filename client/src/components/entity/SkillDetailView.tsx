@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { type SkillDetail } from '../../lib/api';
 import {
@@ -11,7 +12,7 @@ import {
 } from '../layout/Page';
 import { LEVELS, levelName } from '../../lib/stages';
 import { SkillMark } from '../account/SkillStatusButton';
-import { SkillGroupBox } from '../path/SkillGroupBox';
+import { Panel, PanelHead, panelRowClass } from '../layout/Panel';
 import type { SkillMarks } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
 import { CAREERS_SHOWN, type Head, factLinkClass, IndustryRows, MilitaryCareerRows, OpenJobsSection } from './parts';
@@ -32,28 +33,56 @@ function SkillCareers({ careers }: { careers: SkillDetail['occupations'] }) {
   );
 }
 
+/** A mark, for someone who hears the row. */
+const SAID = { held: 'Held: ', learning: 'Learning: ', none: 'Not held: ' } as const;
+
 /**
- * A skill's group, with this skill among the others: the group's frame, its
- * skills as tags under their levels, the person's marks on each (read here,
- * never pressed: a skill is marked on Profile) and how much of the group they
- * hold. This skill's tag is the one that is not a link.
+ * A skill's group, with this skill among the others: the same frame the
+ * Skills list draws a group in (its name and size over its skills, each a
+ * row), in the group's own order. This skill's row is the one that is not a
+ * link. A seeker's marks stand on the rows (read here, never pressed: a skill
+ * is marked on Profile), and the head says how many of the group they hold.
  */
 function SkillGroup({ data, marks }: { data: SkillDetail; marks: SkillMarks | null }) {
   // The response lists the others; this skill takes its place at its own level.
   const all = [...(data.groupSkills ?? []), { id: data.id, name: data.name, level: data.level }];
-  const parts = LEVELS.map((level) => ({ label: level.name, skills: all.filter((skill) => skill.level === level.id) })).filter(
-    (part) => part.skills.length > 0
-  );
+  const skills = LEVELS.flatMap((level) => all.filter((skill) => skill.level === level.id)).concat(all.filter((skill) => !LEVELS.some((level) => level.id === skill.level)));
+  const held = marks ? skills.filter((skill) => marks.statusOf(skill.id) === 'held').length : 0;
+  const size = `${skills.length} ${skills.length === 1 ? 'skill' : 'skills'}`;
   return (
-    <SkillGroupBox
-      name={data.group.name}
-      skills={parts.flatMap((part) => part.skills)}
-      // One level says nothing the heading has not said.
-      parts={parts.length > 1 ? parts : undefined}
-      marks={marks}
-      readOnly
-      currentId={data.id}
-    />
+    <Panel data-group-box="">
+      <PanelHead title={data.group.name} meta={held > 0 ? `${held} of ${skills.length} held` : size} />
+      <ul className="-mt-px gap-0 [column-rule:1px_solid_var(--line)] md:columns-2">
+        {skills.map((skill) => {
+          const status = marks?.statusOf(skill.id);
+          const current = skill.id === data.id;
+          const inner = (
+            <>
+              {status && (
+                <>
+                  <SkillMark status={status} />
+                  <span className="sr-only">{SAID[status]}</span>
+                </>
+              )}
+              <span className={cn('min-w-0 break-words text-sm leading-snug text-text-1', current && 'font-semibold')}>{skill.name}</span>
+            </>
+          );
+          return (
+            <li key={skill.id} className="break-inside-avoid border-t border-line" data-skill-tag={skill.id} data-status={status} data-current={current ? '' : undefined}>
+              {current ? (
+                <span aria-current="page" className="flex min-h-11 w-full min-w-0 items-center gap-3 px-4 py-2">
+                  {inner}
+                </span>
+              ) : (
+                <Link to={`/skills/${skill.id}`} className={cn(panelRowClass, 'min-h-11 py-2')}>
+                  {inner}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </Panel>
   );
 }
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn, labelClass } from '@/lib/utils';
 import type { JobDetail, JobRequirements } from '../../lib/jobs';
+import { panelClass } from '../layout/Panel';
 import { employmentLabel, formatPay } from '../../lib/jobFormat';
 import { formatDayCapital } from '../../lib/dates';
 
@@ -70,14 +71,14 @@ interface JobFactsProps {
   className?: string;
 }
 
-/** The facts panel: a hairline above it (the section after it draws the one below), the facts, and the job's one way out as its last row. */
+/** The facts panel: the shared frame, the facts in it, and the job's one way out as its last row. */
 export default function JobFacts({ job, applications, notice, action, className }: JobFactsProps) {
   const paid = job.payMin !== null || job.payMax !== null;
   const asks = requirementFacts(job.requirements);
   return (
-    <div className={cn('border-t border-line', className)} data-job-panel>
-      {notice && <div className="border-b border-line py-3">{notice}</div>}
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 py-4 sm:grid-cols-4" data-job-terms>
+    <div className={cn(panelClass, className)} data-job-panel>
+      {notice && <div className="border-b border-line px-4 py-3">{notice}</div>}
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 p-4 sm:grid-cols-4" data-job-terms>
       {paid && <Fact label="Pay">{formatPay(job.payMin, job.payMax, job.payPeriod)}</Fact>}
       {job.levelWord && <Fact label="Level">{job.levelWord}</Fact>}
       {job.employmentType && <Fact label="Type">{employmentLabel(job.employmentType)}</Fact>}
@@ -95,7 +96,7 @@ export default function JobFacts({ job, applications, notice, action, className 
       )}
       </dl>
       {action && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line py-4 empty:hidden" data-job-action>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line p-4 empty:hidden" data-job-action>
           {action}
         </div>
       )}
