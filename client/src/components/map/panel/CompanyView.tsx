@@ -45,7 +45,7 @@ export default function CompanyView({ company }: { company: CompanyDetail }) {
       {/* What work is here */}
       {jobs.length > 0 && (
         <Section title="Open jobs">
-          <JobRows jobs={jobs} limit={4} />
+          <JobRows jobs={jobs} limit={4} said={{ company: true }} />
           {openJobs > 4 && <ListLink to={`/jobs?company=${company.id}`}>All {openJobs.toLocaleString()} open jobs</ListLink>}
         </Section>
       )}

@@ -153,7 +153,9 @@ export function recordRows(results: SearchResults | undefined, query: string): P
  * Rows into the groups that are drawn: within a group the closest names
  * first (rows that match equally keep the order they came in), five at
  * most; the groups in the one order, except that a group holding exactly
- * what was typed leads ("texas" is the state, "welder" the career). The
+ * what was typed leads ("texas" is the state, "welder" the career). Jobs
+ * never lead: a job from a careers site is named for its career, so a typed
+ * name that is a job's is the career's first, and its jobs stay last. The
  * first row is what Enter takes.
  */
 export function groupRows(rows: Partial<Record<SearchGroupId, SearchRow[]>>): SearchGroup[] {
@@ -163,7 +165,7 @@ export function groupRows(rows: Partial<Record<SearchGroupId, SearchRow[]>>): Se
       .sort((a, b) => b.row.score - a.row.score || a.i - b.i)
       .map(({ row }) => row)
       .slice(0, ROWS_PER_GROUP);
-    return { id, rows: ranked, exact: ranked[0]?.score === 4, order };
+    return { id, rows: ranked, exact: id !== 'jobs' && ranked[0]?.score === 4, order };
   })
     .filter((group) => group.rows.length > 0)
     .sort((a, b) => Number(b.exact) - Number(a.exact) || a.order - b.order)

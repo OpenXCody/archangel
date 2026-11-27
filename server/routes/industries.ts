@@ -4,6 +4,7 @@ import { db } from '../db/index.js';
 import { browsableCompanyNameSql } from '../lib/companyFilters.js';
 import { factoryInScope, isStateInScope } from '../lib/scope.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
+import { jobRowColumns, jobRowGiven } from '../lib/jobRows.js';
 import { byCompanyStanding, companyStandings, inPlace, known, listIndustries, placeOut, statsKey, statsOf, type Place } from '../lib/industries.js';
 import { int, rowsOf, text, type Row } from '../lib/rows.js';
 import { SCOPE, focusArea } from '../../shared/scope.js';
@@ -177,9 +178,7 @@ router.get('/:slug', async (req: Request, res: Response) => {
       `),
 
       db.execute(sql`
-        SELECT j.id, j.serial, j.title, j.pay_min, j.pay_max, j.pay_period,
-               c.name AS company_name, c.slug AS company_slug, f.name AS factory_name, f.city,
-               (SELECT o.title FROM occupations o WHERE o.id = j.occupation_id) AS occupation_title,
+        SELECT ${jobRowColumns('j', 'f', 'c')},
                COUNT(*) OVER ()::int AS total
         FROM jobs j
         INNER JOIN factories f ON f.id = j.factory_id
@@ -265,19 +264,8 @@ router.get('/:slug', async (req: Request, res: Response) => {
       })),
       careers: rowsOf(careerRows).map((r) => ({ id: String(r.id), title: String(r.title) })),
       openJobs: jobs.length > 0 ? int(jobs[0].total) : 0,
-      jobs: jobs.map((r) => ({
-        id: String(r.id),
-        serial: int(r.serial),
-        title: String(r.title),
-        payMin: r.pay_min ?? null,
-        payMax: r.pay_max ?? null,
-        payPeriod: r.pay_period,
-        companyName: String(r.company_name),
-        companySlug: text(r.company_slug),
-        occupationTitle: text(r.occupation_title) ?? undefined,
-        factoryName: String(r.factory_name),
-        city: text(r.city),
-      })),
+      // Each with its own name beside its standard one (jobRows.ts).
+      jobs: jobs.map(jobRowGiven),
       ...(states ? { states } : {}),
       ...(cities ? { cities } : {}),
     });

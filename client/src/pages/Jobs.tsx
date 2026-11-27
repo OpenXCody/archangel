@@ -11,7 +11,7 @@ import { occupationsApi, skillsApi } from '../lib/api';
 import { useAccount } from '../lib/account';
 import { useJobs, useJobsSummary, type JobSummary } from '../lib/jobs';
 import { usePostJobLink } from '../lib/viewer';
-import { employmentLabel, formatPay, formatPlace } from '../lib/jobFormat';
+import { jobRow, jobRowText, type JobListSays } from '../lib/jobRow';
 import { formatAgo } from '../lib/dates';
 import { formatCompanyName, formatFactoryName } from '@shared/displayName';
 import { LoadError, busyButtonClass, fieldClass, outlineButtonClass, rowHoverClass } from '../components/account/parts';
@@ -154,15 +154,14 @@ export default function Jobs() {
     enabled: Boolean(skill),
     staleTime: 5 * 60_000,
   });
-  const narrowedTo = career
-    ? careerTitle && `for ${careerTitle}`
-    : company
-      ? first && `at ${formatCompanyName(first.companyName)}`
-      : plant
-        ? first && `at ${formatFactoryName(first.factoryName)}`
-        : skill
-          ? linkedSkill.data && `that ask for ${linkedSkill.data.name}`
-          : null;
+  // Each of them is named (a link from "More Welder jobs at John Deere" names both), or none while a name is not known yet.
+  const narrowing: (string | null)[] = [];
+  if (career) narrowing.push(careerTitle ? `for ${careerTitle}` : null);
+  // A factory is one company's: its name says where, and the company is not said beside it.
+  if (plant) narrowing.push(first ? `at ${formatFactoryName(first.factoryName)}` : null);
+  else if (company) narrowing.push(first ? `at ${formatCompanyName(first.companyName)}` : null);
+  if (skill) narrowing.push(linkedSkill.data ? `that ask for ${linkedSkill.data.name}` : null);
+  const narrowedTo = narrowing.length > 0 && narrowing.every(Boolean) ? narrowing.join(' ') : null;
 
   const filtered = Boolean(q || career || company || plant || skill || place);
   // How many match in all, not how many are on screen: the list shows a page at a time.
@@ -181,6 +180,9 @@ export default function Jobs() {
       : place?.kind === 'near'
         ? `${counted} ${jobWord(count)} within ${within} miles of ${placeName}`
         : `${counted} ${filtered ? (count === 1 ? 'job matches' : 'jobs match') : `open ${jobWord(count)}`}`;
+  // What that line has already said of every job in the list: a row does not say it again, and under a line that names
+  // the career its first line is the opening's own name.
+  const said: JobListSays = narrowedTo && !q ? { career: Boolean(career), company: Boolean(company) && !plant, factory: Boolean(plant) } : {};
   // Where a job opened from this list comes back to.
   const here = `${location.pathname}${location.search}`;
 
@@ -304,7 +306,7 @@ export default function Jobs() {
           <ul className={cn('grid grid-cols-1 border-t border-line lg:grid-cols-2 lg:gap-x-12', jobs.isPlaceholderData && 'opacity-60')}>
             {shown.map((job) => (
               <li key={job.id} className="min-w-0 border-b border-line">
-                <JobCard job={job} from={filtered ? here : undefined} />
+                <JobCard job={job} said={{ ...said, among: shown }} from={filtered ? here : undefined} />
               </li>
             ))}
           </ul>
@@ -345,54 +347,78 @@ export default function Jobs() {
   );
 }
 
-function JobCard({ job, from }: { job: JobSummary; from?: string }) {
-  // Not every factory has a city on record; its name places it well enough.
-  // (A city is stored as its source wrote it, often in capitals: it is read as a name.)
-  const town = job.city ? formatPlace(formatFactoryName(job.city), job.state) : [formatFactoryName(job.factoryName), job.state].filter(Boolean).join(', ');
-  // Near a chosen place, how far the job is from it.
-  const place = [town, typeof job.miles === 'number' ? milesAway(job.miles) : null].filter(Boolean).join(' · ');
+/**
+ * One job of the list, drawn by the rule every list of jobs is drawn by (`jobRow` in lib/jobRow.ts). Its first line is
+ * the job's name, always: its standard name (a job from a careers site is named for its career), with the opening's
+ * own name on the next line; in a list narrowed to one career, the own name itself. Then its company and where it is,
+ * each only where the line above the list has not said it, its pay, and what else the job states. The day stands at
+ * the right of the name on every card.
+ */
+function JobCard({ job, said, from }: { job: JobSummary; said: JobListSays; from?: string }) {
+  const { head, second, facts } = jobRow(job, said);
+  const company = jobRowText(facts, 'company');
+  // Where it is, and near a chosen place how far from it.
+  const place = [jobRowText(facts, 'site', 'place'), typeof job.miles === 'number' ? milesAway(job.miles) : null].filter(Boolean).join(' · ');
+  const pay = jobRowText(facts, 'pay');
+  // The job's terms as one quiet line: the kind of employment, the shift, and the career where a job titled by hand does not say it.
+  const terms = (['type', 'shift', 'career'] as const).flatMap((kind) => facts.filter((part) => part.kind === kind));
   return (
     <Link
       to={jobPath(job)}
       state={from ? { from } : undefined}
       className={cn(rowHoverClass, 'flex h-full flex-col py-4')}
+      data-job-head={head.kind}
     >
       <div className="flex items-start justify-between gap-3">
-        <h2 className="min-w-0 break-words text-sm text-text-1">{job.title}</h2>
+        {/* An opening's own name can be a sentence: two lines of it at most. */}
+        <h2 className={cn('min-w-0 break-words text-sm text-text-1', head.kind === 'own' && 'line-clamp-2')} data-row-title>
+          {head.text}
+        </h2>
         <span className="shrink-0 whitespace-nowrap pt-0.5 text-xs text-text-3">{job.undated ? 'Listed' : 'Posted'} {formatAgo(job.postedAt)}</span>
       </div>
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2">
-        <span className="inline-flex min-w-0 items-center gap-1.5">
-          <CompanyLogo name={job.companyName} domain={job.companyDomain} size={20} className="rounded" />
-          <span className="min-w-0 truncate">{job.companyName}</span>
-        </span>
-        {place && (
-          <span className="inline-flex min-w-0 items-center gap-1.5">
-            <MapPin className="h-4 w-4 shrink-0" />
-            <span className="min-w-0 truncate">{place}</span>
-          </span>
-        )}
-      </div>
-      {/* A job from a company's careers site that states no pay says nothing about pay. */}
-      {(job.payMin !== null || job.payMax !== null) && (
-        <p className="mt-2 text-sm text-text-1">{formatPay(job.payMin, job.payMax, job.payPeriod)}</p>
+      {/* The opening's own name: what the employer called it, two lines at most. */}
+      {second && (
+        <p className="mt-0.5 line-clamp-2 break-words text-sm leading-snug text-text-2" data-row-second>
+          {second}
+        </p>
       )}
-      {(job.employmentType || job.shift || job.occupationTitle !== job.title) && (
-        // The job's terms as one quiet line: words, not chips.
-        <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-text-3">
-          {[
-            job.employmentType ? <span key="type">{employmentLabel(job.employmentType)}</span> : null,
-            job.shift ? (
-              <span key="shift" className="inline-flex items-center gap-1">
+      {(company || place) && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2" data-row-line>
+          {company && (
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <CompanyLogo name={job.companyName} domain={job.companyDomain} size={20} className="rounded" />
+              <span className="min-w-0 truncate">{company}</span>
+            </span>
+          )}
+          {place && (
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <MapPin className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 truncate">{place}</span>
+            </span>
+          )}
+        </div>
+      )}
+      {/* A job from a company's careers site that states no pay says nothing about pay. */}
+      {pay && (
+        <p className="mt-2 text-sm text-text-1" data-row-line>
+          {pay}
+        </p>
+      )}
+      {terms.length > 0 && (
+        // Words, not chips.
+        <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-text-3" data-row-line>
+          {terms.flatMap((part, index) => [
+            ...(index > 0 ? [<span key={`dot-${part.kind}`} aria-hidden="true">·</span>] : []),
+            part.kind === 'shift' ? (
+              <span key={part.kind} className="inline-flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 <span className="sr-only">Shift: </span>
-                {job.shift}
+                {part.text}
               </span>
-            ) : null,
-            job.occupationTitle !== job.title ? <span key="career">{job.occupationTitle}</span> : null,
-          ]
-            .filter((part) => part !== null)
-            .flatMap((part, index) => (index > 0 ? [<span key={`dot-${index}`} aria-hidden="true">·</span>, part] : [part]))}
+            ) : (
+              <span key={part.kind}>{part.text}</span>
+            ),
+          ])}
         </p>
       )}
     </Link>

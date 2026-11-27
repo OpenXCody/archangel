@@ -3,7 +3,7 @@
 // exactly (its title, or another name it goes by), or closely (the name with a
 // qualifier before or after it, "technician" for "mechanic"), and when it may not.
 import { readTitle, otherField, CHANGES_THE_JOB, LEAVES_IT } from './title.mjs';
-import { ROLE_NOUNS, titleWords } from './vocabulary.mjs';
+import { ROLE_NOUNS, notOursWord, titleWords } from './vocabulary.mjs';
 
 const titleWordsOf = (name) => titleWords(name);
 
@@ -17,6 +17,23 @@ export function saysNothing(name) {
 // Trades that stay themselves whatever stands before them: an "Orbital Tube Welder"
 // is a welder, a "Diamond Turning Machinist" a machinist.
 const TRADE = new Set(['machinist', 'welder', 'electrician']);
+
+/**
+ * A trade's general name given to one of its branches: "production welder" for
+ * MIG Welder, where "Welder" is itself a career. Such a name is words that leave
+ * a trade what it is (LEAVES_IT) before the trade's own title, listed in data as
+ * another career's name. It says which branch is meant only while nothing else
+ * does: a word of the title that names another kind ("Production Welder - TIG",
+ * "Production Stick Welder") is read first, and so is a text that asks for what
+ * only the whole trade does (decide.mjs). Gives the trade's name, or null.
+ */
+export function generalNameOf(name, vocab) {
+  if (!name || name.kind === 'title' || name.words.length < 2) return null;
+  const last = name.words[name.words.length - 1];
+  if (!TRADE.has(last) || !name.words.slice(0, -1).every((w) => LEAVES_IT.has(w))) return null;
+  const trade = vocab.byKey.get(last);
+  return trade && trade.kind === 'title' && trade.career !== name.career ? trade : null;
+}
 
 const SWAP = { technician: 'mechanic', mechanic: 'technician' };
 // "Aircraft Structural Technician" is an aircraft structures mechanic; a "Structural
@@ -37,7 +54,11 @@ function endsWith(words, vocab) {
     if (k >= words.length || (best && k <= best.name.words.length)) continue;
     let ok = true;
     for (let i = 1; i <= k; i++) if (n.words[k - i] !== words[words.length - i]) { ok = false; break; }
-    if (ok) best = { name: n, before: words.slice(0, words.length - k) };
+    if (!ok) continue;
+    const before = words.slice(0, words.length - k);
+    // A trade's general name ends a title only after words that leave it so: a "TIG Production Welder" is read by its trade.
+    if (generalNameOf(n, vocab) && !before.every((w) => LEAVES_IT.has(w))) continue;
+    best = { name: n, before };
   }
   return best;
 }
@@ -109,7 +130,10 @@ function matchSegment(given, vocab) {
     // another career's own title. Which of the two is meant is for the text to say.
     // A career's own title gives way only to another's own title; another name gives way to any name.
     const beside = vocab.byKey.get(`${before[before.length - 1]} ${last}`);
-    const rival = beside && beside.career !== name.career && (beside.kind === 'title' || name.kind !== 'title') ? beside : null;
+    // A trade's general name is no rival to a name that says the kind (a "Production Stick Welder" is a stick
+    // welder), and has none in a name of its own trade (a "Certified Production Welder" is a production welder).
+    const settled = generalNameOf(beside, vocab) || (beside && generalNameOf(name, vocab)?.career === beside.career);
+    const rival = beside && beside.career !== name.career && (beside.kind === 'title' || name.kind !== 'title') && !settled ? beside : null;
     return { name, close: true, words, also, rival, joined: Boolean(given.joins?.has(before.length)) };
   }
   // 3. A name with a word or two after it ("Aircraft Mechanic AME", "Systems Engineer Autonomy").
@@ -121,11 +145,32 @@ function matchSegment(given, vocab) {
   return also.length ? { also, words } : null;
 }
 
+/** For a part that is a trade's general name: the name another part makes with the trade's word, if any. */
+function kindSaidBeside(seg, rest, vocab) {
+  const whole = exact(seg, vocab) ?? endsWith(seg, vocab)?.name;
+  const trade = generalNameOf(whole, vocab);
+  if (!trade) return null;
+  for (const q of rest) {
+    for (const words of [q.length <= 3 ? q : null, ...q.map((w) => [w])]) {
+      // Only a word that says a kind: "Production Welder (Certified)" says none, and stays the general name's.
+      if (!words || words.every((w) => LEAVES_IT.has(w))) continue;
+      const m = exact([...words, ...trade.words], vocab);
+      if (m && m !== trade) return { name: m, close: true, words: [...words, ...trade.words] };
+    }
+  }
+  return null;
+}
+
 /**
  * What the title says: { options: [{ career, how, matched }], refused, level, shift }.
  * One option is a decision; several are for the text to decide between; none is no career.
  */
 export function readCareerTitle(posting, vocab) {
+  // Before anything else: a title that holds a word of work that is never ours ("Janitorial Maintenance
+  // Technician", "General Laborer - Sanitation") is turned away, whatever career's name stands beside the word.
+  // The words are data (data/careers/aliases.json, `notOurs`).
+  const never = notOursWord(posting.title, vocab);
+  if (never) return { options: [], refused: `"${never}" in the title: not our work`, level: null, shift: null, segments: [] };
   const parsed = readTitle(posting.title);
   const out = { options: [], refused: parsed.refused, level: parsed.level, shift: parsed.shift, segments: parsed.segments };
   if (out.refused) return out;
@@ -144,12 +189,21 @@ export function readCareerTitle(posting, vocab) {
 
   for (const seg of jobs) {
     // "Technician, Composites" and "Process Engineer, Etch" are a name said backwards.
+    // A trade's general name said so ("Welder, Production") is kept only where no other part names a kind ("Welder, Production (TIG)").
     let turned = null;
+    let general = null;
     for (const q of rest) {
       if (q.length > 3) continue;
       const m = exact([...q, ...seg], vocab);
-      if (m) { turned = { name: m, close: true, words: [...q, ...seg] }; break; }
+      if (!m) continue;
+      if (generalNameOf(m, vocab)) { general = general ?? { name: m, close: true, words: [...q, ...seg] }; continue; }
+      turned = { name: m, close: true, words: [...q, ...seg] };
+      break;
     }
+    // The title's main part is a trade's general name ("Production Welder"): a word of another part that, with the
+    // trade, is a name says the kind ("- TIG", "(GTAW)", ", Aluminum TIG", "- Stick/Flux Core"), and is the reading.
+    if (!turned) turned = kindSaidBeside(seg, rest, vocab);
+    turned = turned ?? general;
     if (turned) { add(turned, turned.words); continue; }
     // "Technician Structures": the job word first, what kind after.
     const order = ROLE_NOUNS.has(seg[0]) && seg.length > 1 && !ROLE_NOUNS.has(seg[seg.length - 1]) ? [...seg.slice(1), seg[0]] : seg;
@@ -173,7 +227,7 @@ export function readCareerTitle(posting, vocab) {
     const titled = m.also ?? [];
     let take = m.name ? [{ name: m.name, how: m.close ? 'close' : m.name.kind }] : [];
     if ((!m.name || m.name.kind !== 'title') && titled.length) take = [{ name: titled[0], how: 'close' }];
-    for (const t of take) if (!seen.has(t.name.career)) seen.set(t.name.career, { career: t.name.career, how: t.how, matched: t.name.name, said: m.said, kind: t.name.kind, source: t.name.source });
+    for (const t of take) if (!seen.has(t.name.career)) seen.set(t.name.career, { career: t.name.career, how: t.how, matched: t.name.name, said: m.said, kind: t.name.kind, source: t.name.source, trade: generalNameOf(t.name, vocab)?.career ?? null });
     if (m.rival && m.name && take[0]?.name === m.name && !seen.has(m.rival.career)) {
       // "Automation & Controls Engineer" names both and means the last; without the "and" it is open.
       const joined = m.joined;

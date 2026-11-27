@@ -2835,7 +2835,12 @@ test("a seeker's career on the Atlas: filled in on /atlas, a small plate on Prof
 // ---------------------------------------------------------------------------
 // Jobs that come from employers' own postings. Nothing is written and no
 // account is made: the list, the job and the reader are stood in for here, at
-// the size a real board gives (thousands of jobs, long titles).
+// the size a real board gives (thousands of jobs). Each is named as a job from a
+// careers site is: for its career, with no level (migration 0088), and beside
+// that name the opening's own (`ownName`: what the employer called the posting,
+// which the server reads from the posted title; none where it says nothing
+// beyond the career). A row of any list of jobs leads with a job's name, never
+// a place (client/src/lib/jobRow.ts).
 // ---------------------------------------------------------------------------
 
 const POSTED_JOB = '00000000-0000-4000-8000-00000000a0b1';
@@ -2843,28 +2848,100 @@ const POSTED_JOB = '00000000-0000-4000-8000-00000000a0b1';
 const POSTED_JOB_PATH = '/jobs/space-exploration-technologies/cnc-machinist/1000';
 const SKILL = (n: number) => `00000000-0000-4000-8000-0000000005${String(n).padStart(2, '0')}`;
 
+/** An own name as long as employers write them (the longest on the live boards is 112 characters), with long words. */
+const LONG_OWN_NAME = 'Manufacturing Engineer - Supplier Development, Optics & Optomechanical Systems, Electromechanical Subassemblies (Starlink)';
+/** The page's job, as its employer called it. */
+const POSTED_OWN_NAME = 'Sr. CNC Machinist, Raptor Turbomachinery (Starship)';
+/** What the employer called each opening of the stand-in list: some have a name of their own, some say only their career. */
+function ownNameOf(n: number): string | null {
+  const machinists = [POSTED_OWN_NAME, 'CNC Machinist, Five-Axis Cell (Starship)', 'Lead CNC Machinist, Raptor Turbopumps', null];
+  switch (n % 6) {
+    case 0:
+      return machinists[(n / 6) % machinists.length];
+    case 1:
+      return n === 1 ? LONG_OWN_NAME : n % 12 === 1 ? 'Manufacturing Engineer, PCBA (Starlink)' : null;
+    case 2:
+      return 'Structural Welder, Ground Support Equipment (Starship)';
+    case 4:
+      return 'NDE Level II Inspector (Starship Mechanisms)';
+    default:
+      return null;
+  }
+}
+
 function postedJobs(offset: number, limit: number) {
-  const titles = [
-    'CNC Machinist, Tool & Die - Level 4/5', 'Senior Manufacturing Engineer, Injection Molding (Starlink)', 'Welder', 'Quality Inspector, 1st Shift',
-    'Maintenance Technician II (2nd Shift) - Composite Structures Fabrication and Assembly', 'Production Operator',
-  ];
+  // A job's title is its career's: the two are the same words.
+  const careers = ['CNC Machinist', 'Manufacturing Engineer', 'Welder', 'Quality Control Inspector', 'NDT Technician (Magnetic Particle)', 'Production Operator'];
   return Array.from({ length: limit }, (_, i) => {
     const n = offset + i;
+    const career = careers[n % careers.length];
     return {
       id: n === 0 ? POSTED_JOB : `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
-      serial: 1000 + n, title: titles[n % titles.length],
+      serial: 1000 + n, title: career, ownName: ownNameOf(n) as string | null,
       // What a posting does not state is not said: pay on some, the type on some.
       employmentType: n % 3 === 0 ? 'full-time' : null, shift: n % 4 === 0 ? '2nd shift' : null,
       payMin: n % 2 === 0 ? 2800 : null, payMax: n % 2 === 0 ? 4200 : null, payPeriod: 'hour', status: 'open',
       postedAt: new Date(Date.now() - n * 3_600_000).toISOString(), expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
       companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', companyDomain: null,
       factoryId: '00000000-0000-4000-8000-0000000000f1', factoryName: 'SPACE EXPLORATION TECHNOLOGIES BASTROP', city: 'BASTROP', state: 'TX',
-      latitude: '30.1', longitude: '-97.3', occupationId: '00000000-0000-4000-8000-0000000000d1', occupationTitle: 'CNC Machinist',
+      latitude: '30.1', longitude: '-97.3', occupationId: `00000000-0000-4000-8000-0000000000d${(n % careers.length) + 1}`, occupationTitle: career,
     };
   });
 }
 
-async function standInForPostedJobs(page: Page, options: { total?: number; canManage?: boolean } = {}) {
+/** "City, ST" and nothing else: what a row of jobs must never lead with. */
+const A_PLACE = /^[A-Z][A-Za-z .'’-]*, [A-Z]{2}$/;
+
+/**
+ * Every row of every list of jobs in view (a card of the Jobs list, a row of a record list, a row of a map panel): its
+ * first line is a job's name, never a place and never empty; the opening's own name, where it stands under the standard
+ * name, is not empty; no line of the row is empty. Says how many rows it read.
+ */
+async function expectJobRows(scope: Page | Locator, label: string): Promise<number> {
+  const rows = await scope.locator('[data-job-head]').evaluateAll((items) =>
+    items.map((item) => ({
+      head: item.getAttribute('data-job-head'),
+      titles: [...item.querySelectorAll('[data-row-title]')].map((node) => (node.textContent ?? '').trim()),
+      seconds: [...item.querySelectorAll('[data-row-second]')].map((node) => (node.textContent ?? '').trim()),
+      lines: [...item.querySelectorAll('[data-row-line]')].map((node) => (node.textContent ?? '').trim()),
+    }))
+  );
+  for (const [at, row] of rows.entries()) {
+    const where = `${label}, row ${at} (${row.titles[0] ?? 'no first line'})`;
+    expect(['name', 'own'], `${where}: led by a job's name`).toContain(row.head);
+    expect(row.titles.length, `${where}: one first line`).toBe(1);
+    expect(row.titles[0], `${where}: the first line is not empty`).not.toBe('');
+    expect(row.titles[0], `${where}: the first line is not a place`).not.toMatch(A_PLACE);
+    // The own name is said once: as the first line, or as the line under the standard name.
+    expect(row.seconds.length, `${where}: the own name is said once`).toBe(row.head === 'own' ? 0 : row.seconds.length > 0 ? 1 : 0);
+    for (const line of [...row.seconds, ...row.lines]) expect(line, `${where}: no line is empty`).not.toBe('');
+    expect(row.seconds, `${where}: the own name is not the standard name again`).not.toContain(row.titles[0]);
+  }
+  return rows.length;
+}
+
+/** A name that can be a sentence is given two lines at most: cut there with an ellipsis, its words wrapped, nothing pushed sideways. */
+async function expectTwoLinesAtMost(name: Locator, label: string): Promise<void> {
+  await expect(name, `${label}: the name is drawn`).toHaveCount(1);
+  const box = await name.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const line = parseFloat(style.lineHeight);
+    return { height: node.getBoundingClientRect().height, line: Number.isFinite(line) ? line : parseFloat(style.fontSize) * 1.5, clamp: style.webkitLineClamp, overflow: style.overflow, wrap: style.overflowWrap, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth };
+  });
+  expect(box.clamp, `${label}: cut at two lines, with an ellipsis`).toBe('2');
+  expect(box.overflow, `${label}: what is cut is hidden`).toBe('hidden');
+  expect(box.wrap, `${label}: a long word breaks rather than push the row wide`).toBe('break-word');
+  expect(box.height, `${label}: two lines at most`).toBeLessThanOrEqual(box.line * 2 + 1);
+  expect(box.scrollWidth, `${label}: nothing runs sideways`).toBeLessThanOrEqual(box.clientWidth + 1);
+}
+
+/**
+ * `names`: how much of this the posting names. As it stands, three skills of the career's path and one beside it;
+ * 'one', a single skill of the path; 'none', nothing. `version`: the company has its own version of the career.
+ * `byHand`: the same job as a company posts one here, with the three skills it chose, one of them optional.
+ * `ownName`: what the employer called the page's job, in place of the stand-in's (null: nothing beyond the career).
+ */
+async function standInForPostedJobs(page: Page, options: { total?: number; canManage?: boolean; names?: 'one' | 'none'; version?: boolean; byHand?: boolean; ownName?: string | null } = {}) {
   const total = options.total ?? 4812;
   await page.route('**/api/jobs/summary', (route) => route.fulfill({ json: { total, states: [{ state: 'TX', jobs: 2100 }, { state: 'CA', jobs: 1900 }, { state: 'WA', jobs: 812 }] } }));
   await page.route(/\/api\/jobs\?/, (route) => {
@@ -2890,9 +2967,9 @@ async function standInForPostedJobs(page: Page, options: { total?: number; canMa
       { id: SKILL(3), name: 'Coordinate Measuring Machine Operation and Programming', required: true, held: false, makes: [] },
       { id: SKILL(4), name: 'GD&T Interpretation', required: true, held: false, makes: [] },
     ],
-    // What the page draws: the career's whole path, with what the posting names marked.
+    // What the page draws from: the career's path, with what the posting names marked. The named ones are the job's own skills.
     path: {
-      of: 'career',
+      of: options.version ? 'version' : 'career',
       skills: [
         on(2, 'Blueprint Reading', place(1, 'Shop basics', 'Production'), { named: true }),
         on(5, 'Shop Math', place(1, 'Shop basics', 'Production')),
@@ -2906,12 +2983,30 @@ async function standInForPostedJobs(page: Page, options: { total?: number; canMa
       alsoNamed: [on(3, 'Coordinate Measuring Machine Operation and Programming', place(2, 'Coordinate measuring', 'Quality'), { named: true })],
     },
     others: {
-      career: { jobs: postedJobs(6, 2).map((job) => ({ ...job, companySlug: null })), total: 9 },
-      factory: { jobs: postedJobs(2, 1).map((job) => ({ ...job, companySlug: null, occupationTitle: 'Welder' })), total: 1 },
+      // The same career's other jobs at the company (every sixth of the stand-in list is a machinist's): two with names of
+      // their own, one whose posting says only its career, one named at length. Then another career's here.
+      career: { jobs: [postedJobs(6, 1)[0], postedJobs(12, 1)[0], postedJobs(18, 1)[0], { ...postedJobs(24, 1)[0], ownName: LONG_OWN_NAME.replace('Manufacturing Engineer', 'CNC Machinist') }].map((job) => ({ ...job, companySlug: null })), total: 9 },
+      factory: { jobs: postedJobs(2, 1).map((job) => ({ ...job, companySlug: null })), total: 1 },
     },
     myApplication: null,
     canManage: Boolean(options.canManage),
   };
+  if (options.version) answer.job.hasVersion = true;
+  if (options.ownName !== undefined) answer.job.ownName = options.ownName;
+  if (options.byHand) {
+    // A job posted here has no posted title, and so no own name beside the title its poster wrote.
+    Object.assign(answer.job, { fromSource: false, ownName: null, applyUrl: null, description: 'Set up and run our five-axis mills.', levelWord: null, levelRank: null, requirements: null, lastSeenAt: null });
+    const chosen = [SKILL(2), SKILL(1), SKILL(6)];
+    answer.skills = answer.skills.filter((skill) => chosen.includes(skill.id)).map((skill) => ({ ...skill, makes: [] }));
+    answer.path = { of: 'job', skills: answer.path.skills.filter((skill) => chosen.includes(skill.id)).map((skill) => ({ ...skill, named: false, makes: [], optional: skill.id === SKILL(6) })), alsoNamed: [] };
+  }
+  if (options.names) {
+    // A posting that names one skill of the path, or none: nothing beside the path, no equipment.
+    const kept = options.names === 'one' ? SKILL(2) : null;
+    answer.skills = answer.skills.filter((skill) => skill.id === kept);
+    answer.path.skills = answer.path.skills.map((skill) => ({ ...skill, named: skill.id === kept, makes: [] }));
+    answer.path.alsoNamed = [];
+  }
   await page.route(`**/api/jobs/${POSTED_JOB}`, (route) => route.fulfill({ json: answer }));
   await page.route('**/api/jobs/by-number/1000', (route) => route.fulfill({ json: answer }));
 }
@@ -2928,6 +3023,21 @@ test('the Jobs list at volume: two fields, how many match in all, and a page at 
   await expect(cards.nth(1)).not.toContainText(/Pay not listed|an hour/);
   await expect(cards.nth(0)).toContainText('$28–$42 an hour');
   await expect(cards.nth(0)).toContainText('Bastrop, TX');
+  // A card leads with its job's standard name, the career's; the opening's own name is the line under it, in the
+  // words its employer used. A posting that says nothing beyond its career has no such line.
+  await expect(cards.nth(0)).toHaveAttribute('data-job-head', 'name');
+  await expect(cards.nth(0).locator('[data-row-title]')).toHaveText('CNC Machinist');
+  await expect(cards.nth(0).locator('[data-row-second]')).toHaveText(POSTED_OWN_NAME);
+  const [nameBox, ownBox, factsBox] = await Promise.all(['[data-row-title]', '[data-row-second]', '[data-row-line]'].map((part) => cards.nth(0).locator(part).first().boundingBox()));
+  expect(ownBox?.y ?? 0, 'the own name stands under the standard name').toBeGreaterThanOrEqual((nameBox?.y ?? 0) + (nameBox?.height ?? 0) - 1);
+  expect(factsBox?.y ?? 0, 'and the company and the place under the own name').toBeGreaterThanOrEqual((ownBox?.y ?? 0) + (ownBox?.height ?? 0) - 1);
+  expect(await cards.nth(0).locator('[data-row-second]').evaluate((node) => getComputedStyle(node).color), 'the own name is in secondary ink').not.toBe(await cards.nth(0).locator('[data-row-title]').evaluate((node) => getComputedStyle(node).color));
+  await expect(cards.nth(3).locator('[data-row-title]')).toHaveText('Quality Control Inspector');
+  await expect(cards.nth(3).locator('[data-row-second]')).toHaveCount(0);
+  // A name as long as employers write them takes two lines at most and pushes nothing sideways, on the narrowest phone too.
+  await expect(cards.nth(1).locator('[data-row-second]')).toHaveText(LONG_OWN_NAME);
+  await expectTwoLinesAtMost(cards.nth(1).locator('[data-row-second]'), '/jobs, a long own name');
+  expect(await expectJobRows(page, '/jobs'), 'every card is a job row').toBe(40);
   await assertHealthyLayout(page, '/jobs at volume');
   // The next page is asked for, never the whole of a long list.
   const more = page.locator('[data-more-jobs]');
@@ -2942,174 +3052,85 @@ test('the Jobs list at volume: two fields, how many match in all, and a page at 
   // What is typed is counted over everything that matches, not over what is on screen.
   await page.getByRole('searchbox', { name: 'Job, company or career' }).fill('machinist');
   await expect(page.getByRole('status').filter({ hasText: 'match' })).toHaveText(/4,812 jobs match/);
+  // A job found by a word of the title it was posted under shows why: its own name is on the card.
+  await expect(cards.nth(0).locator('[data-row-second]')).toHaveText(POSTED_OWN_NAME);
+
+  // Narrowed to one career, the line above the list has said the career: a card leads with the opening's own name,
+  // and with the career's title where the posting says nothing more. Never with its company or its place.
+  await page.goto('/jobs?career=00000000-0000-4000-8000-0000000000d1', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('status').filter({ hasText: 'open jobs' })).toHaveText(/open jobs for CNC Machinist/);
+  await expect(cards.nth(0)).toHaveAttribute('data-job-head', 'own');
+  await expect(cards.nth(0).locator('[data-row-title]')).toHaveText(POSTED_OWN_NAME);
+  await expect(cards.nth(0).locator('[data-row-second]')).toHaveCount(0);
+  await expect(cards.nth(0)).toContainText('Space Exploration Technologies');
+  await expect(cards.nth(3)).toHaveAttribute('data-job-head', 'name');
+  await expect(cards.nth(3).locator('[data-row-title]')).toHaveText('Quality Control Inspector');
+  await expectTwoLinesAtMost(cards.nth(1).locator('[data-row-title]'), '/jobs for one career, a long own name');
+  expect(await expectJobRows(page, '/jobs for one career')).toBe(40);
+  await assertHealthyLayout(page, '/jobs narrowed to one career');
 });
 
-test("a job from a company's careers site, as a visitor: tags, facts, one way to apply and the career's whole path", async ({ page }) => {
+test("a job from a company's careers site: the company's variant as its title, its career as a tag, its own skills as a tree, no prompt to sign in", async ({ page }) => {
   await standInForPostedJobs(page);
-  // An older link, by the job's id, opens the job and is replaced by its address.
   await page.goto(`/jobs/${POSTED_JOB}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Space Exploration Technologies CNC Machinist');
   await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
-  // Under the title, the company, the factory and the career as tags, each opening its page.
+  await expect(page.locator('[data-detail-header] [data-job-own-name]')).toHaveText(POSTED_OWN_NAME);
+  // The company, the factory and the career as tags; the career by its own name.
   const tags = page.locator('[data-job-tags] a');
   await expect(tags).toHaveCount(3);
   await expect(tags.nth(0)).toHaveAttribute('href', /^\/companies\//);
-  await expect(tags.nth(0)).toContainText('Space Exploration Technologies');
   await expect(tags.nth(1)).toHaveAttribute('href', /^\/factories\//);
-  await expect(tags.nth(1)).toContainText('Bastrop, TX');
   await expect(tags.nth(2)).toHaveAttribute('href', /^\/occupations\//);
   await expect(tags.nth(2)).toContainText('CNC Machinist');
-  const narrow = (page.viewportSize()?.width ?? 0) < 640;
-  for (let i = 0; i < 3; i += 1) {
-    const box = await tags.nth(i).boundingBox();
-    expect(box?.height ?? 0, 'a tag is a full finger tall on a phone').toBeGreaterThanOrEqual(narrow ? 44 : 36);
-    expect(await tags.nth(i).evaluate((node) => getComputedStyle(node).borderRadius)).toBe('8px');
-  }
-  // The one action: Apply, on the company's own page, in a new tab.
-  const apply = page.locator('[data-apply-on-site]');
-  await expect(apply).toHaveCount(1);
-  await expect(apply).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
-  await expect(apply).toHaveAttribute('target', '_blank');
-  await expect(apply).toHaveAttribute('rel', /noopener/);
-  expect((await apply.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(40);
-  // Beside it, whose page that is, by the company's name: never the hiring system's host.
-  await expect(page.locator('[data-apply-where]')).toHaveText(/^On .+ careers site$/);
-  await expect(page.locator('main')).not.toContainText('boards.greenhouse.io');
-  // The facts the posting states, each under its word; nothing for what it does not say.
-  const terms = page.locator('[data-job-terms]');
-  await expect(terms).toContainText('$28–$42 an hour');
-  await expect(terms).toContainText('Senior');
-  await expect(terms.locator('[data-job-requirement="experience"]')).toHaveText('5 years or more');
-  await expect(terms.locator('[data-job-requirement="schooling"]')).toHaveText('High school diploma or equivalent');
-  await expect(terms.locator('[data-job-requirement="certificates"]')).toHaveText('NIMS Machining Level I, AWS D17.1');
-  await expect(terms.locator('[data-job-requirement="clearance"]')).toHaveText('Secret clearance');
-  await expect(terms.locator('[data-job-requirement="citizenship"]')).toHaveText('US person (ITAR)');
-  // The skills are the career's path, by skill group with no level named: eight, of which the posting names three, and one more after them.
-  const path = page.locator('[data-job-path="career"]');
+  await expect(tags.nth(2)).not.toContainText('Standard');
+  // The skills its posting names, as the tree a career's page draws: groups that open, closed on arrival.
+  const tree = page.locator('#skills [data-skill-tree]');
+  await expect(tree).toBeVisible();
+  const groups = tree.locator('button[aria-expanded]');
+  expect(await groups.count()).toBeGreaterThan(0);
+  expect(await groups.evaluateAll((nodes) => nodes.every((node) => node.getAttribute('aria-expanded') === 'false'))).toBe(true);
+  // Nothing in the section asks anyone to sign in, and no button stands for the rest of the career.
+  await expect(page.locator('#skills a[href^="/sign-in"]')).toHaveCount(0);
+  await expect(page.locator('[data-job-range]')).toHaveCount(0);
+  // Every row of the page's lists of jobs leads with a name, never with a place.
+  const heads = await page.locator('[data-job-head]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-job-head')));
+  expect(heads.length).toBeGreaterThan(0);
+  expect(heads.every((kind) => kind === 'name' || kind === 'own')).toBe(true);
+  await assertHealthyLayout(page, 'a job from a careers site');
+});
+
+
+test('a job a company posted here by hand lists the skills it chose, by group, as before', async ({ page }) => {
+  await standInForPostedJobs(page, { byHand: true });
+  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
+  // It keeps the title its poster wrote, with no line under it, its career as the tag, and its tab as running text names it.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist');
+  await expect(page.locator('[data-job-own-name], [data-job-standard]')).toHaveCount(0);
+  await expect(page.locator('[data-job-tags] a').nth(2)).toHaveText('Career: CNC Machinist');
+  await expect(page).toHaveTitle('CNC Machinist at Space Exploration Technologies · Archangel');
+  const skills = page.locator('#skills');
+  await expect(skills.locator('h2')).toHaveText('Skills');
+  await expect(skills).toContainText('The skills Space Exploration Technologies lists for this job.');
+  const path = page.locator('[data-job-path="job"]');
   await expect(path.locator('[data-job-groups]')).toHaveCount(1);
-  await expect(path).not.toContainText(/Fundamentals|Intermediate|Advanced/i);
-  await expect(path.locator('[data-group-box] [data-skill-tag]')).toHaveCount(8);
-  await expect(path.locator('[data-group-box] [data-skill-tag][data-named]')).toHaveCount(3);
-  await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).toContainText('Named in the posting');
-  await expect(path.locator(`[data-skill-tag="${SKILL(5)}"]`)).not.toContainText('Named in the posting');
-  await expect(page.locator('[data-job-also-named]')).toContainText('Also named in the posting');
-  // One sentence says how much of the path the posting itself names.
-  await expect(page.locator('[data-job-named-count]')).toHaveText('The posting names 3 of these 8, and 1 more.');
-  // The way out is one button in the facts panel; for a visitor it is Apply, and there is no second one.
-  await expect(page.locator('[data-job-panel] [data-job-action] [data-apply-on-site]')).toHaveCount(1);
-  await expect(page.locator('[data-view-on-site]')).toHaveCount(0);
-  await expect(page.locator('[data-job-also-named] [data-skill-tag]')).toHaveCount(1);
-  // Read, not worked on: no mark and no control on a tag; a visitor is shown the way to sign in, and back.
-  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  await expect(page.locator('[data-job-overlap]')).toHaveCount(0);
-  await expect(page.locator('[data-job-overlap-sign-in] a')).toHaveAttribute('href', new RegExp(`^/sign-in\\?next=${encodeURIComponent(POSTED_JOB_PATH)}`));
-  // The equipment the posting names, each make beside its skill.
-  const equipment = page.locator('[data-job-equipment] li');
-  await expect(equipment).toHaveCount(1);
-  await expect(equipment.first()).toContainText('Mazak, Okuma, Heidenhain');
-  await expect(equipment.first()).toContainText('CNC Control Operation');
-  // Other open jobs, each at its own address.
-  await expect(page.locator('#more-for-career a[href^="/jobs/space-exploration-technologies/cnc-machinist/"]')).toHaveCount(2);
-  await expect(page.locator('#more-for-career [data-all-jobs]')).toHaveText('All 9');
-  await expect(page.locator('#more-at-factory li')).toHaveCount(1);
-  // Nothing of a job posted here: no description, no form, nothing to manage.
-  await expect(page.getByText('About the job')).toHaveCount(0);
-  await expect(page.locator('#apply, #applicants, #manage-job')).toHaveCount(0);
-  await expect(page.getByText(/Post another like this|Sign in to apply/)).toHaveCount(0);
-  await assertHealthyLayout(page, '/jobs/:company/:career/:number from a posting');
-  // An address whose words are wrong, with the right number, is the same job at the right address.
-  await page.goto('/jobs/some-other-company/a-renamed-career/1000', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CNC Machinist, Tool & Die - Level 4/5');
-  await expect(page).toHaveURL(new RegExp(`${POSTED_JOB_PATH}$`));
-  // The jobs list writes the same address.
-  await page.goto('/jobs', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('a[href^="/jobs/"]').first()).toHaveAttribute('href', POSTED_JOB_PATH);
+  await expect(path.locator('[data-group-box] [data-skill-tag]')).toHaveCount(3);
+  await expect(path.locator(`[data-skill-tag="${SKILL(6)}"]`)).toContainText('Optional');
+  await expect(path.locator(`[data-skill-tag="${SKILL(2)}"]`)).not.toContainText('Optional');
+  // Nothing of a posting's page: no list of what a posting names, no career's range, no equipment.
+  await expect(page.locator('[data-job-own], [data-job-range], #equipment')).toHaveCount(0);
+  await expect(skills).not.toContainText(/Named in the posting|career ·/);
+  // A visitor reads them with nothing above them: no line about signing in. Applying is the page's one action, and it
+  // alone says how (a job posted here is applied to here).
+  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
+  await expect(skills).not.toContainText(/sign in|account/i);
+  await expect(skills.locator('a[href^="/sign-in"]')).toHaveCount(0);
+  await expect(page.locator('#apply a[href^="/sign-in"]').first()).toHaveText('Sign in to apply');
+  await assertHealthyLayout(page, 'a job posted by hand');
 });
 
-test("a job from a company's careers site, as a seeker and as the company: a count and ticks for one, a line and nothing to edit for the other", async ({ page }) => {
-  const person = (purpose: 'work' | 'hire', memberships: unknown[] = []) => ({
-    user: { id: '00000000-0000-4000-8000-000000000002', email: 'person@device.test', name: 'Device Person', isAdmin: false, homeZip: null, about: null, emailNotices: true, purpose },
-    memberships, isEmployer: memberships.length > 0,
-  });
-  await page.route('**/api/me/news', (route) => route.fulfill({ json: { applications: false, applicants: false, access: false } }));
-  await page.route('**/api/me/skills', (route) =>
-    route.fulfill({ json: { skills: [
-      { skillId: SKILL(1), name: 'CNC Control Operation', status: 'held', updatedAt: new Date().toISOString(), makes: [{ id: 'm1', name: 'Mazak' }] },
-      { skillId: SKILL(2), name: 'Blueprint Reading', status: 'learning', updatedAt: new Date().toISOString(), makes: [] },
-      { skillId: SKILL(6), name: 'Micrometer Measurement', status: 'held', updatedAt: new Date().toISOString(), makes: [] },
-    ] } })
-  );
-  // A seeker: one line with the ring says how many of the path's skills they hold, and those are ticked. Nothing is marked here.
-  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('work') }));
-  await standInForPostedJobs(page);
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  const overlap = page.locator('[data-job-overlap]');
-  await expect(overlap).toHaveText('You hold 2 of 8');
-  await expect(overlap.locator('[data-share-ring]')).toHaveCount(1);
-  await expect(page.locator('[data-job-overlap-sign-in]')).toHaveCount(0);
-  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"]`)).toHaveAttribute('data-status', 'held');
-  await expect(page.locator(`[data-skill-tag="${SKILL(1)}"] [data-skill-mark="held"]`)).toHaveCount(1);
-  await expect(page.locator(`[data-skill-tag="${SKILL(2)}"]`)).toHaveAttribute('data-status', 'learning');
-  await expect(page.locator(`[data-skill-tag="${SKILL(5)}"]`)).toHaveAttribute('data-status', 'none');
-  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  // A make they have run stands in full ink among the equipment.
-  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toContainText('Mazak');
-  await expect(page.locator('[data-job-equipment] [data-make="lit"]')).toHaveCount(1);
-  await expect(page.locator('[data-apply-on-site]')).toHaveCount(1);
-  await assertHealthyLayout(page, 'a job from a posting, a seeker');
 
-  // Someone who manages the company's jobs: told where it comes from, with nothing to change, nothing to apply to and no count.
-  await page.unroute('**/api/auth/me');
-  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
-  await page.unroute('**/api/jobs/by-number/1000');
-  await page.route('**/api/auth/me', (route) =>
-    route.fulfill({ json: person('hire', [{ companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active' }]) })
-  );
-  await standInForPostedJobs(page, { canManage: true });
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  // One quiet line in the facts panel, beside the button that opens the posting on the company's site.
-  await expect(page.locator('[data-job-panel] [data-job-from-source]')).toContainText("careers site and is kept in step with it");
-  const view = page.locator('[data-job-panel] [data-view-on-site]');
-  await expect(view).toHaveText(/^View on Space Exploration Technologies' careers site/);
-  await expect(view).toHaveAttribute('href', 'https://boards.greenhouse.io/spacex/jobs/8643277002?gh_jid=8643277002');
-  await expect(view).toHaveAttribute('target', '_blank');
-  expect((await view.boundingBox())?.height ?? 0, 'the way to the posting is a button').toBeGreaterThanOrEqual(40);
-  await expect(page.locator('[data-detail-kind]')).toHaveText('Job');
-  await expect(page.locator('[data-apply-on-site], #applicants, #manage-job')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: /^Edit$|Post another like this/ })).toHaveCount(0);
-  await expect(page.locator('[data-job-overlap], [data-job-overlap-sign-in], [data-skill-mark]')).toHaveCount(0);
-  await expect(page.locator('[data-job-path] [data-skill-tag]')).toHaveCount(9);
-  await expect(page.locator('[data-skill-tag] button')).toHaveCount(0);
-  await assertHealthyLayout(page, 'a job from a posting, the company');
-
-  // Someone here to hire who is not of this company: the same button to the posting, no line about managing, no Apply.
-  await page.unroute('**/api/auth/me');
-  await page.unroute(`**/api/jobs/${POSTED_JOB}`);
-  await page.unroute('**/api/jobs/by-number/1000');
-  await page.route('**/api/auth/me', (route) => route.fulfill({ json: person('hire') }));
-  await standInForPostedJobs(page);
-  await page.goto(POSTED_JOB_PATH, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-view-on-site]')).toHaveCount(1);
-  await expect(page.locator('[data-apply-on-site], [data-job-from-source], [data-job-overlap], [data-job-overlap-sign-in]')).toHaveCount(0);
-
-  // Your jobs, for a member who has posted nothing: what is already listed from the company's site is said before the form.
-  await page.route('**/api/employer', (route) =>
-    route.fulfill({
-      json: {
-        companies: [
-          { companyId: '00000000-0000-4000-8000-0000000000c1', companyName: 'Space Exploration Technologies', role: 'member', status: 'active', decidedAt: null, askAgainAt: null, factories: [], jobs: [], listedJobs: 485 },
-        ],
-      },
-    })
-  );
-  await page.route('**/api/employer/company-requests', (route) => route.fulfill({ json: { requests: [] } }));
-  await page.route('**/api/companies/*/careers', (route) => route.fulfill({ json: { versions: [] } }));
-  await page.goto('/employer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('[data-listed-jobs]')).toContainText("485 open jobs come from the company's careers site and are kept in step with it.");
-  await expect(page.getByRole('heading', { name: 'Post a job' })).toBeVisible();
-  await assertHealthyLayout(page, '/employer with listed jobs and none posted');
-});
 
 // ─── Military careers: reached on purpose ──────────────────────────────────────
 

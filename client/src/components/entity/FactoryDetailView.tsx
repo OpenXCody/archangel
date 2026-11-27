@@ -111,7 +111,7 @@ export default function FactoryDetailView({ data, head }: { data: FactoryDetail;
       )}
 
       {/* Open jobs: said only when there are some */}
-      {jobs.length > 0 && <OpenJobsSection jobs={jobs} showCareer total={data.openJobCount} all={`/jobs?plant=${data.id}`} />}
+      {jobs.length > 0 && <OpenJobsSection jobs={jobs} said={{ factory: true }} total={data.openJobCount} all={`/jobs?plant=${data.id}`} />}
 
       {/* Its own careers: of its open jobs (with how many are open), its company's versions, those recorded for it */}
       {careers.length > 0 && (

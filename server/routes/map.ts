@@ -7,6 +7,7 @@ import { STATE_CODE_TO_NAME } from '../../shared/states.js';
 import { INDUSTRY_NAME_LIST, byCompanyStanding, companyStandings, plantCounty, standingOf } from '../lib/industries.js';
 import { isUuid } from '../lib/writes.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
+import { jobRowColumns, jobRowGiven } from '../lib/jobRows.js';
 import { rowsOf, type Row } from '../lib/rows.js';
 
 const router = Router();
@@ -105,9 +106,7 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
   // Who is hiring here: the newest open jobs at these factories, and how many
   // there are in all. Empty where nobody is, and the panel then says nothing.
   const openJobs = await db.execute(sql`
-    SELECT j.id, j.serial, j.title, j.pay_min, j.pay_max, j.pay_period,
-           c.name AS company_name, c.slug AS company_slug, f.name AS factory_name, f.city,
-               (SELECT o.title FROM occupations o WHERE o.id = j.occupation_id) AS occupation_title,
+    SELECT ${jobRowColumns('j', 'f', 'c')},
            COUNT(*) OVER ()::int AS total
     FROM jobs j
     INNER JOIN factories f ON f.id = j.factory_id
@@ -120,19 +119,8 @@ async function buildOverview(inSet: (factoryTable: string) => SQL) {
 
   return {
     openJobs: jobRows.length > 0 ? Number(jobRows[0].total) : 0,
-    jobs: jobRows.map((r) => ({
-      id: r.id,
-      serial: r.serial,
-      title: r.title,
-      payMin: r.pay_min,
-      payMax: r.pay_max,
-      payPeriod: r.pay_period,
-      companyName: r.company_name,
-      companySlug: r.company_slug ?? null,
-      occupationTitle: r.occupation_title ?? undefined,
-      factoryName: r.factory_name,
-      city: r.city ?? null,
-    })),
+    // Each with its own name beside its standard one (jobRows.ts): the panel's rows read both.
+    jobs: jobRows.map(jobRowGiven),
     careers: rowsOf(careers).map((r) => ({ id: r.id, title: r.title, count: r.count })),
     totalFactories: totalsRow?.totalFactories ?? 0,
     totalCompanies: totalsRow?.totalCompanies ?? 0,

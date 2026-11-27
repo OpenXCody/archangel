@@ -157,19 +157,38 @@ export interface GroupSkill {
   level: SkillLevel;
 }
 
-/** An open job listed on its career's page. Pay is in cents. */
+/**
+ * An open job as a list gives it: on a career's, a company's, a factory's, a skill's and an industry's page, beside
+ * another job, in a panel of the map. Pay is in cents.
+ */
 export interface CareerJob {
   id: string;
   serial: number;
+  /** The job's standard name: its career's title on a job from a careers site, its poster's words on one posted here. */
   title: string;
+  /**
+   * The opening's own name beside it: what the employer called the posting, with what a page states elsewhere cut
+   * out ("Pipe Welder (Starship)"). Null where the posting says nothing beyond the career, and on a job posted here.
+   */
+  ownName?: string | null;
+  /** What the job states, and its day: a row says them after its names (lib/jobRow.ts). */
+  employmentType?: string | null;
+  shift?: string | null;
   payMin: number | null;
   payMax: number | null;
   payPeriod: 'hour' | 'year';
+  postedAt?: string;
+  /** True where a posting from a careers site gives no date: `postedAt` is the day it was first seen. */
+  undated?: boolean | null;
   companyName: string;
   /** The company's slug, for the job's address. */
   companySlug?: string | null;
+  /** The company's web domain, for its mark. */
+  companyDomain?: string | null;
   factoryName: string;
   city: string | null;
+  /** The factory's state: with the city, the place as it is written ("Ankeny, IA"). */
+  state?: string | null;
   occupationId?: string;
   occupationTitle?: string;
 }
@@ -571,6 +590,8 @@ export interface SearchResultItem {
   meta?: string;
   /** Jobs only: the job's address. */
   href?: string;
+  /** Jobs only: the opening's own name beside its standard one (`name`), where it has one. It leads `subtitle`. */
+  ownName?: string | null;
   /** Companies only: the web domain their logo is looked up from. */
   domain?: string | null;
   /** Careers only: a military career the query named (its code, or its service with words of its title). */

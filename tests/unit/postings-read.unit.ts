@@ -6,8 +6,13 @@
 // fragment that must not match, a make with no skill, a software title, a manager,
 // a location with two places, each way pay is written, each way a level is). And
 // the gold set (tests/fixtures/postings/gold.json): 480 hand-labelled postings in
-// reduced form, half of them held out while the reader was built. The figures the
-// reader reached on each half are a floor: a change that reads worse fails here.
+// reduced form, half of them held out while the reader was built, and 48 added to the
+// tuning half since: 20 titles of cleaning and food preparation work when those careers
+// left the catalogue, 24 for the words that make a title not ours (20 that hold one
+// beside a career's own name, four that hold a word left off the list on purpose), and
+// four production welders (a production welder is the MIG Welder; the two the set
+// already held are labelled so now). The figures the reader reached on each half are a
+// floor: a change that reads worse fails here.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -15,6 +20,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 // @ts-expect-error a plain script, no types
 import { loadVocabulary, readPosting } from '../../scripts/ingest/postings/read/index.mjs';
+import { notOursWord } from '../../scripts/ingest/postings/read/vocabulary.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const vocab = loadVocabulary(root);
@@ -64,8 +70,8 @@ test('a title is a career once its level, shift, site, programme and code are se
   assert.equal(d.career?.matched, 'Machinist');
   assert.equal(d.level, null);
 
-  // The employer's name before the job.
-  assert.equal(career('John Deere Harvester Works - Production Welder'), 'Welder');
+  // The employer's name before the job (and a production welder is the MIG welder: the test below).
+  assert.equal(career('John Deere Harvester Works - Production Welder'), 'MIG Welder');
   // A skill's short name in a title stands for the skill.
   assert.equal(career('AFP Operator - All Levels'), 'Automated Fiber Placement Operator');
   // "Technician" for "mechanic", and the trade's spelling.
@@ -80,6 +86,237 @@ test('titles that are not among the careers are refused', () => {
     'Production Planner', 'Production Shift Lead', 'Team Lead - Machine Shop', 'Senior Site Reliability Engineer',
     'IT Systems Engineer', 'Vehicle Software Quality Test Engineer', 'Senior Quality Engineer, Applied AI', 'Security Operator 3',
   ]) assert.equal(career(title, MACHINING), null, title);
+});
+
+test('cleaning a plant and preparing food by hand are not among the careers, whatever the text names', () => {
+  // The four careers that left the catalogue (data/careers/catalogue.json, `removed`: Sanitation Technician, Meat
+  // Cutter, Slaughterer, Baker) and the names such jobs go by. A posting for one names skills the catalogue has
+  // (sanitation, lockout, HACCP, the knife, the dough), so each is read with them all in its text: the title decides.
+  const names = 'Requirements:\n- Sanitation procedures, clean-in-place, allergen changeover cleaning and environmental monitoring under the HACCP plan and GMPs\n' +
+    '- Lockout tagout, chemical safety, PPE and 5S\n- Knife sharpening and steeling; meat deboning and trimming; vacuum packaging; lot tracking\n' +
+    '- Dough mixing, proofing and industrial oven baking; food batching and blending; shop math\n- Forklift operation; follow work instructions';
+  for (const title of [
+    'Sanitation Technician I', 'Sanitation Specialist I', 'Sanitation Worker', 'Sanitor', 'Janitor', 'Custodian', 'Cleaner', 'Housekeeper',
+    'Houston 66 (Washington Heights) Market - Meat Cutter - Full time', 'Meat Cutter', 'Butcher', 'Baker', 'Bakery Clerk', 'Cake Decorator',
+    'Line Cook', 'Prep Cook', 'Food Prep Associate', 'Kitchen Team Member', 'Deli Clerk', 'Dishwasher',
+    // The other names the four went by, and the careers' own titles with a level, a shift or a site about them.
+    'Slaughterer', 'Sanitation Technician - 3rd Shift', 'Sanitation Associate', 'Sanitation Team Member', 'Food Plant Sanitation Technician',
+    'Meat Cutter II', 'Meat Trimmer', 'Deboner', 'Harvest Floor Worker', 'Meat Packer', 'Production Baker', 'Dough Mixer', 'Bakery Mixer',
+  ]) {
+    assert.equal(career(title), null, title);
+    assert.equal(career(title, names), null, `${title}, with the skills such a posting names`);
+  }
+  // None of them is a career of the vocabulary, under its title or another name.
+  for (const title of ['Sanitation Technician', 'Meat Cutter', 'Slaughterer', 'Baker']) assert.ok(!vocab.careers.has(title), `${title} is not a career`);
+  // "Oven Operator" was folded into the paint shop's career; a bakery's oven operator carries the same title, so
+  // the name is taken back (`not` in data/careers/aliases.json) and neither is read as a painter.
+  assert.equal(career('Bakery Oven Operator', names), null);
+  assert.equal(career('Oven Operator', 'Requirements:\n- Spray gun painting, paint defect identification and color matching'), null);
+  // The food and drink careers that run process equipment are read as before.
+  assert.equal(career('Food Processing Operator'), 'Food Processing Operator');
+  assert.equal(career('Packaging Line Operator'), 'Packaging Line Operator');
+  assert.equal(career('Food Safety and Quality Technician'), 'Food Safety and Quality Technician');
+  assert.equal(career('Beverage Production Operator II - Nights'), 'Beverage Production Operator');
+});
+
+test('janitorial, grounds and food-service work is never ours, whatever career the title also names', () => {
+  // The words are data (data/careers/aliases.json, `notOurs`), and a title that holds one is turned away before
+  // anything else is read: each title here names a career beside the word and is read with a text that names that
+  // career's skills, which without the word would keep it.
+  const MAINTENANCE = 'Requirements:\n- Perform preventive maintenance on conveyors, pumps and compressed air systems\n- Troubleshoot hydraulic and pneumatic systems; read electrical schematics\n- Follow lockout tagout; enter work orders in the CMMS';
+  const OPERATING = 'Requirements:\n- Follow work instructions, lockout tagout and PPE rules\n- Operate a forklift; record lot numbers\n- Keep the area to 5S standards; check parts with calipers';
+  const listed = (JSON.parse(readFileSync(path.join(root, 'data/careers/aliases.json'), 'utf8')) as { notOurs: { why: string; words: string[] } }).notOurs;
+  assert.ok(listed.why.length > 40 && !listed.why.includes('\n'), 'the list says why, in one line');
+  const away: [string, string, string][] = [
+    ['janitor', 'Janitor / General Laborer', OPERATING], ['janitorial', 'Janitorial Maintenance Technician', MAINTENANCE],
+    ['custodian', 'Custodian / Maintenance Technician', MAINTENANCE], ['custodial', 'Custodial Maintenance Technician', MAINTENANCE],
+    ['housekeeper', 'Plant Housekeeper (Production Associate)', OPERATING], ['housekeeping', 'Production Associate - Housekeeping', OPERATING],
+    ['sanitation', 'Sanitation Production Operator', OPERATING], ['sanitation', 'General Laborer - Sanitation', OPERATING],
+    ['sanitor', 'Sanitor / Machine Operator - 3rd Shift', OPERATING],
+    ['groundskeeper', 'Groundskeeper / Maintenance Technician', MAINTENANCE], ['groundskeeping', 'Groundskeeping Maintenance Technician', MAINTENANCE],
+    ['grounds keeper', 'Grounds Keeper - Maintenance Mechanic', MAINTENANCE], ['grounds keeping', 'Grounds Keeping and Maintenance Technician', MAINTENANCE],
+    ['grounds maintenance', 'Grounds Maintenance Technician', MAINTENANCE],
+    ['landscaping', 'Landscaping Maintenance Technician', MAINTENANCE], ['landscaper', 'Landscaper / Maintenance Technician', MAINTENANCE],
+    ['cafeteria', 'Cafeteria Production Operator', OPERATING], ['food service', 'Production Operator - Food Service', OPERATING],
+    ['food prep', 'Food Prep Production Operator', OPERATING], ['food preparation', 'Food Preparation Production Operator', OPERATING],
+    // The same work under its other spellings and words.
+    ['house keeper', 'House Keeper / Production Associate', OPERATING], ['house keeping', 'House Keeping Maintenance Technician', MAINTENANCE],
+    ['porter', 'Plant Porter - Maintenance Technician', MAINTENANCE],
+    ['sanitization', 'Sanitization Production Operator', OPERATING], ['sanitizing', 'Sanitizing Production Operator', OPERATING], ['hygiene', 'Plant Hygiene Production Operator', OPERATING],
+    ['grounds and maintenance', 'Grounds & Maintenance Technician', MAINTENANCE], ['grounds and building', 'Grounds and Building Maintenance Technician', MAINTENANCE],
+    ['landscape', 'Landscape Maintenance Technician', MAINTENANCE], ['lawn care', 'Lawn Care / Maintenance Technician', MAINTENANCE], ['lawn maintenance', 'Lawn Maintenance Technician', MAINTENANCE],
+    ['canteen', 'Canteen Production Operator', OPERATING], ['catering', 'Catering Production Operator', OPERATING], ['culinary', 'Culinary Production Operator', OPERATING],
+    ['foodservice', 'Foodservice Production Operator', OPERATING],
+    // The work of the four careers that left the catalogue, under a title that is still a career's.
+    ['meat cutter', 'Meat Cutter - Machine Operator', OPERATING], ['meat cutting', 'Production Operator - Meat Cutting', OPERATING], ['butcher', 'Butcher / Production Operator', OPERATING],
+    ['kill floor', 'Production Operator - Kill Floor', OPERATING], ['slaughter', 'Production Associate - Slaughter', OPERATING], ['deboning', 'Production Worker - Deboning', OPERATING],
+  ];
+  // Every word of the list has its title here, and the list has no word this test does not know.
+  assert.deepEqual([...new Set(away.map(([word]) => word))].sort(), [...listed.words].sort());
+  const without = { ...vocab, notOurs: [] };
+  for (const [word, title, text] of away) {
+    assert.equal(notOursWord(title, vocab), word, title);
+    assert.equal(career(title), null, title);
+    assert.equal(career(title, text), null, `${title}, with the skills of the career it names`);
+    // The case bites: with the list set aside, the same posting is kept.
+    assert.notEqual(readPosting({ employer: 'Acme Aerospace', title, location: 'Austin, TX', text }, without).career, null, `${title} is kept without the list`);
+  }
+  // A plural is its singular, and the word counts wherever it stands: in brackets, after a dash, in capitals.
+  for (const title of ['Custodians (2nd Shift)', 'Food Services Production Operator', 'Maintenance Technician (Janitorial)', 'MAINTENANCE TECHNICIAN - GROUNDS MAINTENANCE', 'Production Operator, Sanitation - Nights']) {
+    assert.equal(career(title, MAINTENANCE + OPERATING.replace('Requirements:', '')), null, title);
+  }
+  // Left off the list on purpose: real factory work is titled with these words, and is read as before.
+  assert.equal(career('Facilities Maintenance Technician', MAINTENANCE), 'Maintenance Technician');
+  assert.equal(career('Building Maintenance Technician', MAINTENANCE), 'Maintenance Technician');
+  assert.equal(career('Cleanroom Technician', 'Requirements:\n- Wafer handling, cleanroom gowning and cleanroom protocols\n- Record particle counts; ESD control'), 'Wafer Fab Operator');
+  assert.equal(career('Cleaning Room Operator', 'Requirements:\n- Grind and chip castings; oxy-fuel cutting and carbon arc gouging'), 'Casting Finisher');
+  for (const title of [
+    'Facilities Maintenance Technician', 'Building Maintenance Technician', 'Cleanroom Technician', 'Clean Room Operator', 'Cleaning Room Operator', 'Parts Cleaning Operator',
+    'Kitchen Production Operator', 'Bakery Production Operator', 'Deli Packaging Operator', 'Store Maintenance Technician', 'Meat Market Production Operator',
+    // "Grounds" by itself is a proving grounds, and a ground is an electrical one. A word of the list that stands in
+    // an excepted phrase is that phrase's (`exceptIn`): a proving grounds has maintenance technicians of its own.
+    'Proving Grounds Test Technician', 'Proving Grounds Maintenance Technician', 'Maintenance Technician - Proving Grounds', 'Grounding and Bonding Technician', 'Ground Support Equipment Mechanic',
+    // Left off as well: a parts cleaner, a lawn mower plant, a harvester's line.
+    'Parts Cleaner / Machine Operator', 'Lawn Mower Assembler', 'Harvester Assembler',
+    // The words are whole words: none of these holds one.
+    'Sanitary Welder', 'Sanitizer Blending Operator', 'Custody Transfer Technician', 'Food Safety and Quality Technician', 'Food Processing Operator',
+  ]) assert.equal(notOursWord(title, vocab), null, title);
+});
+
+test('a word of the list in an excepted phrase is not counted, and the same word outside it is', () => {
+  const MAINTENANCE = 'Requirements:\n- Perform preventive maintenance on conveyors, pumps and compressed air systems\n- Troubleshoot hydraulic and pneumatic systems; read electrical schematics\n- Follow lockout tagout; enter work orders in the CMMS';
+  assert.equal(career('Proving Grounds Maintenance Technician', MAINTENANCE), 'Maintenance Technician');
+  assert.equal(career('Maintenance Technician (Milford Proving Grounds)', MAINTENANCE), 'Maintenance Technician');
+  assert.equal(notOursWord('Grounds Maintenance Technician', vocab), 'grounds maintenance');
+  // Both in one title: the grounds crew of a proving grounds is still a grounds crew.
+  assert.equal(notOursWord('Proving Grounds - Grounds Maintenance Technician', vocab), 'grounds maintenance');
+  assert.equal(career('Proving Grounds - Grounds Maintenance Technician', MAINTENANCE), null);
+  // The case bites: without the phrase the first title is turned away.
+  const without = { ...vocab, notOurs: Object.assign([...vocab.notOurs], { exceptIn: [] }) };
+  assert.equal(notOursWord('Proving Grounds Maintenance Technician', without), 'grounds maintenance');
+});
+
+test('a plain title filed under a department of work that is never ours is that work', () => {
+  // A food plant titles its sanitation crew "Production Operator" and files it under its department: the title holds
+  // no word of the list, the department does, and it is read by the same list.
+  const OPERATING = 'Requirements:\n- Follow work instructions, lockout tagout and PPE rules\n- Operate a forklift; record lot numbers\n- Keep the area to 5S standards; check parts with calipers';
+  const MAINTENANCE = 'Requirements:\n- Perform preventive maintenance on conveyors, pumps and compressed air systems\n- Troubleshoot hydraulic and pneumatic systems; read electrical schematics\n- Follow lockout tagout; enter work orders in the CMMS';
+  for (const [title, department, text] of [
+    ['Production Operator', 'Sanitation', OPERATING], ['General Laborer', 'Sanitation - 3rd Shift', OPERATING], ['Production Operator', 'Janitorial Services', OPERATING],
+    ['Production Operator', 'Cafeteria', OPERATING], ['Production Associate', 'Slaughter', OPERATING],
+    ['Maintenance Technician', 'Custodial Services', MAINTENANCE], ['Maintenance Technician', 'Housekeeping', MAINTENANCE], ['Maintenance Technician', 'Grounds Maintenance', MAINTENANCE],
+  ]) {
+    assert.equal(career(title, text, { department }), null, `${title} in ${department}`);
+    // The case bites: in a department of the plant's own work the same posting is kept.
+    assert.notEqual(career(title, text, { department: 'Plant Operations' }), null, `${title} in Plant Operations`);
+  }
+  // A department the list is silent on, or excepts, changes nothing.
+  assert.equal(career('Maintenance Technician', MAINTENANCE, { department: 'Facilities' }), 'Maintenance Technician');
+  assert.equal(career('Maintenance Technician', MAINTENANCE, { department: 'Proving Grounds' }), 'Maintenance Technician');
+  assert.equal(career('Welder', '', { department: 'Fabrication' }), 'Welder');
+});
+
+test('a name taken back is no longer read: a rigger is not a millwright, and a body shop\'s weld technician is not the trade\'s welder', () => {
+  // A rigger moves loads; the catalogue's Millwright installs, aligns and rebuilds machinery, and it has no rigger.
+  const RIGGING = 'Requirements:\n- Operate overhead cranes and forklifts to move flight hardware\n- Inspect slings, shackles and lifting fixtures';
+  for (const title of ['Rigger', 'Rigger (Critical Movement Team) - 2nd Shift', 'Rigger II', 'Senior Rigger']) {
+    assert.equal(career(title), null, title);
+    assert.equal(career(title, RIGGING), null, `${title}, with a rigger's text`);
+  }
+  assert.equal(career('Millwright'), 'Millwright');
+  assert.equal(career('Machinery Mover'), 'Millwright');
+  // Rivian's body shop titles its weld technicians with the vehicle's programme: the catalogue's career for that
+  // work is Body Weld Technician, and the name is listed under it.
+  assert.equal(career('Weld Technician, EDV Body (Afternoon Shift)'), 'Body Weld Technician');
+  assert.equal(career('Weld Technician, Body'), 'Body Weld Technician');
+  assert.equal(career('Weld Technician'), 'Welder');
+});
+
+test('a production welder is the MIG welder, not the several-process welder', () => {
+  // The catalogue has both: Welder (stick, MIG, flux-cored and TIG, in all positions) and MIG Welder (one wire
+  // process on a production line). "Production Welder" is another name of MIG Welder (data/careers/aliases.json),
+  // so the title is read as it without a word of the text; before, the name ended in "welder" and was the trade.
+  const listed = (JSON.parse(readFileSync(path.join(root, 'data/careers/aliases.json'), 'utf8')) as { careers: { title: string; aliases: string[] }[] }).careers;
+  const namesOf = (title: string) => (listed.find((row) => row.title === title)?.aliases ?? []).map((name) => name.toLowerCase());
+  for (const name of ['production welder', 'production mig welder', 'mig production welder']) {
+    assert.ok(namesOf('MIG Welder').includes(name), `"${name}" is a name of MIG Welder`);
+    assert.ok(!namesOf('Welder').includes(name), `"${name}" is not a name of Welder`);
+  }
+  const TEXT = 'Requirements:\n- Operate forklifts and hoists\n- 6 months of welding experience\n- High school diploma or GED';
+  for (const title of [
+    // John Deere's board, as production had it.
+    'John Deere Davenport Works - Production Welder', 'John Deere Dubuque - Production Welder', 'John Deere Harvester Works - Production Welder',
+    'John Deere Horicon Works - Production Welder', 'John Deere Seeding Group - Production Welder', 'A&I Products Canada Inc. - Production Welder',
+    'Production Welder', 'Production Welder II', 'Production Welder (2nd Shift)', 'Production MIG Welder', 'MIG Production Welder', 'Welder, Production', 'Welder - Production',
+  ]) {
+    assert.equal(career(title), 'MIG Welder', title);
+    assert.equal(career(title, TEXT), 'MIG Welder', `${title}, with a text that names no process`);
+  }
+  assert.deepEqual(read('Production Welder').career, { title: 'MIG Welder', how: 'other name', matched: 'production welder' });
+  assert.deepEqual(read('Senior Production Welder').level, { word: 'Senior', rank: 3 });
+  // The case bites: with those names set aside the same titles are the trade again.
+  const without = loadVocabulary(root);
+  for (const key of ['production welder', 'production mig welder', 'mig production welder']) {
+    const name = without.byKey.get(key);
+    assert.ok(name, key);
+    without.byKey.delete(key);
+    without.byLast.set('welder', without.byLast.get('welder').filter((each: unknown) => each !== name));
+  }
+  assert.equal(readPosting({ employer: 'John Deere', title: 'John Deere Harvester Works - Production Welder', location: 'East Moline, Illinois, US, 61244', text: TEXT }, without).career?.title, 'Welder');
+  // The welders that are not a production line's stay what they were.
+  assert.equal(career('Welder'), 'Welder');
+  assert.equal(career('Structural Welder, Stage 0 Ground Fabrication (Starship)'), 'Welder');
+  assert.equal(career('Pipe Welder II'), 'Welder');
+  assert.equal(career('Production TIG Welder'), 'TIG Welder');
+  assert.equal(career('TIG Welder (Starship)'), 'TIG Welder');
+  assert.equal(career('MIG Welder'), 'MIG Welder');
+});
+
+test("a trade's general name says its branch only while nothing else does: the title's own word for the kind, or the text, is read first", () => {
+  // "Production welder" is words that leave a trade what it is before the trade's own title, listed as a name of one
+  // of its branches. It is a default: a title that says another kind beside it is that kind, with any text or none.
+  const NONE = '';
+  const VARIOUS = 'Requirements:\n- Weld parts and sub-assemblies to specification using various welding processes\n- Operate forklifts and hoists\n- Read and comprehend work instructions';
+  const MIG = 'Requirements:\n- MIG welding (GMAW) of steel weldments\n- Read blueprints and weld symbols';
+  const TIG = 'Requirements:\n- TIG welding of aluminum housings\n- Read blueprints and weld symbols';
+  const STICK = 'Requirements:\n- Stick welding (SMAW) and flux-cored welding (FCAW) of structural steel in all positions\n- Read blueprints and weld symbols; oxy-fuel cutting';
+  const every = [NONE, VARIOUS, MIG, TIG, STICK];
+  const always = (title: string, wanted: string) => { for (const text of every) assert.equal(career(title, text), wanted, `${title} / ${text.split('\n')[1] ?? 'no text'}`); };
+  // The kind in another part of the title, as a name with the trade's word: after a dash, in brackets, among other words.
+  always('Production Welder - TIG', 'TIG Welder');
+  always('Production Welder (TIG)', 'TIG Welder');
+  always('Production Welder (GTAW)', 'TIG Welder');
+  always('Production Welder, Aluminum TIG', 'TIG Welder');
+  always('Welder, Production (TIG)', 'TIG Welder');
+  always('TIG Production Welder', 'TIG Welder');
+  always('Production Welder, Aerospace', 'Aerospace Welder');
+  always('Production Welder - Stick/Flux Core', 'Welder');
+  always('Production Welder - Pipe Shop', 'Welder');
+  // The kind inside the title: the general name is no rival to a name that says it, so none of these is left open.
+  for (const title of ['Production Stick Welder', 'Production Pipe Welder', 'Production Structural Welder', 'Production Combo Welder', 'Production Fitter Welder']) always(title, 'Welder');
+  always('Robotic Production Welder', 'Welder');
+  // A title that says the same kind, or only where and when, is the default still; so is one whose other part is a
+  // word that says no kind ("certified").
+  always('Production Welder - MIG', 'MIG Welder');
+  assert.equal(career('Production Welder (Certified)'), 'MIG Welder');
+  assert.equal(career('Production Welder - Certified, 2nd Shift'), 'MIG Welder');
+  always('MIG Production Welder', 'MIG Welder');
+  for (const title of ['Production Welder', 'Certified Production Welder', 'Skilled Production Welder', 'Welder - Production', 'Production Welder - 2nd Shift (Dubuque Works)', 'Production Welder (Starship)']) {
+    assert.equal(career(title, NONE), 'MIG Welder', title);
+    // A text that names no process, or the branch's own, leaves it: John Deere's say "various welding processes".
+    assert.equal(career(title, VARIOUS), 'MIG Welder', `${title}, various processes`);
+    assert.equal(career(title, MIG), 'MIG Welder', `${title}, MIG`);
+    // A text that asks for what only the whole trade does (TIG, stick) is the trade's, as its own title would be read.
+    assert.equal(career(title, TIG), 'Welder', `${title}, TIG`);
+    assert.equal(career(title, STICK), 'Welder', `${title}, stick`);
+  }
+  // A skill most careers share is not such a sign: a forklift does not make a production welder the trade's.
+  assert.ok(!vocab.careers.get('Welder').telling.has('Forklift Operation'));
+  assert.ok(vocab.careers.get('Welder').path.includes('Forklift Operation') && !vocab.careers.get('MIG Welder').path.includes('Forklift Operation'));
+  // Only such a name is treated so: the trades' other names are names like any other.
+  assert.equal(career('Production Electrician'), 'Industrial Electrician');
+  assert.equal(career('Pipe Welder', MIG), 'Welder');
+  assert.equal(career('Production TIG Welder', MIG), 'TIG Welder');
 });
 
 test('a word before a name can make it another job', () => {
@@ -588,10 +825,22 @@ function score(split: 'tune' | 'held') {
 // the reader gets better; never lower one to let a change through. The figures were
 // raised once, after the vocabulary pass (migrations 0056 to 0058): the labels are as
 // they were, and the reader's rules changed in one place (a shortened other name of a
-// skill needs a neighbour).
+// skill needs a neighbour). The tuning half's places rose by 20 with the 20 postings
+// added to it (cleaning and food preparation titles, each turned away, each with its
+// place read): 258 of 260, as it was 238 of 240. Nothing else moved: the 480 read as
+// they did before those careers left the catalogue. They rose by 24 more, and the
+// careers kept by four, with the 24 added for the words that make a title not ours
+// (20 turned away, four kept as the career they are, each with its place read): 282 of
+// 284 places, and 76 where 72 stood. The 500 before them read as they did. With the
+// production welder (a name of MIG Welder; four postings added to the tuning half, each
+// kept and each with its place read): 286 of 288 places, and 80 kept right where 76
+// stood. Of the 524 before them, two read differently, as they are meant to: the two
+// "Production Welder" postings the set already held (n 49, n 148), whose labels were
+// changed from Welder to MIG Welder with the decision; the held-out half's figures did
+// not move.
 const FLOOR = {
   held: { right: 56, missed: 16, skillPrecision: 0.89, skillRecall: 0.74, makePrecision: 1, makeRecall: 1, level: 26, places: 240, years: 15, education: 15, certifications: 2, clearance: 3, citizenship: 7, shift: 3, employmentType: 1, pay: 14 },
-  tune: { right: 72, missed: 7, skillPrecision: 0.96, skillRecall: 0.82, makePrecision: 1, makeRecall: 0.75, level: 35, places: 238, years: 24, education: 23, certifications: 2, clearance: 3, citizenship: 10, shift: 3, employmentType: 2, pay: 24 },
+  tune: { right: 80, missed: 7, skillPrecision: 0.96, skillRecall: 0.82, makePrecision: 1, makeRecall: 0.75, level: 35, places: 286, years: 24, education: 23, certifications: 2, clearance: 3, citizenship: 10, shift: 3, employmentType: 2, pay: 24 },
 } as const;
 
 for (const split of ['held', 'tune'] as const) {
@@ -626,5 +875,6 @@ test('the whole gold set is read in well under a second', () => {
   const started = process.hrtime.bigint();
   for (const g of gold) readPosting({ employer: g.employer, title: g.title, location: g.location, department: g.department, text: g.lines.join('\n') }, vocab);
   const ms = Number(process.hrtime.bigint() - started) / 1e6;
-  assert.ok(ms < 2000, `480 postings took ${ms.toFixed(0)} ms`);
+  assert.equal(gold.length, 528);
+  assert.ok(ms < 2000, `${gold.length} postings took ${ms.toFixed(0)} ms`);
 });

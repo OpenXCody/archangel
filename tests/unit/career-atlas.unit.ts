@@ -214,7 +214,7 @@ test('the way to any one skill is unbroken from the centre ring out to the end o
 });
 
 test("every career's route is joined: each skill's line, each group's bar, each spoke in, with no stub and no gap", () => {
-  assert.ok(CAREERS.length >= 231 + 118, `${CAREERS.length} careers read from the curated paths`);
+  assert.ok(CAREERS.length >= 227 + 118, `${CAREERS.length} careers read from the curated paths`);
   let drawn = 0;
   for (const career of CAREERS) {
     if (career.skills.length === 0) continue;
@@ -231,7 +231,7 @@ test("every career's route is joined: each skill's line, each group's bar, each 
     assert.deepEqual(strokes(routePath(model, [...career.skills].reverse(), S)), strokes(d), `${career.title}: the same route whichever way round`);
     drawn += 1;
   }
-  assert.ok(drawn >= 231 + 118, `${drawn} careers have a route to draw`);
+  assert.ok(drawn >= 227 + 118, `${drawn} careers have a route to draw`);
 });
 
 test('what a person holds of a career is part of the same route', () => {

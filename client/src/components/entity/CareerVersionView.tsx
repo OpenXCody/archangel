@@ -155,7 +155,7 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
       <CareerLadderSection comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
 
       {/* Open jobs for this career at this company. */}
-      {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}
+      {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} said={{ career: true, company: true }} />}
     </>
   );
 }

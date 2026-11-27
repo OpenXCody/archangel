@@ -99,7 +99,7 @@ export default function OccupationView({ occupation }: { occupation: OccupationD
       {/* What the work takes */}
       {jobs.length > 0 && (
         <Section title="Open jobs">
-          <JobRows jobs={jobs} limit={3} />
+          <JobRows jobs={jobs} limit={3} said={{ career: true }} />
           <More shown={Math.min(3, jobs.length)} total={occupation.openJobCount ?? jobs.length} noun="on the career's page" />
         </Section>
       )}

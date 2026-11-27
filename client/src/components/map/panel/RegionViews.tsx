@@ -26,16 +26,19 @@ function jobsNear(lat: number, lng: number, name: string): string {
 /**
  * `jobsLink`: the jobs list narrowed to this region, for when it has more open jobs than the panel lists.
  * `industryIn`: the state or focus area an industry's row opens that industry's page for.
+ * `oneState`: the panel is a state's or a focus area's, so a job's place is its city alone.
  */
 function RegionBody({
   data,
   jobsLink,
   industryIn,
+  oneState = false,
   children,
 }: {
   data: RegionOverview;
   jobsLink: string;
   industryIn?: { state?: string; area?: string };
+  oneState?: boolean;
   children?: ReactNode;
 }) {
   const selectEntity = useMapStore((s) => s.selectEntity);
@@ -57,7 +60,7 @@ function RegionBody({
       {/* Who is hiring here: said only when someone is */}
       {jobs.length > 0 && (
         <Section title="Open jobs">
-          <JobRows jobs={jobs} limit={REGION_JOBS_SHOWN} company />
+          <JobRows jobs={jobs} limit={REGION_JOBS_SHOWN} said={{ state: oneState }} />
           {openJobs > REGION_JOBS_SHOWN && (
             <Link to={jobsLink} className={MORE_LINK}>
               All {openJobs.toLocaleString()} open jobs
@@ -138,7 +141,7 @@ export function StateView({ data }: { data: StateOverview }) {
   return (
     <>
       <Heading title={name} />
-      <RegionBody data={data} jobsLink={`/jobs?state=${data.code}`} industryIn={{ state: data.code }} />
+      <RegionBody data={data} jobsLink={`/jobs?state=${data.code}`} industryIn={{ state: data.code }} oneState />
       {data.totalFactories > 0 && <PageLink to={`/explore?tab=factories&state=${data.code}`}>All factories in {name}</PageLink>}
     </>
   );
@@ -152,6 +155,7 @@ export function AreaView({ data }: { data: AreaOverview }) {
         data={data}
         jobsLink={jobsNear((data.bounds[0][1] + data.bounds[1][1]) / 2, (data.bounds[0][0] + data.bounds[1][0]) / 2, data.name)}
         industryIn={{ area: data.id }}
+        oneState
       />
     </>
   );

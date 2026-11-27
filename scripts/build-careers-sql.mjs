@@ -8,7 +8,8 @@
 // home (one domain of data/skills/taxonomy.json), a `what`, up to three
 // `leadsTo` (the next rungs of its ladder) and `was`: the titles the product
 // used to list separately, now other names for this career. `removed` are
-// titles that are not manufacturing careers.
+// titles that are not careers of the product: work that is not manufacturing,
+// or that people do not come to the product for.
 //
 // --check validates the file and writes nothing. It fails unless:
 //   - every career has a title, a `what`, and a home that is a domain of the
@@ -33,20 +34,34 @@
 //     else that of whichever row had the most, with that row's path_status.
 //     Paths are not joined together;
 //   - creates a career none of whose titles is stored;
-//   - deletes the removed titles, except one that has a job with applications
-//     or is somebody's goal;
+//   - deletes the removed titles, except one that has a job with applications,
+//     is somebody's goal, or has rows in any table this file does not knowingly
+//     take with a career (a company's version of it, migration 0053, and
+//     whatever comes after: asked of the database's own foreign keys, as the
+//     employer loader's merge guard asks). A removed career's
+//     jobs go with it, and with them what the postings pipeline (migration 0054)
+//     keeps of the ones that came from a company's careers site: their outside
+//     ids, the staged postings read as that career, and the places only those
+//     postings left waiting for a person. So the next run of the postings
+//     neither finds a job to close nor a posting to count as gone; the reader,
+//     whose vocabulary is this file, turns the same postings away;
 //   - leaves a career the file does not name as it is;
-//   - makes the links between the file's careers exactly the file's.
+//   - makes the links between the file's careers exactly the file's, and
+//     takes a removed title that had to be kept off their ladders (its links
+//     with the file's careers go, each with a line to read).
 // Every step is a no-op once it has been done.
 //
-// 0046 was the first and is as it was applied; 0073 adds the trades of the
-// industries the catalogue lacked. Only the latest is what this script writes today.
+// 0046 was the first and 0073, which added the trades of the industries the
+// catalogue lacked, the second, each as it was applied; 0084 takes out four
+// careers that are cleaning a plant and preparing food by hand. Only the latest
+// is what this script writes today, and it needs the tables of 0043 and 0054,
+// which stand before it in the runner's list.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
-const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0073_careers_catalogue_2.sql'] = args.filter((arg) => arg !== '--check');
+const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0084_careers_catalogue_3.sql'] = args.filter((arg) => arg !== '--check');
 
 /** The most careers one career leads to. */
 export const MAX_LEADS_TO = 3;
@@ -156,6 +171,12 @@ export function catalogueSql(catalogue, source) {
     `-- the product used to list separately are folded into them and kept as other names;`,
     `-- ${removedRows.length} are removed. What it decided on this database is in load_log`,
     "-- (load 'careers-catalogue'; the lines with look = true are the ones to read).",
+    '--',
+    '-- A removed career that has no job with applications, is nobody\'s goal and has nothing else that would',
+    '-- go with it (a company\'s version of it) goes with its jobs and with what the postings pipeline (0054)',
+    '-- keeps of them: the outside ids of the jobs that came from a careers site, the staged postings read as',
+    '-- that career, and the places only those postings left waiting. Applied after 0043 and 0054, whose',
+    '-- tables it reads.',
     '',
     '-- Columns and tables --------------------------------------------------------------',
     '',
@@ -195,6 +216,54 @@ export function catalogueSql(catalogue, source) {
   INSERT INTO load_log (load, kind, action, look, detail) VALUES ('careers-catalogue', 'career', p_action, p_look, p_detail)
 $f$;`,
     '',
+    '-- What else would go with a career if it were deleted: the rows of every table that follows a career',
+    '-- by its foreign key, but for the ones a removal knowingly takes (its path, its other names, its',
+    '-- ladder and industry links, the careers recorded at a factory, its jobs, which are looked at for',
+    '-- applications, and goals, which are looked at themselves). A company\'s version of the career is',
+    '-- one such table (0053), and a table added later is one without this file knowing its name. NULL: nothing.',
+    `CREATE OR REPLACE FUNCTION pg_temp.cat_goes_with(p_career uuid) RETURNS text LANGUAGE plpgsql AS $f$
+DECLARE
+  k record;
+  n bigint;
+  v_said text[] := '{}';
+BEGIN
+  FOR k IN SELECT c.conrelid::regclass::text AS tbl, a.attname AS col
+           FROM pg_constraint c JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey)
+           WHERE c.confrelid = 'occupations'::regclass AND c.contype = 'f' AND c.confdeltype = 'c'
+             AND c.conrelid::regclass::text NOT IN ('occupation_skills', 'occupation_aliases', 'occupation_links', 'industry_occupations',
+                                                    'factory_occupations', 'jobs', 'user_goals')
+           ORDER BY 1, 2 LOOP
+    EXECUTE format('SELECT count(*) FROM %s WHERE %I = $1', k.tbl, k.col) INTO n USING p_career;
+    IF n > 0 THEN v_said := v_said || format('%s %s in %s', n, CASE WHEN n = 1 THEN 'row' ELSE 'rows' END, k.tbl); END IF;
+  END LOOP;
+  RETURN NULLIF(array_to_string(v_said, ', '), '');
+END $f$;`,
+    '',
+    '-- What the postings pipeline (migration 0054) keeps of the postings read as a title that is',
+    '-- no career of ours: the staged readings (their links and reviews go with them) and the',
+    '-- places only they named that wait for a person. A place a person or the data decided',
+    '-- stays as it was decided. Says how many of each went.',
+    `CREATE OR REPLACE FUNCTION pg_temp.cat_unstage(p_title text, OUT staged integer, OUT places integer) LANGUAGE plpgsql AS $f$
+BEGIN
+  DROP TABLE IF EXISTS pg_temp.cat_unstaged;
+  CREATE TEMP TABLE cat_unstaged AS
+    SELECT r.source, r.source_id, r.facts->'reading'->'places' AS places
+    FROM intake_records r INNER JOIN intake_sources s ON s.slug = r.source
+    WHERE s.kind = 'job' AND lower(r.facts->'reading'->'career'->>'title') = lower(p_title);
+  DELETE FROM intake_records r USING cat_unstaged u WHERE r.source = u.source AND r.source_id = u.source_id;
+  GET DIAGNOSTICS staged = ROW_COUNT;
+  DELETE FROM posting_places pp
+    WHERE pp.status = 'waiting'
+      AND EXISTS (SELECT 1 FROM cat_unstaged u,
+                    jsonb_array_elements(CASE WHEN jsonb_typeof(u.places) = 'array' THEN u.places ELSE '[]'::jsonb END) p
+                  WHERE u.source = pp.source AND posting_place_key(p->>'city', p->>'state') = pp.place_key)
+      AND NOT EXISTS (SELECT 1 FROM intake_records r,
+                        jsonb_array_elements(CASE WHEN jsonb_typeof(r.facts->'reading'->'places') = 'array' THEN r.facts->'reading'->'places' ELSE '[]'::jsonb END) p
+                      WHERE r.source = pp.source AND r.gone_run_id IS NULL AND posting_place_key(p->>'city', p->>'state') = pp.place_key);
+  GET DIAGNOSTICS places = ROW_COUNT;
+  DROP TABLE pg_temp.cat_unstaged;
+END $f$;`,
+    '',
     '-- The careers -------------------------------------------------------------------',
     '',
     `DO $load$
@@ -217,6 +286,11 @@ DECLARE
   v_names_moved integer;
   v_names_dropped integer;
   v_skills integer;
+  v_sourced integer;
+  v_from text;
+  v_ids integer;
+  v_staged integer;
+  v_waiting integer;
   -- A database with no careers is being built: nothing in it is worth a look.
   v_new boolean := NOT EXISTS (SELECT 1 FROM occupations);
   n_found integer := 0;
@@ -339,25 +413,52 @@ BEGIN
   -- A name that is a career's own title is not another name for anything ("CNC machinist").
   DELETE FROM occupation_aliases a WHERE EXISTS (SELECT 1 FROM occupations o WHERE lower(o.title) = lower(a.alias_text));
 
-  -- The titles that are not manufacturing careers go. Not one that has a job with
-  -- applications (such a job is closed, never deleted), nor one that is somebody's goal.
+  -- The titles that are not careers of ours go. Not one that has a job with applications
+  -- (such a job is closed, never deleted), nor one that is somebody's goal, nor one that
+  -- anything else hangs from (a company has written its own version of it).
   FOR m IN SELECT r.title AS named, o.id, o.title,
         (SELECT COUNT(*)::int FROM applications a INNER JOIN jobs j ON j.id = a.job_id WHERE j.occupation_id = o.id) AS applications,
-        (SELECT COUNT(*)::int FROM user_goals g WHERE g.occupation_id = o.id) AS goals
+        (SELECT COUNT(*)::int FROM user_goals g WHERE g.occupation_id = o.id) AS goals,
+        pg_temp.cat_goes_with(o.id) AS others
       FROM cat_removed r LEFT JOIN occupations o ON lower(o.title) = lower(r.title) ORDER BY r.position LOOP
     IF m.id IS NULL THEN
       IF NOT EXISTS (SELECT 1 FROM load_log l WHERE l.load = 'careers-catalogue' AND l.action = 'removed' AND l.detail = m.named) THEN
         PERFORM pg_temp.cat_log('not found', NOT v_new, format('"%s", to remove, is not stored', m.named));
+      END IF;
+      -- A posting staged as it since (a run that read with the catalogue as it was) is no posting of ours either.
+      SELECT u.staged, u.places INTO v_staged, v_waiting FROM pg_temp.cat_unstage(m.named) u;
+      IF v_staged > 0 THEN
+        PERFORM pg_temp.cat_log('postings unstaged', NOT v_new, format('"%s" is not stored: %s read as it went from staging, and %s',
+          m.named, CASE WHEN v_staged = 1 THEN '1 posting' ELSE v_staged || ' postings' END,
+          CASE WHEN v_waiting = 1 THEN '1 place stopped waiting' ELSE v_waiting || ' places stopped waiting' END));
       END IF;
     ELSIF m.applications > 0 THEN
       PERFORM pg_temp.cat_log('not removed', true, format('"%s" has a job with applications. Left as it is: close the job, then delete the career by hand', m.title));
     ELSIF m.goals > 0 THEN
       PERFORM pg_temp.cat_log('not removed', true, format('"%s" is the goal of %s. Left as it is, for an admin to delete or merge', m.title,
         CASE WHEN m.goals = 1 THEN '1 person' ELSE m.goals || ' people' END));
+    ELSIF m.others IS NOT NULL THEN
+      PERFORM pg_temp.cat_log('not removed', true, format('"%s" has %s, which would go with it. Left as it is, for an admin to delete or merge', m.title, m.others));
     ELSE
+      -- Its jobs go with it (nobody applied to any), and so does what the postings pipeline keeps of
+      -- the ones that came from a company's careers site: the outside ids here (the crosswalk has no
+      -- foreign key), then the staged postings and the places only they left waiting.
+      SELECT COUNT(*)::int, (COUNT(*) FILTER (WHERE j.source IS NOT NULL))::int INTO v_jobs, v_sourced FROM jobs j WHERE j.occupation_id = m.id;
+      SELECT string_agg(s.source || ' ' || s.n, ', ' ORDER BY s.source) INTO v_from
+        FROM (SELECT j.source, COUNT(*) AS n FROM jobs j WHERE j.occupation_id = m.id AND j.source IS NOT NULL GROUP BY j.source) s;
+      DELETE FROM external_references x USING jobs j WHERE x.entity_type = 'jobs' AND x.entity_id = j.id AND j.occupation_id = m.id;
+      GET DIAGNOSTICS v_ids = ROW_COUNT;
+      SELECT u.staged, u.places INTO v_staged, v_waiting FROM pg_temp.cat_unstage(m.title) u;
       DELETE FROM occupations WHERE id = m.id;
       n_removed := n_removed + 1;
       PERFORM pg_temp.cat_log('removed', false, m.named);
+      IF v_jobs > 0 OR v_staged > 0 THEN
+        PERFORM pg_temp.cat_log('jobs removed', NOT v_new, format('"%s": %s went with it (%s from a company''s careers site%s), with %s, %s read as it in staging, and %s',
+          m.named, CASE WHEN v_jobs = 1 THEN '1 job' ELSE v_jobs || ' jobs' END, v_sourced, COALESCE(': ' || v_from, ''),
+          CASE WHEN v_ids = 1 THEN '1 outside id' ELSE v_ids || ' outside ids' END,
+          CASE WHEN v_staged = 1 THEN '1 posting' ELSE v_staged || ' postings' END,
+          CASE WHEN v_waiting = 1 THEN '1 place stopped waiting' ELSE v_waiting || ' places stopped waiting' END));
+      END IF;
     END IF;
   END LOOP;
 
@@ -374,6 +475,24 @@ BEGIN
       AND EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = f.title)
       AND EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = t.title)
       AND NOT EXISTS (SELECT 1 FROM cat_links cl WHERE cl.from_title = f.title AND cl.to_title = t.title);
+  -- A title the file removes and the database had to keep (a goal, a job with applications, a company's version)
+  -- is on none of the file's ladders: its links with the file's careers go, so a career of the file leads to
+  -- what the file gives it and no more (a fourth rung is one more than a career may have).
+  FOR m IN
+    WITH gone AS (
+      DELETE FROM occupation_links l USING occupations f, occupations t
+        WHERE f.id = l.from_occupation_id AND t.id = l.to_occupation_id
+          AND (EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(f.title)) OR EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(t.title)))
+          AND (EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = f.title) OR EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(f.title)))
+          AND (EXISTS (SELECT 1 FROM cat_careers k WHERE k.title = t.title) OR EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(t.title)))
+        RETURNING f.title AS from_title, t.title AS to_title,
+          EXISTS (SELECT 1 FROM cat_removed r WHERE lower(r.title) = lower(t.title)) AS to_removed
+    )
+    SELECT * FROM gone ORDER BY from_title COLLATE "C", to_title COLLATE "C"
+  LOOP
+    PERFORM pg_temp.cat_log('link removed', true, format('"%s" leads to "%s": the catalogue removes "%s", which was left as it is', m.from_title, m.to_title,
+      CASE WHEN m.to_removed THEN m.to_title ELSE m.from_title END));
+  END LOOP;
   INSERT INTO occupation_links (from_occupation_id, to_occupation_id, position)
     SELECT f.id, t.id, cl.position FROM cat_links cl
       INNER JOIN occupations f ON f.title = cl.from_title
@@ -406,6 +525,8 @@ BEGIN
 END $load$;`,
     '',
     'DROP FUNCTION pg_temp.cat_log(text, boolean, text);',
+    'DROP FUNCTION pg_temp.cat_unstage(text);',
+    'DROP FUNCTION pg_temp.cat_goes_with(uuid);',
     'DROP TABLE pg_temp.cat_careers, pg_temp.cat_was, pg_temp.cat_links, pg_temp.cat_drop, pg_temp.cat_removed;',
     ''
   );

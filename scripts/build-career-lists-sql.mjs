@@ -16,7 +16,14 @@
 //   - an everyday name is listed once, in any letter case, and is not a
 //     career's title, a title folded into another career, or a name the
 //     catalogue says must not follow that career;
-//   - a name taken back from a career (`not`) is not also listed for it.
+//   - a name taken back from a career (`not`) is not also listed for it;
+//   - the words that make a title not ours (`notOurs` in the names file: a
+//     `why` and `words`) are each one to three plain words in lower case,
+//     listed once, and none stands in a career's title, a title folded into
+//     one or an everyday name: such a name could never be read. `exceptIn`,
+//     where given, lists the phrases a word of the list may stand in and not
+//     count ("proving grounds"): each two or three plain words, listed once,
+//     and sharing a word with the list, or it would except nothing.
 //
 // The migration is applied after the catalogue's own (it matches careers by
 // exact title, and skips a title with no career). It:
@@ -33,8 +40,11 @@
 //     because another career holds them. It deletes no other name. A second run
 //     changes nothing and writes nothing.
 //
-// 0047 was the first and 0056 the second, each as it was applied; 0074 lists the
-// careers 0073 added. Only the latest is what this script writes today.
+// 0047 was the first, 0056 the second and 0074, which listed the careers 0073
+// added, the third, each as it was applied; 0085 follows 0084, which took four
+// careers out of the catalogue (their industry links and other names went with
+// them), and takes "Oven Operator" back from the paint shop's career. Only the
+// latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -44,7 +54,7 @@ const [
   catalogueFile = 'data/careers/catalogue.json',
   industriesFile = 'data/careers/industries.json',
   aliasesFile = 'data/careers/aliases.json',
-  output = 'migrations/0074_career_lists_3.sql',
+  output = 'migrations/0085_career_lists_4.sql',
 ] = args.filter((arg) => arg !== '--check');
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0 && value === value.trim();
@@ -119,6 +129,52 @@ export function listProblems(catalogue, industries, aliases) {
       if (taken.has(key(name))) problems.push(`"${name}" is taken back from "${row.title}" twice`);
       taken.add(key(name));
       if ((Array.isArray(row.aliases) ? row.aliases : []).some((alias) => key(alias) === key(name))) problems.push(`"${name}" is both listed for "${row.title}" and taken back from it`);
+    }
+  }
+
+  // The words that make a title not ours. They load into no table: the posting reader takes them from the file.
+  const notOurs = aliases?.notOurs;
+  if (notOurs !== undefined) {
+    if (notOurs === null || typeof notOurs !== 'object' || Array.isArray(notOurs)) problems.push('"notOurs" is not a why and a list of words');
+    else {
+      if (!text(notOurs.why) || notOurs.why.includes('\n')) problems.push('"notOurs" has no one-line "why"');
+      const extra = Object.keys(notOurs).filter((name) => name !== 'why' && name !== 'words' && name !== 'exceptIn');
+      if (extra.length) problems.push(`"notOurs" holds ${extra.map((name) => `"${name}"`).join(', ')}: only "why", "words" and "exceptIn" are read`);
+      if (!Array.isArray(notOurs.words) || notOurs.words.length === 0) problems.push('"notOurs" lists no words');
+      const seenWords = new Set();
+      // A name as compared words, a plural counting as its singular: how the reader looks for a word of the list in a title.
+      const wordsOf = (name) => String(name).toLowerCase().replace(/&/g, ' and ').split(/[^a-z0-9+#]+/).filter(Boolean);
+      const holds = (name, wanted) => {
+        const words = wordsOf(name);
+        return words.some((_, at) => wanted.every((word, i) => words[at + i] === word || words[at + i] === `${word}s`));
+      };
+      const named = [
+        ...careers.flatMap((career) => [[career.title, `the career "${career.title}"`], ...(career.was ?? []).map((was) => [was, `"${was}", a title folded into "${career.title}"`])]),
+        ...(Array.isArray(aliases?.careers) ? aliases.careers : []).flatMap((row) => (Array.isArray(row?.aliases) ? row.aliases : []).map((alias) => [alias, `"${alias}", an everyday name of "${row.title}"`])),
+      ];
+      for (const word of Array.isArray(notOurs.words) ? notOurs.words : []) {
+        if (typeof word !== 'string' || !/^[a-z]+( [a-z]+){0,2}$/.test(word)) {
+          problems.push(`words that make a title not ours: ${JSON.stringify(word)} is not one to three plain words in lower case`);
+          continue;
+        }
+        if (seenWords.has(word)) problems.push(`words that make a title not ours: "${word}" is listed twice`);
+        seenWords.add(word);
+        for (const [name, what] of named) if (holds(name, word.split(' '))) problems.push(`"${word}" makes a title not ours, and ${what} has it: the name could never be read`);
+      }
+      // The phrases a word of the list may stand in and not count.
+      if (notOurs.exceptIn !== undefined && !Array.isArray(notOurs.exceptIn)) problems.push('"notOurs.exceptIn" is not a list of phrases');
+      const listed = new Set((Array.isArray(notOurs.words) ? notOurs.words : []).flatMap((word) => (typeof word === 'string' ? word.split(' ') : [])));
+      const seenPhrases = new Set();
+      for (const phrase of Array.isArray(notOurs.exceptIn) ? notOurs.exceptIn : []) {
+        if (typeof phrase !== 'string' || !/^[a-z]+( [a-z]+){1,2}$/.test(phrase)) {
+          problems.push(`phrases a word that makes a title not ours may stand in: ${JSON.stringify(phrase)} is not two or three plain words in lower case`);
+          continue;
+        }
+        if (seenPhrases.has(phrase)) problems.push(`phrases a word that makes a title not ours may stand in: "${phrase}" is listed twice`);
+        seenPhrases.add(phrase);
+        if (!phrase.split(' ').some((word) => listed.has(word))) problems.push(`"${phrase}" shares no word with the words that make a title not ours: it excepts nothing`);
+        if (seenWords.has(phrase)) problems.push(`"${phrase}" is both a word that makes a title not ours and a phrase one may stand in`);
+      }
     }
   }
   return problems;
@@ -237,7 +293,8 @@ async function main() {
   const links = industries.industries.reduce((sum, row) => sum + row.careers.length, 0);
   const names = aliases.careers.reduce((sum, row) => sum + row.aliases.length, 0);
   const taken = aliases.careers.reduce((sum, row) => sum + (row.not ?? []).length, 0);
-  const summary = `${industries.industries.length} industries with ${links} careers of their own and ${industries.everywhere.length} found everywhere; ${names} everyday names for ${aliases.careers.filter((row) => row.aliases.length > 0).length} careers; ${taken} names taken back`;
+  const notOurs = aliases.notOurs?.words?.length ?? 0;
+  const summary = `${industries.industries.length} industries with ${links} careers of their own and ${industries.everywhere.length} found everywhere; ${names} everyday names for ${aliases.careers.filter((row) => row.aliases.length > 0).length} careers; ${taken} names taken back; ${notOurs} words that make a title not ours`;
   if (checkOnly) {
     console.log(`valid. ${summary}.`);
     return;

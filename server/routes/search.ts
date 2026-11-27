@@ -2,12 +2,13 @@ import { Router, Request, Response } from 'express';
 import { db } from '../db/index.js';
 import { companies, factories, jobs, occupations, skills } from '../db/schema.js';
 import { ilike, or, and, count, eq, sql, type AnyColumn } from 'drizzle-orm';
-import { jobTextFilter } from '../lib/jobSearch.js';
+import { jobTextFilter, jobTextRank } from '../lib/jobSearch.js';
 import { browsableCompanyFilter } from '../lib/companyFilters.js';
 import { civilianCareer, findService, namedMilitaryCareers } from '../lib/military.js';
 import { kindLine, namedService } from '../../shared/military.js';
 import { companyInScope, factoryInScope } from '../lib/scope.js';
 import { jobIsOpen, jobsInOrder } from '../lib/openJobs.js';
+import { jobAsGiven } from '../lib/jobRows.js';
 import { US_STATES } from '../../shared/states.js';
 import { pageLimit } from '../lib/paging.js';
 import { likeLiteral } from '../lib/like.js';
@@ -15,6 +16,7 @@ import { byCompanyStanding, companyIndustry, companyStandings, searchIndustries 
 import { shownIndustry } from '../../shared/industry.js';
 import { formatCompanyName, formatFactoryName } from '../../shared/displayName.js';
 import { jobPath } from '../../shared/jobs.js';
+import { cityState } from '../../shared/places.js';
 
 const router = Router();
 
@@ -256,8 +258,8 @@ router.get('/', async (req: Request, res: Response) => {
       const factoryItems = factoryResults.map((f) => {
         const company = f.companyName ? formatCompanyName(f.companyName) : null;
         const repeats = company !== null && formatFactoryName(f.name).toLowerCase().startsWith(company.toLowerCase());
-        // Cities arrive in capitals ("ROUND ROCK").
-        const place = [f.city ? formatCompanyName(f.city) : null, f.state].filter(Boolean).join(', ');
+        // Cities arrive in capitals ("ROUND ROCK"): a place is written one way (shared/places.ts).
+        const place = cityState(f.city, f.state);
         return {
           id: f.id,
           name: f.name,
@@ -409,19 +411,23 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Open jobs, matched as the jobs list matches them: every word typed is in
-    // the job's title, company, career, shift or place. Newest first.
+    // the job's name, company, career, shift or place, or in the title its
+    // employer posted it under (which is matched and never given: a row says the opening's own
+    // name, read from it). The jobs whose standard rows say what was typed come first, then the newest.
     const jobFilter = typeFilter.includes('jobs') ? jobTextFilter(query) : null;
+    const jobShownFirst = jobTextRank(query);
     if (jobFilter) {
       const open = and(jobIsOpen(), factoryInScope(), jobFilter);
       const [jobRows, jobCount] = await Promise.all([
         db
-          .select({ id: jobs.id, serial: jobs.serial, title: jobs.title, companyName: companies.name, companySlug: companies.slug, occupationTitle: occupations.title, city: factories.city, state: factories.state })
+          // With the posted title, which is read for the opening's own name and never given (jobAsGiven in lib/jobRows.ts).
+          .select({ id: jobs.id, serial: jobs.serial, title: jobs.title, postedAs: jobs.postedAs, companyName: companies.name, companySlug: companies.slug, occupationTitle: occupations.title, factoryName: factories.name, city: factories.city, state: factories.state })
           .from(jobs)
           .innerJoin(companies, eq(companies.id, jobs.companyId))
           .innerJoin(factories, eq(factories.id, jobs.factoryId))
           .innerJoin(occupations, eq(occupations.id, jobs.occupationId))
           .where(open)
-          .orderBy(jobsInOrder())
+          .orderBy(...(jobShownFirst ? [jobShownFirst] : []), jobsInOrder())
           .limit(maxLimit),
         db
           .select({ count: count() })
@@ -433,12 +439,15 @@ router.get('/', async (req: Request, res: Response) => {
       ]);
       results.results.jobs = {
         count: jobCount[0]?.count ?? 0,
-        items: jobRows.map((job) => ({
+        // A job is named for its career, and its line leads with the opening's own name where it has one, so a job
+        // found by a word of the title it was posted under ("starship") shows why it was found.
+        items: jobRows.map(jobAsGiven).map((job) => ({
           id: job.id,
           name: job.title,
           type: 'jobs' as const,
           href: jobPath(job),
-          subtitle: [job.companyName, [job.city, job.state].filter(Boolean).join(', ')].filter(Boolean).join(' · '),
+          ownName: job.ownName,
+          subtitle: [job.ownName, job.companyName, cityState(job.city, job.state)].filter(Boolean).join(' · '),
         })),
       };
     }

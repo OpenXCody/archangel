@@ -355,8 +355,15 @@ interface RecordRowProps {
   /** A small word above the name, where rows of different kinds share a list ("Company", "Factory"). */
   label?: string;
   title: ReactNode;
+  /**
+   * A second name under the first, in secondary ink, two lines at most: an opening's own name under its job's
+   * standard one ("Welder", then "Pipe Welder (Starship)").
+   */
+  second?: ReactNode;
   /** One grey line of facts. Two lines at most on a phone. */
   subtitle?: ReactNode;
+  /** The grey line is said whole, however many lines it takes: a job's facts end in its pay and its day. */
+  whole?: boolean;
   /** A number at the right in place of the chevron. */
   figure?: number | null;
   /** What the figure counts, for a screen reader ("people"). */
@@ -380,7 +387,9 @@ export function RecordRow({
   control,
   label,
   title,
+  second,
   subtitle,
+  whole,
   figure,
   figureLabel,
   quiet,
@@ -402,8 +411,19 @@ export function RecordRow({
         {lead}
         <span className="min-w-0 flex-1">
           {label && <span className={cn(labelClass, 'mb-0.5 block text-[11px]')}>{label}</span>}
-          <span className={cn('block break-words text-sm leading-snug', quiet ? 'text-text-2' : 'text-text-1')}>{title}</span>
-          {subtitle && <span className="mt-0.5 line-clamp-2 break-words text-xs text-text-3">{subtitle}</span>}
+          <span className={cn('block break-words text-sm leading-snug', quiet ? 'text-text-2' : 'text-text-1')} data-row-title>
+            {title}
+          </span>
+          {second && (
+            <span className="mt-0.5 line-clamp-2 break-words text-sm leading-snug text-text-2" data-row-second>
+              {second}
+            </span>
+          )}
+          {subtitle && (
+            <span className={cn('mt-0.5 break-words text-xs text-text-3', whole ? 'block' : 'line-clamp-2')} data-row-line>
+              {subtitle}
+            </span>
+          )}
         </span>
         {figure != null ? (
           <span className="shrink-0 text-sm tabular-nums text-text-1">

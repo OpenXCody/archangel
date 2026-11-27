@@ -18,6 +18,7 @@ import { INVITE_DAYS, invitePath, type InviteRole } from './invites.js';
 import { RESET_HOURS, resetPath } from './passwordResets.js';
 import { rowsOf } from './rows.js';
 import { jobPath } from '../../shared/jobs.js';
+import { cityState } from '../../shared/places.js';
 
 /**
  * What the app tells people, and when.
@@ -377,7 +378,7 @@ export async function applicationReceived(input: { applicationId: string; jobId:
           jobPath: jobPath({ id: input.jobId, ...job }),
           jobTitle: job.title,
           companyName: job.companyName,
-          place: [job.city, job.state].filter(Boolean).join(', ') || null,
+          place: cityState(job.city, job.state) || null,
           applicantName: applicant.name,
           heldRequired: figure?.held_required ?? 0,
           totalRequired: figure?.total_required ?? 0,
