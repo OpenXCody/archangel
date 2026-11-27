@@ -138,15 +138,15 @@ test("a career's page and its trees hold no way to sign in", () => {
   for (const file of pages) assert.doesNotMatch(read(file), /signInPath|canSignIn|sign-in|Sign in/, file);
 });
 
-// A tree's root is the page's own record, whose name the page's heading says once: no caller hands a root a
-// title to say again.
-test("no tree's root is given the record's name", () => {
+// A tree's root is the page's own record. A tree of skills and of careers within reach says what hangs off it;
+// a ladder says the career's own name, among the careers beside it (the owner's decision).
+test("a tree's root says what hangs off it, and a ladder's the career's name", () => {
   const roots = clientFiles()
     .flatMap((file) => [...read(file).matchAll(/<TreeRoot\b[^>]*>([^<]*)<\/TreeRoot>/g)].map((match) => `${file}: ${match[1].trim()}`))
     .sort();
   assert.deepEqual(roots, [
     "client/src/components/reach/CivilianReach.tsx: {plural(careers.length, 'career', 'careers')}",
-    'client/src/components/route/CareerLadder.tsx: This career',
+    'client/src/components/route/CareerLadder.tsx: {title}',
     "client/src/components/route/SkillGroups.tsx: {plural(skills.length, 'skill', 'skills')}",
   ]);
   // And every root in the client is one of those: none is written another way.

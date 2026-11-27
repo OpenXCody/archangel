@@ -300,7 +300,7 @@ export default function JobDetail() {
       <JobSkills job={data.job} path={data.path} forApplicant={!manages} />
 
       {/* Where the job's career comes from and leads: the same ladder the career's page draws. */}
-      <CareerLadderSection comesFrom={ladder.data?.comesFrom} leadsTo={ladder.data?.leadsTo} />
+      <CareerLadderSection title={career.title} comesFrom={ladder.data?.comesFrom} leadsTo={ladder.data?.leadsTo} />
 
       {managesPosted &&
         (applying ? (

@@ -91,7 +91,7 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       )}
 
       {/* Where it stands among careers: where people come to it from, and where it leads. */}
-      <CareerLadderSection comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
+      <CareerLadderSection title={data.title} comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
 
       {/* A military career: what else its skills are for, the civilian careers they reach. */}
       {service && <CivilianReach careers={withinReach} keepAs={data.id} />}

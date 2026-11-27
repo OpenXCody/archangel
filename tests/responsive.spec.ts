@@ -249,7 +249,7 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await expectTree(tree, 'a career');
   await expect(tree.locator('[data-tree-root]')).toHaveText(sized(record.skills.length));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(record.title);
-  await expect(view.locator('[data-tree]').getByText(record.title, { exact: true }), "no tree says the career's name again").toHaveCount(0);
+  await expect(tree.getByText(record.title, { exact: true }), "the tree of skills does not say the career's name again").toHaveCount(0);
   // Every group is a node off the root with its name and its size. It arrives open; closed, no skill and no card is drawn.
   await arrivesOpenThenClose(page, 'a career');
   await expect(nodes).toHaveCount(groups.length);
@@ -562,9 +562,9 @@ test('a career stands on its ladder, a tree of its own after its skills; the Car
   expect((await view.locator('section').evaluateAll((sections) => sections.map((section) => section.id))).slice(0, 2)).toEqual(['skills', 'ladder']);
   await expect(ladder.locator('h2')).toHaveText('Where it leads');
   await expect(ladder.locator('[data-section-heading] p')).toHaveCount(0);
-  // The career is the root, said as "This career": its name is the page's heading and is not said again.
-  await expect(frame.locator('[data-ladder-this]')).toHaveText('This career');
-  await expect(frame.getByText(wide.title, { exact: true })).toHaveCount(0);
+  // The career is the root, by its own name, among the careers it comes from and leads to.
+  await expect(frame.locator('[data-ladder-this]')).toHaveText(wide.title);
+  await expect(frame).not.toContainText('This career');
   // Which side is which: a label over each column from 640px; under it the ladder stands down the page and each side is a node that names its branch.
   const across = (page.viewportSize()?.width ?? 0) >= 640;
   await expect(tree).toHaveAttribute('data-layout', across ? 'wide' : 'stacked');
@@ -2287,7 +2287,7 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   if (rungs.comesFrom.length + rungs.leadsTo.length > 0) {
     expect((await page.locator('[data-entity-view] section').evaluateAll((sections) => sections.map((each) => each.id))).slice(0, 2)).toEqual(['skills', 'ladder']);
     await expect(ladder.locator('h2')).toHaveText(rungs.leadsTo.length > 0 ? 'Where it leads' : 'Where it comes from');
-    await expect(ladder.locator('[data-ladder-this]')).toHaveText('This career');
+    await expect(ladder.locator('[data-ladder-this]')).toHaveText(occupation.title);
     await expectTree(ladder.locator('[data-tree]'), "a company's version, the career's ladder");
     const named = (side: { id: string; title: string }[]) => (side.length > 4 ? side.slice(0, 3) : side);
     for (const [side, careers] of [['before', rungs.comesFrom], ['after', rungs.leadsTo]] as const) {
