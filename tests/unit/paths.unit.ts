@@ -26,8 +26,9 @@ const PATHS = 'data/careers/paths.json';
 const CAREERS = 'data/careers/catalogue.json';
 const SKILLS = 'data/skills/catalogue.json';
 const TAXONOMY = 'data/skills/taxonomy.json';
-// The paths' latest migration. 0052 was the first and 0075 the second, each as it was applied.
-const MIGRATION = 'migrations/0086_career_paths_3.sql';
+// The paths' latest migration. 0052 was the first, 0075 the second and 0086 the third, each as it was applied.
+const MIGRATION = 'migrations/0094_career_paths_4.sql';
+const THIRD_MIGRATION = 'migrations/0086_career_paths_3.sql';
 const SECOND_MIGRATION = 'migrations/0075_career_paths_2.sql';
 // The careers that left the catalogue with 0084 (cleaning a plant, preparing food by hand), and the skills only
 // their paths held. No skill was removed with them: these nine stay in the catalogue, the taxonomy and the Atlas,
@@ -83,7 +84,7 @@ test('the paths migration is what the paths file generates', () => {
 test('the paths file passes its own check, and every career has one path', () => {
   const result = check(paths);
   assert.ok(result.ok, result.said);
-  assert.match(result.said, /valid\. 227 careers/);
+  assert.match(result.said, /valid\. 233 careers/);
   assert.deepEqual(paths.careers.map((career) => career.title), careers.map((career) => career.title), 'one entry per career, in the catalogue order');
 });
 
@@ -155,7 +156,7 @@ test('the check refuses a paths file that is not whole', async (t) => {
   await refused('a lack the catalogue has', (file) => { file.careers[0].lacks = ['CNC Turning']; }, /says the catalogue lacks "CNC Turning", which is a skill in it/);
   await refused('a foundation pasted onto every career', (file) => {
     for (const career of file.careers) if (!career.skills.map(name).includes('Shop Safety Practices') && career.skills.length < 24) career.skills.push('Shop Safety Practices');
-  }, /"Shop Safety Practices" is on \d+ of 227 paths: more than half/);
+  }, /"Shop Safety Practices" is on \d+ of 233 paths: more than half/);
   await refused('a ladder that does not show in the skills', (file) => {
     // The machinist's path replaced by a painter's: nothing of the operator carries.
     entry(file, 'CNC Machinist').skills = [...entry(file, 'Industrial Painter').skills, 'CNC Milling'];
@@ -178,7 +179,8 @@ test('every acknowledged weak link is one, and each says why', () => {
   }
   // Most of the ladders show in the skills: no more than a fifth of the links are weak, to the whole link. The
   // paths stood at that limit (39 of 195, then 38 of 190); the rung from Food Processing Operator to Food Safety
-  // and Quality Technician, added so that career still has one below it, is the 39th of 191.
+  // and Quality Technician, added so that career still has one below it, is the 39th of 191. The six careers of
+  // November 2026 add seven links, none of them weak: 39 of 198.
   assert.ok(paths.weakLinks.length <= Math.ceil(links.size / 5), `${paths.weakLinks.length} of ${links.size} links are weak`);
 });
 
@@ -223,6 +225,8 @@ test("the migration is in the runner's list after the makes'", () => {
   assert.deepEqual(list.slice(list.indexOf('0084_careers_catalogue_3.sql'), list.indexOf('0084_careers_catalogue_3.sql') + 3),
     ['0084_careers_catalogue_3.sql', '0085_career_lists_4.sql', '0086_career_paths_3.sql']);
   assert.ok(list.indexOf('0086_career_paths_3.sql') > list.indexOf('0075_career_paths_2.sql'));
+  // The fourth the same way, after the catalogue's fourth and the lists' fifth, and last in the list.
+  assert.deepEqual(list.slice(-3), ['0092_careers_catalogue_4.sql', '0093_career_lists_5.sql', '0094_career_paths_4.sql']);
   // After the careers catalogue (which stores the careers) and the skills catalogue and taxonomy (which store and place the skills).
   for (const before of ['0046_careers_catalogue.sql', '0048_skills_catalogue_2.sql', '0049_skill_taxonomy_2.sql', '0050_skill_makes.sql']) {
     assert.ok(list.indexOf('0052_career_paths.sql') > list.indexOf(before), `0052 comes after ${before}`);
@@ -235,7 +239,15 @@ test('the third paths migration is the second without the four careers that left
     const rows = (from: string, to: string) => sql.slice(sql.indexOf(from), sql.indexOf(to)).split('\n').filter((line) => line.startsWith('  (')).map((line) => line.replace(/[,;]$/, ''));
     return { careers: rows('INSERT INTO path_careers', 'INSERT INTO path_lines').map((line) => line.replace(/^ {2}\(\d+, /, '')), lines: rows('INSERT INTO path_lines', '-- Each name, found') };
   };
-  const [before, after] = [lines(SECOND_MIGRATION), lines(MIGRATION)];
+  const [before, after, latest] = [lines(SECOND_MIGRATION), lines(THIRD_MIGRATION), lines(MIGRATION)];
+  // The fourth is the third with the six careers of November 2026 after it: no other path changes.
+  const ADDED = ['Manufacturing Technician', 'Supplier Quality Engineer', 'Flight Test Engineer', 'Thermal Engineer', 'RF Engineer', 'Harness Design Engineer'];
+  const ofTheSix = (line: string) => ADDED.some((title) => line.startsWith(`  ('${title.replace(/'/g, "''")}', `));
+  assert.equal(latest.careers.length, 233);
+  assert.equal(latest.lines.length, 3812);
+  assert.deepEqual(latest.lines.filter((line) => !ofTheSix(line)), after.lines, 'every earlier line is as it was, in its place');
+  assert.deepEqual(latest.careers.filter((line) => !after.careers.includes(line)).map((line) => line.slice(1, -2)), ADDED);
+  for (const title of ADDED) assert.match(paths.careers.find((career) => career.title === title)!.basis, /open postings/, `${title} says what it was read from`);
   assert.equal(before.careers.length, 231);
   assert.equal(after.careers.length, 227);
   assert.equal(before.lines.length, 3739);

@@ -90,7 +90,7 @@ const migWelding = text('Weld frames at the Carlin Flat works.', ['Experience in
 // text is read (it names nothing of the career): read once, not kept, and not asked about again.
 const small = [
   posting('R1', 'Welder', 'Carlin Flat, NV'), posting('R2', 'Accountant', 'Carlin Flat, NV'), posting('R3', 'Welder', 'Tianjin', true),
-  posting('R4', 'Manufacturing Technician', 'Carlin Flat, NV'),
+  posting('R4', 'Electronics Manufacturing Technician', 'Carlin Flat, NV'),
 ];
 writeFileSync(`${dir}/workday/e2e/list.json`, JSON.stringify({ jobPostings: small, facets }));
 detail('e2e', 'Careers', small[0], migWelding);

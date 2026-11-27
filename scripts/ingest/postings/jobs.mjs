@@ -55,6 +55,15 @@ const linesOf = (posting) => (posting.locations?.length ? posting.locations : [p
 export const locationLine = (posting) => linesOf(posting).join('; ');
 
 /**
+ * Whether the title alone says today what it said when the staged reading was made. A reading keeps what its title
+ * said by itself (`byTitle`), because the text can make it another career ("Welder" whose text is all TIG): compared
+ * with the reading's career, such a posting would be asked for again on every run. One staged before that was kept
+ * is compared with its career, once.
+ */
+export const sameCareerByTitle = (before, facts) =>
+  !before?.career || before.career === (facts?.byTitle ?? facts?.reading?.career?.title);
+
+/**
  * Whether the career a staged reading names is still one of the careers. The
  * catalogue can drop a career after its postings were read (data/careers/
  * catalogue.json, `removed`): what staging holds of them then names a career
@@ -108,7 +117,8 @@ export function beforeText(reader, posting, base, vocab) {
     },
   };
   const reading = reader.readPosting(probe, vocab);
-  return { could: Boolean(reading?.career) || reached, places: line ? placesOf(reading?.places) : null };
+  // `career` is the career the title alone decides on, where it does (null where the text would have to say).
+  return { could: Boolean(reading?.career) || reached, places: line ? placesOf(reading?.places) : null, career: reading?.career?.title ?? null };
 }
 
 // ---------------------------------------------------------------------------
@@ -313,8 +323,11 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     let full = posting;
     // Set where the text cost a request: if the posting is then not kept, that is noted (posting_passes).
     let mark = null;
+    // What the title says by itself, kept with the reading (sameCareerByTitle).
+    let byTitle = null;
     if (adapter.text) {
       const before = beforeText(reader, posting, base, vocab);
+      byTitle = before.career;
       if (!before.could) {
         notOurs(posting);
         return;
@@ -338,7 +351,9 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
       }));
       const staged = previous.get(posting.id);
       // A reading that names a career the catalogue no longer has is never as good as new: it is read again.
-      const fresh = staged && stillACareer(vocab, staged.facts) && staged.payload?.listing === listing && !again &&
+      // Nor is one whose title now says another career by itself (the catalogue gained a career, or a name moved):
+      // the job follows the catalogue without waiting for its posting to change.
+      const fresh = staged && stillACareer(vocab, staged.facts) && sameCareerByTitle(before, staged.facts) && staged.payload?.listing === listing && !again &&
         Date.parse(today) - Date.parse(staged.facts?.readOn ?? '1970-01-01') < reread;
       if (fresh) {
         // As it was read: the record is the same, and no request is made.
@@ -433,7 +448,7 @@ export async function collect(db, entry, { session, reader, vocab, today = new D
     const facts = {
       title: full.title, location: locationLine(full) || null,
       address: full.address ?? null, department: full.department ?? null, url: full.url, postedAt: full.postedAt ?? null,
-      reading: read, readOn: today,
+      reading: read, readOn: today, ...(byTitle ? { byTitle } : {}),
     };
     kept.set(posting.id, { payload, facts, hash: recordHash({ payload, reading: read }, `${VERSION}.${adapter.version ?? 1}`) });
   };

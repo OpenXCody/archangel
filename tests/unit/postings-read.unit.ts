@@ -327,8 +327,9 @@ test('a word before a name can make it another job', () => {
   assert.equal(career('Fluid Systems Engineer, Production (Starship)', MACHINING), null);
   // A structural engineer designs buildings; a structures engineer, airframes.
   assert.equal(career('Structural Engineer, Starship Tower', MACHINING), null);
-  // A trade stays itself.
-  assert.equal(career('Orbital Tube Welder, Manifolds (Falcon)'), 'Welder');
+  // A trade stays itself, and a title that names its process is that branch (orbital welding is TIG's).
+  assert.equal(career('Pipe Welder (Starship)'), 'Welder');
+  assert.equal(career('Orbital Tube Welder, Manifolds (Falcon)'), 'TIG Welder');
   assert.equal(career('Lead Welder'), 'Welder');
   assert.deepEqual(read('Lead Welder').level, { word: 'Lead', rank: 4 });
 });

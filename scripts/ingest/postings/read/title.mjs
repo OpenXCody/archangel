@@ -93,7 +93,8 @@ export function readTitle(title) {
       if (w === 'and') { and = true; continue; }
       if (and) { joins.add(words.length); and = false; }
       if (NOT_A_CAREER.has(w)) found.refused = found.refused ?? `"${w}" in the title`;
-      if (w === 'co' && next === 'op') { found.refused = found.refused ?? '"co-op" in the title'; continue; }
+      // "op" is read as "operator" by the time it is here, so both spellings of the second half are asked for.
+      if (w === 'co' && (next === 'op' || next === 'operator')) { found.refused = found.refused ?? '"co-op" in the title'; continue; }
       if (w === 'team' && (next === 'lead' || next === 'leader' || next === 'member')) { if (next !== 'member') found.refused = found.refused ?? '"team lead" in the title'; }
       // A code with digits in it is a requisition or a grade, never the work: "N0309", "R10260434".
       if (/\d/.test(w) && !/^(3d|2d|5s|8d|[1-5])$/.test(w)) continue;

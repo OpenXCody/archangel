@@ -45,7 +45,8 @@
 // 0052 was the first and 0075, which wrote the paths of the careers 0073 added
 // and the skills added to others, the second, each as it was applied; 0086 is
 // the file without the four careers 0084 took out of the catalogue (no other
-// path changes). Only the latest is what this script writes today.
+// path changes); 0094 adds the paths of the six careers 0092 added. Only the
+// latest is what this script writes today.
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -57,7 +58,7 @@ const [
   careersFile = 'data/careers/catalogue.json',
   skillsFile = 'data/skills/catalogue.json',
   taxonomyFile = 'data/skills/taxonomy.json',
-  output = 'migrations/0086_career_paths_3.sql',
+  output = 'migrations/0094_career_paths_4.sql',
 ] = args.filter((arg) => !arg.startsWith('--'));
 
 /** The fewest and the most skills a path may have. The guide is 12 to 22; the floor is for careers the catalogue cannot yet describe. */
