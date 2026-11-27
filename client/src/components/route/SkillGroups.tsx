@@ -45,11 +45,6 @@ interface SkillGroupsProps {
   leftOut?: readonly { id: string; name: string }[];
   /** What stands above the heading inside the section (a note that the marks could not be read). */
   before?: ReactNode;
-  /**
-   * Skills whose groups arrive open (a job's page: the skills its posting names, so they are read without a
-   * press). Everywhere else every group arrives closed.
-   */
-  openWith?: ReadonlySet<string>;
 }
 
 /**
@@ -81,7 +76,7 @@ interface SkillGroupsProps {
  * A seeker's held skills carry the product's mark on their node in place of
  * the ring; nothing else about them changes. No skill is called next or then.
  */
-export function SkillGroups({ skills, marks, keepAs, leftOut = [], before, openWith }: SkillGroupsProps) {
+export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: SkillGroupsProps) {
   const headingId = useId();
   const base = useId();
   const route = useMemo(() => groupRoute(skills), [skills]);
@@ -99,9 +94,9 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before, openW
   const share = ready ? shareOf(skills, ready) : null;
 
   // What is open: nothing when the page arrives, and as the person left it when they come Back to it.
-  const arrives: Opened = openWith?.size
-    ? { ...CLOSED, groups: Object.fromEntries(groups.filter((group) => group.skills.some((skill) => openWith.has(skill.id))).map((group) => [group.key, true])) }
-    : CLOSED;
+  // Every group arrives open (the owner's decision: a group holds one to three skills more often than not, and a
+  // page of closed groups shows the word "skills" and no skill). A skill's card arrives closed.
+  const arrives: Opened = { ...CLOSED, groups: Object.fromEntries(groups.map((group) => [group.key, true])) };
   const [opened, setOpened] = useKept<Opened>(`skills ${keepAs}`, arrives);
   const allOpen = groups.every((group) => opened.groups[group.key]);
   const toggleGroup = (group: Group) =>

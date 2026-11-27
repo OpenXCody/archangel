@@ -45,8 +45,11 @@ test('a seeker is told how many of the job\'s own skills they hold only when the
   assert.equal(jobSkillParts({ skills: [on('Blueprint Reading', true), on('MIG Welding', true)], alsoNamed: [] }).counted, true);
 });
 
-test("the job's page draws its own skills as the career page's tree, and asks nobody to sign in", () => {
+test("the job's page draws its career's skills as the career page's tree, says which its posting names, and asks nobody to sign in", () => {
   const page = readFileSync(new URL('../../client/src/components/jobs/JobSkills.tsx', import.meta.url), 'utf8');
-  assert.match(page, /<SkillGroups skills=\{own\}/);
+  // The whole path and what the posting names beyond it, the posting's own skills saying so under their names.
+  assert.match(page, /path\.skills\.concat\(path\.alsoNamed\)\.map\(\(skill\) => \(\{ \.\.\.skill, [^}]*note: named\.has\(skill\.id\) \? IN_POSTING : null \}\)\)/);
+  assert.match(page, /<SkillGroups skills=\{all\}/);
+  assert.match(page, /const IN_POSTING = 'In this posting';/);
   assert.doesNotMatch(page.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''), /sign[- ]in|Sign in/);
 });

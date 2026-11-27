@@ -123,7 +123,7 @@ function PostingSkills({ job, path, marks }: PartProps) {
   if (all.length === 0) return null;
   return (
     <div className="[&>section]:mt-10" data-job-path={path.of} data-job-own="">
-      <SkillGroups skills={all} marks={marks} keepAs={`job ${job.id}`} openWith={named} />
+      <SkillGroups skills={all} marks={marks} keepAs={`job ${job.id}`} />
     </div>
   );
 }
