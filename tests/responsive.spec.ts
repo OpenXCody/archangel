@@ -146,6 +146,29 @@ function skillsTree(page: Page) {
   };
 }
 
+/**
+ * A tree of skills as it arrives: every group open (the owner's decision: a group holds one to three skills more
+ * often than not), every skill's card closed. Then closes the groups with "Close all" (a tree of one group has no
+ * such button: its one group is closed by its own row), so a test can open what it means to.
+ */
+async function arrivesOpenThenClose(page: Page, label = 'the tree of skills') {
+  const section = page.locator('[data-skills-section]');
+  const groups = section.locator('[data-route-section]');
+  await expect(groups.first()).toBeVisible();
+  const heads = section.locator('[data-route-section] > .tree-node button');
+  expect(await heads.evaluateAll((nodes) => nodes.every((node) => node.getAttribute('aria-expanded') === 'true')), `${label}: every group arrives open`).toBe(true);
+  expect(await section.locator('[data-skill-tag]').count(), `${label}: its skills are on show`).toBeGreaterThan(0);
+  await expect(section.locator('.tree-card'), `${label}: every card arrives closed`).toHaveCount(0);
+  const closeAll = section.locator('[data-route-open-all]');
+  if (await closeAll.count()) {
+    await expect(closeAll).toHaveText('Close all');
+    await closeAll.click();
+  } else {
+    await heads.first().click();
+  }
+  await expect(section.locator('[data-skill-tag]')).toHaveCount(0);
+}
+
 /** A node's own row: the button that opens it (never one of a node under it). */
 const head = (node: Locator) => node.locator(':scope > .tree-node button');
 /** A node's name, as its row says it. */
@@ -227,7 +250,8 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await expect(tree.locator('[data-tree-root]')).toHaveText(sized(record.skills.length));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(record.title);
   await expect(view.locator('[data-tree]').getByText(record.title, { exact: true }), "no tree says the career's name again").toHaveCount(0);
-  // Every group is a node off the root, a closed disclosure with its name and its size; no skill and no card is drawn yet.
+  // Every group is a node off the root with its name and its size. It arrives open; closed, no skill and no card is drawn.
+  await arrivesOpenThenClose(page, 'a career');
   await expect(nodes).toHaveCount(groups.length);
   for (const [at, group] of groups.entries()) {
     await expect(head(nodes.nth(at)), `${group.name}: closed on arrival`).toHaveAttribute('aria-expanded', 'false');
@@ -427,6 +451,7 @@ test("what a person opened on a career's page is that career's: a link arrives c
 
   await page.goto(`/occupations/${here.id}`, { waitUntil: 'domcontentloaded' });
   await expect(title).toHaveText(here.title);
+  await arrivesOpenThenClose(page, 'the first career');
   await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
   // Open a group both careers have (else its first), and a skill's card in it.
   const mine = shared[0] ?? groupsOf(here.skills)[0];
@@ -435,11 +460,12 @@ test("what a person opened on a career's page is that career's: a link arrives c
   await expect(skill(mine.skills[0]).locator('[data-skill-preview]')).toBeVisible();
   expect(await openGroups()).toEqual([mine.name]);
 
-  // On by the ladder: the next career arrives closed, whatever groups the two share.
+  // On by the ladder: the next career arrives as every career does (its groups open, no card), whatever the two share.
   await page.locator(`#ladder a[href="/occupations/${next.id}"]`).click();
   await expect(title).toHaveText(next.title);
   await expect(groups.first()).toBeVisible();
-  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]'), 'a career reached by a link arrives closed').toHaveCount(0);
+  await expect(tree.locator('[data-skill-preview]'), 'a card open on one career is not drawn on another').toHaveCount(0);
+  await arrivesOpenThenClose(page, 'a career reached by a link');
   const theirs = groupsOf(next.skills).find((group) => group.name !== mine.name)!;
   await head(groupNamed(theirs)).click();
   expect(await openGroups()).toEqual([theirs.name]);
@@ -456,13 +482,14 @@ test("what a person opened on a career's page is that career's: a link arrives c
   await expect(head(groupNamed(theirs))).toHaveAttribute('aria-expanded', 'true');
   expect(await openGroups()).toEqual([theirs.name]);
 
-  // The first career again, by a link this time: another visit, so it arrives closed.
+  // The first career again, by a link this time: another visit, so it arrives as new (the card opened before is closed).
   const back = page.locator(`#ladder a[href="/occupations/${here.id}"]`);
   if ((await back.count()) === 0) await page.locator('#ladder [data-ladder-more]').click();
   await back.click();
   await expect(title).toHaveText(here.title);
   await expect(groups.first()).toBeVisible();
-  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]'), 'a career reached by a link arrives closed').toHaveCount(0);
+  await expect(tree.locator('[data-skill-preview]'), 'a career reached by a link arrives with no card open').toHaveCount(0);
+  await arrivesOpenThenClose(page, 'the first career, by a link');
 });
 
 /**
@@ -1541,11 +1568,9 @@ test("a seeker's tree of skills says what is held and marks nothing; an employer
       };
       await noControls();
       if (purpose === 'hire') {
-        // Someone here to hire reads the same tree, closed: no mark, no figure but a group's size, nothing held.
+        // Someone here to hire reads the same tree, every group open: no mark, no figure but a group's size, nothing held.
         await expectTree(tree, 'here to hire');
-        await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
         expect(await tree.locator('[data-group-figure]').allInnerTexts()).toEqual(sections.map((group) => sized(group.skills.length)));
-        await openAll.click();
         await expect(tree.locator('[data-skill-tag]')).toHaveCount(path.length);
         await expect(tree.locator('[data-status], [data-skill-mark], [data-next]')).toHaveCount(0);
         await expect(page.locator('[data-held-count], [data-next-up], [data-route-aside]')).toHaveCount(0);
@@ -1563,7 +1588,8 @@ test("a seeker's tree of skills says what is held and marks nothing; an employer
         await expect(skills.getByText(/^(Next|Then)$/i), `${label}: no skill is called next`).toHaveCount(0);
         await expect(page.locator('[data-next-up], [data-route-aside]'), `${label}: nothing beside or above the skills`).toHaveCount(0);
         await expect(skills.locator('[data-section-heading] p'), `${label}: no sentence under the heading`).toHaveCount(0);
-        await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], .tree-card'), `${label}: every group arrives closed`).toHaveCount(0);
+        await arrivesOpenThenClose(page, label);
+        await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], .tree-card'), `${label}: closed, nothing is drawn`).toHaveCount(0);
         // The heading's line says how many are held, once one is; never "0 of".
         if (held.size > 0) await expect(whole, `${label}: the figure`).toHaveText(`${held.size} of ${path.length} held`);
         else await expect(whole).toHaveCount(0);
@@ -1650,13 +1676,12 @@ test("a seeker's tree of skills says what is held and marks nothing; an employer
       await expect(inside).toHaveCount(0);
       await page.keyboard.press('Tab');
       await expect(head(groups.nth(1)), 'Tab passes a closed group by').toBeFocused();
-      // A page loaded again arrives closed, whatever was open on it; Open all opens every group, and then closes them.
-      await head(place).click();
-      await expect(head(place)).toHaveAttribute('aria-expanded', 'true');
+      // A page loaded again arrives as new, whatever was closed or open on it: every group open, no card. Close all
+      // closes every group, and Open all opens them again.
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect(head(place)).toHaveAttribute('aria-expanded', 'false');
-      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]')).toHaveCount(0);
       expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => /groups|route|skillTree/.test(key))), 'nothing a person opened is put in browser storage').toEqual([]);
+      await arrivesOpenThenClose(page, 'loaded again');
+      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]')).toHaveCount(0);
       await expect(openAll).toHaveText('Open all');
       await openAll.click();
       await expect(tree.locator('[data-route-section]:not([data-open])')).toHaveCount(0);
@@ -2184,7 +2209,8 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   // The root counts the version's skills, and says neither the version's name nor the company's again.
   await expect(tree.locator('[data-tree-root]')).toHaveText(sized(skills.length));
   await expect(tree.getByText(version!.title, { exact: true })).toHaveCount(0);
-  // Every group arrives closed; no sentence, and nothing asks a visitor to sign in.
+  // Every group arrives open; no sentence, and nothing asks a visitor to sign in.
+  await arrivesOpenThenClose(page, 'a version');
   await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], .tree-card')).toHaveCount(0);
   await expect(section.locator('[data-section-heading] p, [data-version-same]')).toHaveCount(0);
   await expect(page.locator('[data-entity-view] a[href*="sign-in"]')).toHaveCount(0);
@@ -2261,7 +2287,6 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   await standard.click();
   await expect(page).toHaveURL(new RegExp(`/occupations/${occupation.id}$`));
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(occupation.title);
-  await skillsTree(page).openAll.click();
   await expect(page.locator('#skills [data-skill-tag]').first()).toBeVisible();
   await expect(page.locator('#skills [data-skill-tag][data-added], #skills [data-left-out]')).toHaveCount(0);
   const row = page.locator(`#companies [data-career-version="${company.id}"]`);
@@ -2333,7 +2358,8 @@ test("a seeker's progress on a company's version counts its skills, and a make t
     const { tree, openAll, held: whole } = skillsTree(page);
     const node = (each: { id: string }) => tree.locator(`[data-skill-tag="${each.id}"]`);
     await expect(tree.locator('[data-route-section]').first()).toBeVisible();
-    // Every group arrives closed for a seeker too; open, the version's skills are its nodes.
+    // Every group arrives open for a seeker too; open, the version's skills are its nodes.
+    await arrivesOpenThenClose(page, 'a version, to a seeker');
     await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
     await openAll.click();
     await expect(tree.locator('[data-skill-tag]')).toHaveCount(skills.length);
@@ -2356,9 +2382,7 @@ test("a seeker's progress on a company's version counts its skills, and a make t
       expect((await page.request.put(`${API}/me/skills/${next.id}`, { data: { status: 'held' } })).ok()).toBe(true);
       await page.reload({ waitUntil: 'domcontentloaded' });
       await expect(whole).toHaveText(`${skill ? 2 : 1} of ${skills.length} held`);
-      // Loaded again the page arrives closed, whatever was open on it; open, the skill carries its mark.
-      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
-      await openAll.click();
+      // Loaded again the page arrives as new, its groups open: the skill carries its mark.
       await expect(node(next)).toHaveAttribute('data-status', 'held');
     }
     await expectTree(tree, "a seeker on a company's version");
@@ -3124,6 +3148,7 @@ test('a job a company posted here by hand lists the skills it chose as the same 
   const path = page.locator('[data-job-path="job"]');
   await expect(path.locator('[data-skill-groups]')).toHaveCount(1);
   await expect(path.locator('[data-job-groups], [data-group-box]'), 'the older boxes are gone').toHaveCount(0);
+  await arrivesOpenThenClose(page, 'a job posted by hand');
   await expect(path.locator('[data-skill-tag]')).toHaveCount(0);
   const openAll = skills.locator('[data-route-open-all]');
   if (await openAll.count()) await openAll.click();
@@ -3477,6 +3502,7 @@ test("a military career's page: its kind and code above the service's own title,
   const { tree, openAll } = skillsTree(page);
   await expectTree(tree, 'a military career');
   await expect(tree.locator('[data-tree-root]')).toHaveText(`${record.skills.length} skills`);
+  await arrivesOpenThenClose(page, 'a military career');
   await expect(tree.locator('[data-route-section][data-open], [data-skill-tag]')).toHaveCount(0);
   await openAll.click();
   await expect(tree.locator('[data-skill-tag]')).toHaveCount(record.skills.length);
@@ -3560,12 +3586,10 @@ test("a military career's page: its kind and code above the service's own title,
     await expect(page.locator('[data-careers-in-reach]')).toContainText(closest.title);
     await page.goto(`/occupations/${ht.id}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#skills [data-held-count]')).toHaveText(`${record.skills.length} of ${record.skills.length} held`);
-    // Everything held: every group closed and whole, nothing next, and still nothing to press but the nodes.
+    // Everything held: every group whole, nothing next, and still nothing to press but the nodes.
     await expect(view.locator('[data-next]')).toHaveCount(0);
     await expect(page.locator('[data-next-up], [data-route-aside]')).toHaveCount(0);
-    await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
     for (const figure of await tree.locator('[data-group-figure]').allInnerTexts()) expect(figure, 'a whole group says so').toMatch(/^(\d+) of \1 held$/);
-    await openAll.click();
     await expect(tree.locator('[data-skill-mark="held"]')).toHaveCount(record.skills.length);
     await expectTree(tree, 'a military career, held whole');
     await expect(action.locator('button, a')).toHaveCount(0);

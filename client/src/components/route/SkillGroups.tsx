@@ -66,7 +66,7 @@ interface SkillGroupsProps {
  * its last skill. A skill is a node that opens its card under itself
  * (`SkillPreview`), the skill's line running into the card. Opening one
  * closes no other, so nothing a person presses moves from under their finger;
- * a card closes with its group. Every group and every skill arrives closed,
+ * a card closes with its group. Every group arrives open and every card closed,
  * for everyone; going Back to the page returns it as it was left (`useKept`).
  *
  * A company's version that leaves skills of the standard out ends in one more
@@ -93,7 +93,7 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
   const ready = marks && !marks.pending ? marks : null;
   const share = ready ? shareOf(skills, ready) : null;
 
-  // What is open: nothing when the page arrives, and as the person left it when they come Back to it.
+  // What is open: every group when the page arrives, and as the person left it when they come Back to it.
   // Every group arrives open (the owner's decision: a group holds one to three skills more often than not, and a
   // page of closed groups shows the word "skills" and no skill). A skill's card arrives closed.
   const arrives: Opened = { ...CLOSED, groups: Object.fromEntries(groups.map((group) => [group.key, true])) };
