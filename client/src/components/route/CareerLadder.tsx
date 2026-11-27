@@ -17,11 +17,11 @@ const ACROSS = '(min-width: 640px)';
  * it leads, or by where it comes from when it leads nowhere on. Nothing for a
  * career on no ladder.
  */
-export function CareerLadderSection({ comesFrom = [], leadsTo = [] }: { comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[] }) {
+export function CareerLadderSection({ title, comesFrom = [], leadsTo = [] }: { title: string; comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[] }) {
   if (comesFrom.length === 0 && leadsTo.length === 0) return null;
   return (
     <DetailSection id="ladder" title={leadsTo.length > 0 ? 'Where it leads' : 'Where it comes from'}>
-      <CareerLadder comesFrom={comesFrom} leadsTo={leadsTo} />
+      <CareerLadder title={title} comesFrom={comesFrom} leadsTo={leadsTo} />
     </DetailSection>
   );
 }
@@ -29,8 +29,9 @@ export function CareerLadderSection({ comesFrom = [], leadsTo = [] }: { comesFro
 /**
  * A career's place on its ladder, as one connector tree (`Tree`) in one
  * frame: where people come to it from, the career itself as the root, and
- * where it leads. The root says "This career" (the page's heading has its
- * name); each career beside it is a node that opens its page.
+ * where it leads. The root says the career's own name (the owner's decision:
+ * a ladder is read as careers by name, this one among them); each career
+ * beside it is a node that opens its page.
  *
  * From 640 px the three stand side by side, the career's line running out to
  * a spine on each side and an elbow to each career there: the career in the
@@ -50,7 +51,7 @@ export function CareerLadderSection({ comesFrom = [], leadsTo = [] }: { comesFro
  * under the tree, shows the rest in place: more of a list is a button, never
  * a node.
  */
-export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[] }) {
+export function CareerLadder({ title, comesFrom = [], leadsTo = [] }: { title: string; comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[] }) {
   const across = useMediaQuery(ACROSS);
   const [all, setAll] = useState(false);
   if (comesFrom.length === 0 && leadsTo.length === 0) return null;
@@ -62,8 +63,8 @@ export function CareerLadder({ comesFrom = [], leadsTo = [] }: { comesFrom?: Lad
   const hasTo = to.length > 0;
   // With careers on both sides each side is named; with one, the section's heading has said which it is.
   const both = hasFrom && hasTo;
-  // The career itself: the page's heading has its name, so the root says only what it is.
-  const root = <TreeRoot data-ladder-this="">This career</TreeRoot>;
+  // The career itself, by its name, among the careers it comes from and leads to.
+  const root = <TreeRoot data-ladder-this="">{title}</TreeRoot>;
   const nodes = (careers: LadderCareer[]) =>
     careers.map((career) => <TreeItem key={career.id} node={<TreeLink to={`/occupations/${career.id}`}>{career.title}</TreeLink>} />);
   return (
