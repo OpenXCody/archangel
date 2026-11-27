@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMediaQuery } from '../../lib/media';
-import { ShowAll } from '../layout/Page';
+import { DetailSection, ShowAll } from '../layout/Page';
 import { panelClass } from '../layout/Panel';
 import { Tree, TreeBranch, TreeHeading, TreeItem, TreeLink, TreeRoot } from '../layout/Tree';
 import type { LadderCareer } from '../path/model';
@@ -10,6 +10,21 @@ const SHOWN = 3;
 
 /** From which width the ladder stands across (the tree's `across="sm"`). */
 const ACROSS = '(min-width: 640px)';
+
+/**
+ * The ladder as a section of a career's page, and of a company's version of
+ * it (the ladder is the career's, whoever's version is read): headed by where
+ * it leads, or by where it comes from when it leads nowhere on. Nothing for a
+ * career on no ladder.
+ */
+export function CareerLadderSection({ comesFrom = [], leadsTo = [] }: { comesFrom?: LadderCareer[]; leadsTo?: LadderCareer[] }) {
+  if (comesFrom.length === 0 && leadsTo.length === 0) return null;
+  return (
+    <DetailSection id="ladder" title={leadsTo.length > 0 ? 'Where it leads' : 'Where it comes from'}>
+      <CareerLadder comesFrom={comesFrom} leadsTo={leadsTo} />
+    </DetailSection>
+  );
+}
 
 /**
  * A career's place on its ladder, as one connector tree (`Tree`) in one

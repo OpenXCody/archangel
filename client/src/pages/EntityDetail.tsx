@@ -194,8 +194,9 @@ export default function EntityDetail() {
       <div className="contents" data-entity-view={entityType} data-entity-kind={KIND_LABEL[entityType]}>
         {entityType === 'companies' && isCompanyDetail(data) && <CompanyDetailView data={data} head={head} />}
         {entityType === 'factories' && isFactoryDetail(data) && <FactoryDetailView data={data} head={head} />}
-        {entityType === 'occupations' && isOccupationDetail(data) && !at && <OccupationDetailView data={data} head={head} />}
-        {entityType === 'occupations' && isOccupationDetail(data) && at && <CareerVersionView key={at} data={data} at={at} head={head} />}
+        {/* One career's view is one career's: keyed by it, so nothing a person opened on one career is drawn on the next. */}
+        {entityType === 'occupations' && isOccupationDetail(data) && !at && <OccupationDetailView key={data.id} data={data} head={head} />}
+        {entityType === 'occupations' && isOccupationDetail(data) && at && <CareerVersionView key={`${data.id}@${at}`} data={data} at={at} head={head} />}
         {entityType === 'skills' && isSkillDetail(data) && <SkillDetailView data={data} head={head} />}
       </div>
     </PageContainer>

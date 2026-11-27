@@ -222,7 +222,13 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
         {/* Every factory: where it is and what it makes */}
         {plants.length > 1 && (
           <DetailSection id="factories" title="Factories" className="min-w-0">
-            <RecordList>
+            <RecordList
+              footer={
+                sortedPlants.length > PLANTS_SHOWN && (
+                  <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
+                )
+              }
+            >
               {shownPlants.map((plant) => (
                 <RecordRow
                   key={plant.id}
@@ -241,9 +247,6 @@ export default function CompanyDetailView({ data, head }: { data: CompanyDetail;
                 />
               ))}
             </RecordList>
-            {sortedPlants.length > PLANTS_SHOWN && (
-              <ShowAll open={showAllPlants} total={sortedPlants.length} onToggle={() => setShowAllPlants((value) => !value)} />
-            )}
           </DetailSection>
         )}
         {careers.length > 0 && (

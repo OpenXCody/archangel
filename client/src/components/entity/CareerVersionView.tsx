@@ -11,6 +11,7 @@ import { BackLink, DetailHeader, DetailSection, EmptyState } from '../layout/Pag
 import { secondaryActionClass } from '../layout/Panel';
 import { type PlacedSkill } from '../path/model';
 import { useSkillMarks } from '../path/useSkillMarks';
+import { CareerLadderSection } from '../route/CareerLadder';
 import { SkillGroups } from '../route/SkillGroups';
 import { type Head, OpenJobsSection } from './parts';
 import { CareerTag, CompanyTag, RecordTags } from '../layout/RecordTag';
@@ -32,7 +33,8 @@ export function versionEditorPath(companyId: string, occupationId: string): stri
  * A seeker's marks and progress work as on the standard, counted against the
  * version's skills; a make the company runs that the person has run too is
  * brighter. The tags under the name lead to the company and back to the
- * standard.
+ * standard. After the skills, where the career leads: the same ladder as the
+ * standard's page (`CareerLadderSection`).
  */
 export default function CareerVersionView({ data, at, head }: { data: OccupationDetail; at: string; head: Head }) {
   const version = useVersion(at, data.id);
@@ -148,6 +150,9 @@ function VersionPage({ data, version, head }: { data: OccupationDetail; version:
           leftOut={version.leftOut}
         />
       )}
+
+      {/* Where the career stands among careers: the ladder is the career's own, so it is the standard page's, and each career on it opens its standard page. */}
+      <CareerLadderSection comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
 
       {/* Open jobs for this career at this company. */}
       {(version.jobs?.length ?? 0) > 0 && <OpenJobsSection jobs={version.jobs ?? []} showCareer />}

@@ -38,11 +38,14 @@ import { OpenChevron } from './Panel';
  *   node (the makes a company runs on a skill), never for a figure every
  *   node has.
  * - Open and closed are told apart by the mark, the ink and the chevron
- *   together: a closed node is an open ring and its name at body weight; an
- *   open one is a filled dot (as the root is, whose branch always shows), its
- *   name heavier, its chevron turned, and its line running on down into what
- *   it opened. A skill a seeker holds keeps the product's mark (the filled
- *   check) open or closed, one being learned the half mark.
+ *   together: a closed node is a quiet ring and its name at body weight; an
+ *   open one is the same ring in full ink, heavier, its name heavier, its
+ *   chevron turned, and its line running on down into what it opened. Fill
+ *   is never a node's state: a filled mark is the root, or a skill a seeker
+ *   holds (the product's filled check, open or closed; one being learned the
+ *   half mark), so an open skill is never taken for a held one.
+ * - Opening a node closes no other: nothing a person presses moves from
+ *   under their finger.
  * - What a node opens stands straight under it, at every width, and its
  *   siblings follow straight after: either a branch of its own (`TreeBranch
  *   nested`), indented, its spine running down from under the node's mark and
@@ -115,7 +118,7 @@ export function Tree({ across, shape, before = false, after = false, className, 
   );
 }
 
-/** What a node's mark is: the root's filled dot, a node's ring (open while it is closed, filled while it is open), or a seeker's mark on a skill. */
+/** What a node's mark is: the root's filled dot, a node's ring (quiet while it is closed, in full ink while it is open), or a seeker's mark on a skill. */
 export type TreeMark = 'root' | 'node' | 'held' | 'learning';
 
 /** A node's mark, in a box the width of every mark so the names line up and the lines meet each one at its edge. */
@@ -335,8 +338,9 @@ export function TreeToggle({ mark = 'node', title, meta, figure, open, onToggle,
 /**
  * A node that names what hangs off it and does nothing itself (a ladder's
  * "Comes from" and "Leads to" down a phone): the mark and the words in small
- * capitals, its own branch straight under it. Its item is always open, so its
- * mark is the filled dot.
+ * capitals, its own branch straight under it. Its item is always open
+ * (`TreeItem open`), which draws its line on down to that branch; it opens
+ * nothing itself, so its ring stays the quiet one.
  */
 export function TreeHeading({ children, as: Heading = 'h3' }: { children: ReactNode; as?: 'h3' | 'h4' }) {
   return (
@@ -405,7 +409,8 @@ export function TreeCardLink({ to, name, children, ...rest }: { to: string; name
     <Link
       to={to}
       className={cn(
-        'mt-3 inline-flex min-h-11 items-center gap-1 rounded-sm text-sm font-medium text-text-1 underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-text-1 sm:min-h-8',
+        // A full finger tall wherever a finger is used, at any width.
+        'mt-3 inline-flex min-h-11 items-center gap-1 rounded-sm text-sm font-medium text-text-1 underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-text-1 sm:min-h-8 [@media(pointer:coarse)]:min-h-11',
         focusRing
       )}
       {...rest}

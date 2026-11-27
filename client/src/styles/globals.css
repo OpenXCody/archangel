@@ -736,7 +736,7 @@ input {
     padding-left: calc(var(--tree-indent) + var(--tree-reach));
   }
 
-  /* A mark, in its box: an open ring, or the root's filled dot. A seeker's mark on a skill is the product's own. */
+  /* A mark, in its box: a ring, or the root's filled dot. A seeker's mark on a skill is the product's own. */
   .tree-mark {
     display: flex;
     flex: none;
@@ -758,13 +758,17 @@ input {
     background-color: var(--text-1);
   }
   /*
-   * Open and closed: a closed node is an open ring and its name at body
-   * weight; an open one is a filled dot, as the root is, and its name is
-   * heavier. A seeker's own mark on a skill stays as it is either way.
+   * Open and closed: a closed node is a quiet ring and its name at body
+   * weight; an open one is the same ring in full ink, heavier, and its name
+   * is heavier. Fill is never a node's state: a filled mark is the root, or a
+   * skill a seeker holds (the product's check), so an open skill is never
+   * taken for a held one. A seeker's own mark stays as it is either way. A
+   * node that only names its branch (`TreeHeading`) opens nothing, so its
+   * ring stays quiet.
    */
-  .tree-item[data-open] > .tree-node .tree-dot {
+  .tree-item[data-open] > .tree-node .tree-row:not([data-tree-heading]) .tree-dot {
+    border-width: 2px;
     border-color: var(--text-1);
-    background-color: var(--text-1);
   }
   .tree-item[data-open] > .tree-node .tree-name {
     font-weight: 600;

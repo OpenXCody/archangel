@@ -41,9 +41,9 @@ export const panelClass = 'min-w-0 overflow-clip rounded-lg border border-line';
 /** A row inside a panel: its own padding, the hover reaching the frame (only where there is a pointer), the focus ring drawn inside it. */
 export const panelRowClass = cn('flex min-h-12 w-full min-w-0 items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover focus-visible:-outline-offset-2', focusRing);
 
-/** The secondary button: a hairline on nothing. */
+/** The secondary button: a hairline on nothing. A full finger tall wherever a finger is used, at any width. */
 export const secondaryActionClass = cn(
-  'inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover sm:h-10',
+  'inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover sm:h-10 [@media(pointer:coarse)]:min-h-11',
   focusRing
 );
 

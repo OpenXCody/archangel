@@ -12,7 +12,7 @@ import { cityState } from '../../lib/places';
 import { DetailHeader, DetailSection, RecordList, RecordRow, ShowAll } from '../layout/Page';
 import { CivilianReach } from '../reach/CivilianReach';
 import { useSkillMarks } from '../path/useSkillMarks';
-import { CareerLadder } from '../route/CareerLadder';
+import { CareerLadderSection } from '../route/CareerLadder';
 import { SkillGroups } from '../route/SkillGroups';
 import { type Head, OpenJobsSection, MilitaryCareerRows } from './parts';
 
@@ -59,7 +59,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // Any career with skills has a path to draw, whether or not anyone has written one for it. Whether a
   // person has reviewed it (`pathStatus`) is said inside the admin's editor, behind Edit, never on the page.
   // The skills arrive in the route's order.
-  const onLadder = (data.comesFrom?.length ?? 0) + (data.leadsTo?.length ?? 0) > 0;
   // Companies that say how this career is done with them: each row opens that company's version.
   const versions = data.versions ?? [];
   // Where people come to this career from the services: computed from the two paths, never stored.
@@ -68,7 +67,6 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
   // A military career: the service it belongs to, and the civilian careers its path covers.
   const service = data.service ?? null;
   const withinReach = data.withinReach ?? [];
-
 
   return (
     <>
@@ -93,14 +91,10 @@ export default function OccupationDetailView({ data, head }: { data: OccupationD
       )}
 
       {/* Where it stands among careers: where people come to it from, and where it leads. */}
-      {onLadder && (
-        <DetailSection id="ladder" title={(data.leadsTo?.length ?? 0) > 0 ? 'Where it leads' : 'Where it comes from'}>
-          <CareerLadder comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
-        </DetailSection>
-      )}
+      <CareerLadderSection comesFrom={data.comesFrom} leadsTo={data.leadsTo} />
 
       {/* A military career: what else its skills are for, the civilian careers they reach. */}
-      {service && <CivilianReach key={data.id} careers={withinReach} />}
+      {service && <CivilianReach careers={withinReach} keepAs={data.id} />}
 
       {/* Like the company and factory pages: a section only when there is a job to show. */}
       {/* The newest five; "All N" leads to the rest on Jobs. */}

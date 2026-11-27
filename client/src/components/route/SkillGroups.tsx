@@ -1,7 +1,7 @@
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useId, useMemo, type ReactNode } from 'react';
 import { groupRoute } from '@shared/route';
 import { cn, plural } from '@/lib/utils';
-import { readStored, writeStored } from '../../lib/storage';
+import { useKept } from '../../lib/kept';
 import { SectionHeading } from '../layout/Page';
 import { panelClass, secondaryActionClass } from '../layout/Panel';
 import { Tree, TreeBranch, TreeCard, TreeCardNames, TreeItem, TreeRoot, TreeToggle, type TreeMark } from '../layout/Tree';
@@ -15,12 +15,27 @@ interface Group {
   skills: PlacedSkill[];
 }
 
+/** What a person has open in the tree: skill groups by key, skills' cards by skill, and a version's left-out skills. */
+interface Opened {
+  groups: Record<string, boolean>;
+  cards: Record<string, boolean>;
+  leftOut: boolean;
+}
+
+const CLOSED: Opened = { groups: {}, cards: {}, leftOut: false };
+
+/** The open cards, without those of these skills. */
+function without(cards: Record<string, boolean>, skills: readonly PlacedSkill[]): Record<string, boolean> {
+  const gone = new Set(skills.map((skill) => skill.id));
+  return Object.fromEntries(Object.entries(cards).filter(([skillId]) => !gone.has(skillId)));
+}
+
 interface SkillGroupsProps {
   /** The path's skills, in the route's order (the server's `routeOf`): never reordered here. */
   skills: readonly PlacedSkill[];
   /** A seeker's marks, read and never changed: without them no mark and no figure but a group's size. */
   marks: SkillMarks | null;
-  /** What a person's own opening and closing is kept under for the visit: the career, or the career at a company. */
+  /** Whose tree this is, for the way back to it (`useKept`): the career, or the career at a company. */
   keepAs: string;
   /**
    * A company's version: the skills of the standard path it leaves out. They
@@ -49,8 +64,10 @@ interface SkillGroupsProps {
  * order, each on an elbow off the group's own spine, straight under the group
  * and indented, at every width, the groups after it following straight after
  * its last skill. A skill is a node that opens its card under itself
- * (`SkillPreview`), the skill's line running into the card; one card at a
- * time in a group. Every group and every skill starts closed, for everyone.
+ * (`SkillPreview`), the skill's line running into the card. Opening one
+ * closes no other, so nothing a person presses moves from under their finger;
+ * a card closes with its group. Every group and every skill arrives closed,
+ * for everyone; going Back to the page returns it as it was left (`useKept`).
  *
  * A company's version that leaves skills of the standard out ends in one more
  * node off the root, "Left out of the standard", which opens their names as
@@ -76,29 +93,27 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
   const ready = marks && !marks.pending ? marks : null;
   const share = ready ? shareOf(skills, ready) : null;
 
-  // Which groups are open: closed when the page arrives, and as the person left them for the rest of the visit.
-  const storeKey = `archangel.groups.${keepAs}`;
-  const [open, setOpen] = useState<Record<string, boolean>>(() => readOpen(storeKey));
-  const change = (next: Record<string, boolean>) => {
-    setOpen(next);
-    writeStored(storeKey, JSON.stringify(next), 'session');
-  };
-  const allOpen = groups.every((group) => open[group.key]);
-  const [leftOutOpen, setLeftOutOpen] = useState(false);
-
-  // The skill opened in each group: none until one is pressed; pressing it again, or another, closes it.
-  const [chosenIn, setChosenIn] = useState<Record<string, string | null>>({});
-  const toggleGroup = (group: Group) => {
-    if (open[group.key]) setChosenIn((current) => ({ ...current, [group.key]: null }));
-    change({ ...open, [group.key]: !open[group.key] });
-  };
-  const toggleAll = () => {
-    // Closing them all closes the cards inside them too, so the tree opens again as it arrived.
-    if (allOpen) setChosenIn({});
-    change(Object.fromEntries(groups.map((group) => [group.key, !allOpen])));
-  };
-  const choose = (group: Group, skillId: string) =>
-    setChosenIn((current) => ({ ...current, [group.key]: current[group.key] === skillId ? null : skillId }));
+  // What is open: nothing when the page arrives, and as the person left it when they come Back to it.
+  const [opened, setOpened] = useKept<Opened>(`skills ${keepAs}`, CLOSED);
+  const allOpen = groups.every((group) => opened.groups[group.key]);
+  const toggleGroup = (group: Group) =>
+    setOpened((current) => {
+      const closing = Boolean(current.groups[group.key]);
+      return {
+        ...current,
+        groups: { ...current.groups, [group.key]: !closing },
+        // A group that closes closes the cards inside it, so it opens again as it arrived.
+        cards: closing ? without(current.cards, group.skills) : current.cards,
+      };
+    });
+  const toggleAll = () =>
+    setOpened((current) => ({
+      ...current,
+      groups: Object.fromEntries(groups.map((group) => [group.key, !allOpen])),
+      cards: allOpen ? {} : current.cards,
+    }));
+  const toggleSkill = (skillId: string) => setOpened((current) => ({ ...current, cards: { ...current.cards, [skillId]: !current.cards[skillId] } }));
+  const toggleLeftOut = () => setOpened((current) => ({ ...current, leftOut: !current.leftOut }));
 
   return (
     <section id="skills" aria-labelledby={headingId} className="mt-14 scroll-mt-20" data-skills-section>
@@ -127,7 +142,7 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
           <TreeRoot data-skills-size="">{plural(skills.length, 'skill', 'skills')}</TreeRoot>
           <TreeBranch aria-label="Skill groups">
             {groups.map((group, index) => {
-              const isOpen = Boolean(open[group.key]);
+              const isOpen = Boolean(opened.groups[group.key]);
               const held = ready ? shareOf(group.skills, ready).held : 0;
               const branchId = `${base}-group-${index}`;
               return (
@@ -157,9 +172,9 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
                           key={skill.id}
                           skill={skill}
                           status={ready ? ready.statusOf(skill.id) : null}
-                          open={chosenIn[group.key] === skill.id}
+                          open={Boolean(opened.cards[skill.id])}
                           previewId={`${base}-skill-${skill.id}`}
-                          onToggle={() => choose(group, skill.id)}
+                          onToggle={() => toggleSkill(skill.id)}
                         />
                       ))}
                     </TreeBranch>
@@ -169,20 +184,20 @@ export function SkillGroups({ skills, marks, keepAs, leftOut = [], before }: Ski
             })}
             {leftOut.length > 0 && (
               <TreeItem
-                open={leftOutOpen}
+                open={opened.leftOut}
                 data-left-out=""
                 node={
                   <TreeToggle
                     as="h3"
                     title="Left out of the standard"
                     figure={plural(leftOut.length, 'skill', 'skills')}
-                    open={leftOutOpen}
-                    onToggle={() => setLeftOutOpen((value) => !value)}
+                    open={opened.leftOut}
+                    onToggle={toggleLeftOut}
                     controls={`${base}-left-out`}
                   />
                 }
               >
-                {leftOutOpen && (
+                {opened.leftOut && (
                   <TreeCard id={`${base}-left-out`} aria-label="Skills of the standard path left out">
                     <TreeCardNames names={leftOut} data-left-out-names="" />
                   </TreeCard>
@@ -239,15 +254,4 @@ function SkillNode({
       {open && <SkillPreview id={previewId} skill={skill} />}
     </TreeItem>
   );
-}
-
-/** What the person opened and closed earlier in this visit; nothing when the browser will not say. */
-function readOpen(key: string): Record<string, boolean> {
-  try {
-    const stored: unknown = JSON.parse(readStored(key, 'session') ?? '{}');
-    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
-    return Object.fromEntries(Object.entries(stored).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean'));
-  } catch {
-    return {};
-  }
 }

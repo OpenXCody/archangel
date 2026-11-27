@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { cn, plural } from '@/lib/utils';
 import type { TaxonomyDomain } from '../../lib/api';
-import { readStored, writeStored } from '../../lib/storage';
+import { useKept } from '../../lib/kept';
 import { Band, Panel, PanelHead, panelRowClass, secondaryActionClass } from '../layout/Panel';
 
 /**
@@ -25,15 +24,11 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
   // A list narrowed to one domain is that domain, open, whatever the person did to its bar in the whole list:
   // what they open and close there is kept apart from what they open and close in the index of all sixteen.
   const one = domains.length === 1;
-  const [open, setOpen] = useState<Record<string, boolean>>(() => readOpen());
+  // Nothing is open when the list arrives; going Back to it returns it as it was left.
+  const [open, setOpen] = useKept<Record<string, boolean>>('skills list', NONE);
   const keyOf = (slug: string) => (one ? `only:${slug}` : slug);
   const isOpen = (state: Record<string, boolean>, slug: string) => state[keyOf(slug)] ?? one;
-  const toggle = (slug: string) =>
-    setOpen((current) => {
-      const next = { ...current, [keyOf(slug)]: !isOpen(current, slug) };
-      writeStored(STORE, JSON.stringify(next), 'session');
-      return next;
-    });
+  const toggle = (slug: string) => setOpen((current) => ({ ...current, [keyOf(slug)]: !isOpen(current, slug) }));
 
   return (
     <div className="space-y-2" data-skill-tree>
@@ -84,15 +79,5 @@ export default function SkillTree({ domains }: { domains: TaxonomyDomain[] }) {
   );
 }
 
-/** Where the domains a person opened are kept for the visit. */
-const STORE = 'archangel.skillTree.open';
-
-function readOpen(): Record<string, boolean> {
-  try {
-    const stored: unknown = JSON.parse(readStored(STORE, 'session') ?? '{}');
-    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
-    return Object.fromEntries(Object.entries(stored).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean'));
-  } catch {
-    return {};
-  }
-}
+/** No domain opened or closed by hand yet. */
+const NONE: Record<string, boolean> = {};
