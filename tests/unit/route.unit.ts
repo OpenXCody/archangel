@@ -153,3 +153,31 @@ test("no tree's root is given the record's name", () => {
   const written = clientFiles().reduce((count, file) => count + (read(file).match(/<TreeRoot\b/g) ?? []).length, 0);
   assert.equal(written, roots.length);
 });
+
+// Everything arrives closed. What a person opened is kept for the way back alone (`useKept`: in memory, by the
+// entry of the browser's history), so a page loaded again starts closed: none of the parts that open in place
+// reads or writes browser storage.
+test('what a person opened on a tree or the Skills list is never put in browser storage', () => {
+  const parts = [
+    'client/src/lib/kept.ts',
+    'client/src/components/route/SkillGroups.tsx',
+    'client/src/components/route/CareerLadder.tsx',
+    'client/src/components/reach/CivilianReach.tsx',
+    'client/src/components/explorer/SkillTree.tsx',
+    'client/src/components/layout/Tree.tsx',
+    'client/src/components/layout/Panel.tsx',
+  ];
+  for (const file of parts) assert.doesNotMatch(read(file), /lib\/storage|readStored|writeStored|sessionStorage|localStorage/, file);
+  for (const file of ['client/src/components/route/SkillGroups.tsx', 'client/src/components/reach/CivilianReach.tsx', 'client/src/components/explorer/SkillTree.tsx']) {
+    assert.match(read(file), /useKept</, `${file} keeps what is open with useKept`);
+  }
+});
+
+// Fill means one thing in a tree: the root, or a skill a seeker holds. An open node says so by its ring's ink,
+// its name and its line, so no rule for an open node gives its ring a fill (an open skill read as a held one).
+test("an open node's ring is never filled", () => {
+  const css = read('client/src/styles/globals.css');
+  const open = [...css.matchAll(/([^{}]*\[data-open\][^{}]*\.tree-dot[^{}]*)\{([^}]*)\}/g)];
+  assert.ok(open.length > 0, 'the stylesheet says how an open node is marked');
+  for (const [, selector, body] of open) assert.doesNotMatch(body, /background/, selector.trim());
+});

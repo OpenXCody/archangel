@@ -34,6 +34,12 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
   // readable text, or — for canvas-first pages like the map — live controls.
   expect(metrics.bodyText > 20 || metrics.interactive >= 3, `${label}: page rendered nothing`).toBe(true);
   await expect(page.getByText('This page could not be shown'), `${label}: ErrorBoundary tripped`).toHaveCount(0);
+  // More of a list is the last row of the list's own frame, or a framed button by itself: never a bare row under a frame.
+  const bare = await page.evaluate(() => {
+    const framed = (element: Element | null) => Boolean(element) && parseFloat(getComputedStyle(element as Element).borderLeftWidth) > 0;
+    return [...document.querySelectorAll('[data-show-all]')].filter((button) => !framed(button) && !framed(button.parentElement)).length;
+  });
+  expect(bare, `${label}: "Show all" stands outside its list's frame`).toBe(0);
   // Evidence, not an assertion: a slow tile or font server must not fail a layout check.
   const file = `test-results/screens/${test.info().project.name}${label.replace(/[^A-Za-z0-9._-]/g, '_')}.png`;
   await page.screenshot({ path: file, fullPage: false, timeout: 10_000 }).catch(() => undefined);
@@ -50,9 +56,11 @@ async function assertHealthyLayout(page: Page, label: string): Promise<void> {
  * - the nodes of a branch stand under one another on one upright with nothing
  *   between them, so what a node opened pushes no sibling away from it;
  * - open and closed are told apart by more than the chevron: an open node's
- *   mark is filled and its name heavier, its line runs on down from its mark,
- *   and what it opened (a branch or a card) is inside its own item; a closed
- *   node is a ring at body weight and holds nothing;
+ *   ring is in full ink and its name heavier, its line runs on down from its
+ *   mark, and what it opened (a branch or a card) is inside its own item; a
+ *   closed node is a quiet ring at body weight and holds nothing;
+ * - no node's ring is ever filled: fill is the root's dot and a seeker's held
+ *   skill, so an open skill is never taken for a held one;
  * - no text stands loose in the frame.
  */
 async function expectTree(tree: Locator, label: string): Promise<void> {
@@ -63,6 +71,10 @@ async function expectTree(tree: Locator, label: string): Promise<void> {
     const said = (element: Element | null | undefined) => (element?.textContent ?? '').trim().slice(0, 40);
     const roots = root.querySelectorAll('[data-tree-root]');
     if (roots.length !== 1) found.push(`${roots.length} roots`);
+    // Full ink, as the root's own dot is drawn.
+    const rootDot = roots[0]?.querySelector('.tree-dot');
+    const ink = rootDot ? getComputedStyle(rootDot).backgroundColor : '';
+    if (!rootDot || ink === 'rgba(0, 0, 0, 0)') found.push('the root has no filled dot');
     for (const row of root.querySelectorAll('.tree-row')) {
       const box = row.getBoundingClientRect();
       if (box.height < 44) found.push(`${said(row)}: ${box.height}px tall`);
@@ -88,9 +100,17 @@ async function expectTree(tree: Locator, label: string): Promise<void> {
       const open = item.hasAttribute('data-open');
       const toggle = node?.querySelector('button[aria-expanded]');
       if (toggle && (toggle.getAttribute('aria-expanded') === 'true') !== open) found.push(`${name}: says ${toggle.getAttribute('aria-expanded')} and is ${open ? 'open' : 'closed'}`);
-      // A seeker's own mark on a skill has no ring to fill: it stays the product's mark, open or closed.
+      // A node's ring says open by its ink (the root's own, full ink), never by a fill; a node that only names its
+      // branch opens nothing and keeps the quiet ring. A seeker's own mark on a skill has no ring: it stays the
+      // product's mark, open or closed.
       const ring = node?.querySelector('.tree-dot');
-      if (ring && (getComputedStyle(ring).backgroundColor !== 'rgba(0, 0, 0, 0)') !== open) found.push(`${name}: its mark does not say it is ${open ? 'open' : 'closed'}`);
+      if (ring) {
+        const drawn = getComputedStyle(ring);
+        if (drawn.backgroundColor !== 'rgba(0, 0, 0, 0)') found.push(`${name}: a node's ring is filled`);
+        const inked = drawn.borderTopColor === ink;
+        if (toggle && inked !== open) found.push(`${name}: its mark does not say it is ${open ? 'open' : 'closed'}`);
+        if (!toggle && inked) found.push(`${name}: a ring in full ink on a node that opens nothing`);
+      }
       const words = node?.querySelector('.tree-name');
       if (words && (Number(getComputedStyle(words).fontWeight) >= 600) !== open) found.push(`${name}: its name does not say it is ${open ? 'open' : 'closed'}`);
       const opened = item.querySelector(':scope > .tree-branch, :scope > .tree-card');
@@ -251,23 +271,31 @@ test('a career page shows its skills as one tree, every group closed; a company 
   expect(drawn.y, 'the card stands under its skill').toBeGreaterThanOrEqual(row.y + row.height - 1);
   expect(drawn.x, 'inside the frame').toBeGreaterThanOrEqual(frame.x);
   expect(drawn.x + drawn.width, 'inside the frame').toBeLessThanOrEqual(frame.x + frame.width + 1);
-  expect((await box(card.locator('[data-preview-open]'))).height, 'the way to the skill is a full finger tall where a finger is used').toBeGreaterThanOrEqual((page.viewportSize()?.width ?? 0) < 640 ? 44 : 32);
+  // A full finger tall wherever a finger is used, at any width (a tablet too); smaller only under a mouse.
+  const finger = await page.evaluate(() => window.matchMedia('(pointer: coarse)').matches);
+  expect((await box(card.locator('[data-preview-open]'))).height, 'the way to the skill is a full finger tall where a finger is used').toBeGreaterThanOrEqual(finger ? 44 : 32);
   await expectTree(tree, 'a career, a card open');
   await assertHealthyLayout(page, '/occupations/:id a skill open');
-  // One card at a time in a group: opening another skill of it closes the first; a card in another group stays.
+  // Opening another skill of the group closes nothing: the first card stays, so the skill pressed does not move from under the finger.
+  let cards = 1;
   if (groups[0].skills.length > 1) {
     const other = groups[0].skills[1];
     const follows = await box(skillNode(other));
     expect(follows.y, 'the next skill follows under the card').toBeGreaterThanOrEqual(drawn.y + drawn.height);
+    const placeOf = (locator: Locator) => locator.evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+    const was = await placeOf(head(skillNode(other)));
     await head(skillNode(other)).click();
-    await expect(head(skillNode(one))).toHaveAttribute('aria-expanded', 'false');
-    await expect(first.locator('[data-skill-preview]')).toHaveCount(1);
     await expect(skillNode(other).locator('[data-skill-preview]')).toBeVisible();
+    await expect(head(skillNode(one)), 'the first card stays open').toHaveAttribute('aria-expanded', 'true');
+    await expect(first.locator('[data-skill-preview]')).toHaveCount(2);
+    expect(Math.abs((await placeOf(head(skillNode(other)))) - was), 'the skill pressed stays where it was').toBeLessThanOrEqual(1);
+    await expectTree(tree, 'a career, two cards in one group');
+    cards = 2;
   }
   await head(nodes.nth(1)).click();
   await head(skillNode(groups[1].skills[0])).click();
-  await expect(tree.locator('[data-skill-preview]')).toHaveCount(2);
-  await expect(first.locator('[data-skill-preview]')).toHaveCount(1);
+  await expect(tree.locator('[data-skill-preview]')).toHaveCount(cards + 1);
+  await expect(first.locator('[data-skill-preview]')).toHaveCount(cards);
   await expectTree(tree, 'a career, a card in each of two groups');
   // Pressing an open skill closes its card; closing a group closes what was open inside it.
   await head(skillNode(groups[1].skills[0])).click();
@@ -284,7 +312,7 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
   await expect(openAll).toHaveText('Open all');
   await expect(openAll).toHaveAttribute('aria-expanded', 'false');
-  expect((await box(openAll)).height, '"Open all" is a full finger tall where a finger is used').toBeGreaterThanOrEqual((page.viewportSize()?.width ?? 0) < 640 ? 44 : 36);
+  expect((await box(openAll)).height, '"Open all" is a full finger tall where a finger is used').toBeGreaterThanOrEqual(finger ? 44 : 36);
   await openAll.click();
   await expect(openAll).toHaveText('Close all');
   await expect(openAll).toHaveAttribute('aria-expanded', 'true');
@@ -364,6 +392,75 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await page.goto(`/companies/${company}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-entity-view="companies"]')).toHaveCount(1);
   await expect(page.locator('#skills')).toHaveCount(0);
+
+  // A company's factories past twelve wait behind "Show all": the last row of the list's own frame, never a row under it.
+  const companies = (await (await request.get(`${API}/companies?limit=50`)).json()) as { data: { id: string; factoryCount: number }[] };
+  const large = companies.data.find((each) => each.factoryCount > 12);
+  expect(large, 'a company with more than twelve factories').toBeTruthy();
+  await page.goto(`/companies/${large!.id}`, { waitUntil: 'domcontentloaded' });
+  const listed = page.locator('#factories [data-record-list]');
+  await expect(listed.locator('li')).toHaveCount(12);
+  const rest = page.locator('#factories [data-show-all]');
+  await expect(rest).toHaveText(/^Show all \d/);
+  await expect(rest).toHaveAttribute('aria-expanded', 'false');
+  expect(await listed.evaluate((frame) => frame.lastElementChild?.hasAttribute('data-show-all')), '"Show all" is the last row of the list\'s frame').toBe(true);
+  await page.locator('#factories').scrollIntoViewIfNeeded();
+  await assertHealthyLayout(page, '/companies/:id factories');
+  await rest.click();
+  await expect(rest).toHaveText('Show fewer');
+  expect(await listed.locator('li').count(), 'every factory is listed').toBeGreaterThan(12);
+});
+
+test("what a person opened on a career's page is that career's: a link arrives closed, and the way back returns the page as it was left", async ({ page, request }) => {
+  // Two careers on one ladder, which share skill groups: what is open on one must never be drawn on the other.
+  const here = await careerByTitle(request, 'Maintenance Technician');
+  expect(here.leadsTo.length, 'it leads somewhere').toBeGreaterThan(0);
+  const next = await careerByTitle(request, here.leadsTo[0].title);
+  const shared = groupsOf(here.skills).filter((group) => groupsOf(next.skills).some((other) => other.name === group.name));
+  expect(groupsOf(next.skills).length, 'the next career has several skill groups').toBeGreaterThan(1);
+  const { tree, groups, skill } = skillsTree(page);
+  const title = page.getByRole('heading', { level: 1 });
+  const openGroups = () => tree.locator('[data-route-section][data-open] > .tree-node .tree-name').allInnerTexts();
+  const groupNamed = (group: { skills: { group: { slug: string } | null }[] }) => tree.locator(`[data-route-section="${group.skills[0].group?.slug}"]`);
+
+  await page.goto(`/occupations/${here.id}`, { waitUntil: 'domcontentloaded' });
+  await expect(title).toHaveText(here.title);
+  await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(0);
+  // Open a group both careers have (else its first), and a skill's card in it.
+  const mine = shared[0] ?? groupsOf(here.skills)[0];
+  await head(groupNamed(mine)).click();
+  await head(skill(mine.skills[0])).click();
+  await expect(skill(mine.skills[0]).locator('[data-skill-preview]')).toBeVisible();
+  expect(await openGroups()).toEqual([mine.name]);
+
+  // On by the ladder: the next career arrives closed, whatever groups the two share.
+  await page.locator(`#ladder a[href="/occupations/${next.id}"]`).click();
+  await expect(title).toHaveText(next.title);
+  await expect(groups.first()).toBeVisible();
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]'), 'a career reached by a link arrives closed').toHaveCount(0);
+  const theirs = groupsOf(next.skills).find((group) => group.name !== mine.name)!;
+  await head(groupNamed(theirs)).click();
+  expect(await openGroups()).toEqual([theirs.name]);
+
+  // Back: the first career as it was left, its group and its card open, and nothing of the second's.
+  await page.goBack();
+  await expect(title).toHaveText(here.title);
+  await expect(skill(mine.skills[0]).locator('[data-skill-preview]'), 'the way back returns the card left open').toBeVisible();
+  expect(await openGroups(), 'the way back returns the page as it was left').toEqual([mine.name]);
+  await expectTree(tree, 'a career come back to');
+  // Forward: the second as it was left.
+  await page.goForward();
+  await expect(title).toHaveText(next.title);
+  await expect(head(groupNamed(theirs))).toHaveAttribute('aria-expanded', 'true');
+  expect(await openGroups()).toEqual([theirs.name]);
+
+  // The first career again, by a link this time: another visit, so it arrives closed.
+  const back = page.locator(`#ladder a[href="/occupations/${here.id}"]`);
+  if ((await back.count()) === 0) await page.locator('#ladder [data-ladder-more]').click();
+  await back.click();
+  await expect(title).toHaveText(here.title);
+  await expect(groups.first()).toBeVisible();
+  await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]'), 'a career reached by a link arrives closed').toHaveCount(0);
 });
 
 /**
@@ -689,6 +786,18 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   // The other domains stay closed, and the open one's bar holds under the header while its skills scroll.
   await expect(page.locator('[data-skill-tree] [data-band-toggle][aria-expanded="true"]')).toHaveCount(1);
   await assertHealthyLayout(page, '/explore?tab=skills, a domain open');
+  // A skill opened from the list, and the way back: the list as it was left, its domain still open. Loaded again
+  // it is the index, every domain closed: what a person opened is kept for the way back and nowhere else.
+  await frame.locator('a[href^="/skills/"]').first().click();
+  await expect(page).toHaveURL(new RegExp(`/skills/${opened.groups[0].skills[0].id}$`));
+  await page.goBack();
+  await expect(bar, 'the way back returns the list as it was left').toHaveAttribute('aria-expanded', 'true');
+  await expect(band.locator('[data-skill-group]')).toHaveCount(opened.groups.length);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(bands).toHaveCount(listed.length);
+  await expect(page.locator('[data-skill-tree] [data-band-toggle][aria-expanded="true"], [data-skill-tree] [data-skill-group]'), 'loaded again, every domain is closed').toHaveCount(0);
+  await bar.click();
+  await expect(bar).toHaveAttribute('aria-expanded', 'true');
   // Space closes it again.
   await bar.focus();
   await page.keyboard.press('Space');
@@ -1065,8 +1174,6 @@ test("a seeker's tree of skills says what is held and marks nothing; an employer
       // Inside its group a skill does not say its group again.
       await expect(tree.locator('[data-skill-tag] [data-tag-note]')).toHaveCount(0);
       await openAll.click();
-      // What a person opened and closed holds for the visit: forgotten here, so the next reads are a fresh visit's.
-      await page.evaluate(() => sessionStorage.clear());
 
       // Skills marked elsewhere (Profile; here, the API): the first skill, then the whole of the first group, and one being learned.
       const section = sections[0];
@@ -1090,8 +1197,7 @@ test("a seeker's tree of skills says what is held and marks nothing; an employer
       await expect(skill(section.skills[0]).locator('[data-skill-preview]')).not.toContainText(/You hold|held/i);
       await expect(skill(section.skills[0]).locator('[data-skill-mark="held"]'), 'a held skill keeps its mark while it is open').toBeVisible();
       await expectTree(tree, 'a held skill open');
-      await head(place).click();
-      await page.evaluate(() => sessionStorage.clear());
+      // Left open: the page loaded again arrives closed all the same (the next check holds it).
 
       for (const each of section.skills) await hold(each);
       const learning = path.find((each) => !held.has(each.id) && !section.skills.includes(each))!;
@@ -1130,12 +1236,13 @@ test("a seeker's tree of skills says what is held and marks nothing; an employer
       await expect(inside).toHaveCount(0);
       await page.keyboard.press('Tab');
       await expect(head(groups.nth(1)), 'Tab passes a closed group by').toBeFocused();
-      // What a person opened themselves holds for the visit (a card does not); Open all opens every group, and then closes them.
+      // A page loaded again arrives closed, whatever was open on it; Open all opens every group, and then closes them.
       await head(place).click();
-      await page.reload({ waitUntil: 'domcontentloaded' });
       await expect(head(place)).toHaveAttribute('aria-expanded', 'true');
-      await expect(tree.locator('[data-route-section][data-open]')).toHaveCount(1);
-      await expect(tree.locator('[data-skill-preview]')).toHaveCount(0);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await expect(head(place)).toHaveAttribute('aria-expanded', 'false');
+      await expect(tree.locator('[data-route-section][data-open], [data-skill-tag], [data-skill-preview]')).toHaveCount(0);
+      expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => /groups|route|skillTree/.test(key))), 'nothing a person opened is put in browser storage').toEqual([]);
       await expect(openAll).toHaveText('Open all');
       await openAll.click();
       await expect(tree.locator('[data-route-section]:not([data-open])')).toHaveCount(0);
@@ -1709,6 +1816,27 @@ test("a company's version of a career, as a visitor: the same page, its changes 
   }
   await expect(groups).toHaveCount(groupsOf(skills).length);
   await assertHealthyLayout(page, '/occupations/:id?at=company');
+
+  // After the skills, where the career leads: the career's own ladder, as its standard page draws it, each career
+  // on it opening its standard page. A career on no ladder has no such section.
+  const rungs = (await (await request.get(`${API}/occupations/${occupation.id}`)).json()) as { comesFrom: { id: string; title: string }[]; leadsTo: { id: string; title: string }[] };
+  const ladder = page.locator('#ladder');
+  if (rungs.comesFrom.length + rungs.leadsTo.length > 0) {
+    expect((await page.locator('[data-entity-view] section').evaluateAll((sections) => sections.map((each) => each.id))).slice(0, 2)).toEqual(['skills', 'ladder']);
+    await expect(ladder.locator('h2')).toHaveText(rungs.leadsTo.length > 0 ? 'Where it leads' : 'Where it comes from');
+    await expect(ladder.locator('[data-ladder-this]')).toHaveText('This career');
+    await expectTree(ladder.locator('[data-tree]'), "a company's version, the career's ladder");
+    const named = (side: { id: string; title: string }[]) => (side.length > 4 ? side.slice(0, 3) : side);
+    for (const [side, careers] of [['before', rungs.comesFrom], ['after', rungs.leadsTo]] as const) {
+      const links = ladder.locator(`[data-path-ladder="${side}"] a`);
+      await expect(links).toHaveText(named(careers).map((each) => each.title));
+      if (careers.length > 0) await expect(links.first()).toHaveAttribute('href', `/occupations/${careers[0].id}`);
+    }
+    await ladder.scrollIntoViewIfNeeded();
+    await assertHealthyLayout(page, "/occupations/:id?at=company the career's ladder");
+  } else {
+    await expect(ladder).toHaveCount(0);
+  }
 
   // One tap returns to the standard, which says the company has its own version; the row opens it again.
   const standard = page.locator('[data-standard-link]');
@@ -2964,7 +3092,7 @@ test("a military career's page: its kind and code above the service's own title,
   await assertHealthyLayout(page, '/companies/us-marine-corps');
 });
 
-test("a military career's civilian careers within reach are one tree at every width: each opens its card in place, one at a time, from the keyboard too", async ({ page, request }) => {
+test("a military career's civilian careers within reach are one tree at every width: each opens its card in place and closes no other, from the keyboard too", async ({ page, request }) => {
   const ht = await militaryCareer(request, 'HT');
   const record = (await (await request.get(`${API}/occupations/${ht.id}`)).json()) as {
     withinReach: { id: string; title: string; held: number; total: number; missing: { name: string }[] }[];
@@ -3016,23 +3144,33 @@ test("a military career's civilian careers within reach are one tree at every wi
   await expectTree(tree, 'careers within reach, one open');
   await assertHealthyLayout(page, '/occupations/:id military, a career open');
 
-  // The keyboard: each node is a stop; Enter opens the second, and the first closes. One at a time.
+  // The keyboard: each node is a stop; Enter opens the second, and the first stays open, so the career pressed
+  // does not move from where it was.
+  const placeOf = (locator: Locator) => locator.evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+  const was = await placeOf(head(rows.nth(1)));
   await head(rows.nth(1)).focus();
   await page.keyboard.press('Enter');
   await expect(head(rows.nth(1))).toHaveAttribute('aria-expanded', 'true');
-  await expect(head(rows.first())).toHaveAttribute('aria-expanded', 'false');
-  await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+  await expect(head(rows.first()), 'the first card stays open').toHaveAttribute('aria-expanded', 'true');
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(2);
+  expect(Math.abs((await placeOf(head(rows.nth(1)))) - was), 'the career pressed stays where it was').toBeLessThanOrEqual(1);
   const second = rows.nth(1).locator(`[data-reach-panel="${careers[1].id}"]`);
   expect(await missingIn(second)).toEqual(careers[1].missing.map((skill) => skill.name));
+  await expectTree(tree, 'careers within reach, two open');
+  // The way to a career's page is a full finger tall wherever a finger is used, at any width.
+  const finger = await page.evaluate(() => window.matchMedia('(pointer: coarse)').matches);
+  expect((await second.locator('[data-reach-open]').boundingBox())?.height ?? 0, 'the way to the career is a full finger tall where a finger is used').toBeGreaterThanOrEqual(finger ? 44 : 32);
   // Tab goes on into the card, to its one link, and then to the next career.
   await page.keyboard.press('Tab');
   await expect(second.locator('[data-reach-open]')).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(head(rows.nth(2))).toBeFocused();
-  // Space on the open node closes it.
+  // Space on an open node closes it, and only it.
   await head(rows.nth(1)).focus();
   await page.keyboard.press('Space');
   await expect(head(rows.nth(1))).toHaveAttribute('aria-expanded', 'false');
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+  await head(rows.first()).click();
   await expect(reach.locator('[data-reach-panel]')).toHaveCount(0);
   await expectTree(tree, 'careers within reach, closed again');
 
@@ -3045,11 +3183,17 @@ test("a military career's civilian careers within reach are one tree at every wi
     await expect(rows).toHaveCount(careers.length);
     await expectTree(tree, 'every career within reach');
     await assertHealthyLayout(page, '/occupations/:id military, every career within reach');
-    // A card left open on a career the shorter list does not show closes with it.
+    // A card left open on a career the shorter list does not show closes with it; one on a career it still shows stays.
+    await head(rows.first()).click();
     await head(rows.last()).click();
-    await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+    await expect(reach.locator('[data-reach-panel]')).toHaveCount(2);
     await reach.getByRole('button', { name: 'Show fewer', exact: true }).click();
     await expect(rows).toHaveCount(shown.length);
-    await expect(reach.locator('[data-reach-panel]')).toHaveCount(0);
+    await expect(reach.locator('[data-reach-panel]')).toHaveCount(1);
+    await expect(rows.first().locator(`[data-reach-panel="${careers[0].id}"]`)).toBeVisible();
   }
+  // The page loaded again arrives closed, whatever was open on it.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(rows).toHaveCount(shown.length);
+  await expect(reach.locator('[data-reach-panel]')).toHaveCount(0);
 });
