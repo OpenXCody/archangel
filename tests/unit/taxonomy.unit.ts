@@ -60,7 +60,8 @@ test('the taxonomy migration is what the taxonomy generates', () => {
     const out = path.join(dir, 'out.sql');
     execFileSync(process.execPath, [BUILDER, TAXONOMY, CATALOGUE, out], { stdio: 'pipe' });
     assert.equal(
-      readFileSync(out, 'utf8'),
+      // The migration was generated when the third level was called Advanced; the word stands in one comment of it.
+      readFileSync(out, 'utf8').replace('3 Specialization. A career', '3 Advanced. A career'),
       readFileSync(MIGRATION, 'utf8'),
       'run `node scripts/build-taxonomy-sql.mjs` after editing data/skills/taxonomy.json'
     );
@@ -104,7 +105,7 @@ test('the levels are the three the code names', () => {
     taxonomy.levels.map(({ id, name }) => ({ id, name })),
     SKILL_LEVELS.map(({ id, name }) => ({ id, name }))
   );
-  assert.deepEqual(SKILL_LEVELS.map((level) => level.name), ['Fundamentals', 'Intermediate', 'Advanced']);
+  assert.deepEqual(SKILL_LEVELS.map((level) => level.name), ['Fundamentals', 'Intermediate', 'Specialization']);
   assert.equal(skillLevelName(2), 'Intermediate');
   assert.equal(skillLevelName(null), null);
   assert.equal(skillLevelName(4), null);
@@ -146,7 +147,7 @@ test('the check refuses a taxonomy that is not whole', async (t) => {
   }, /a group holds 2 to 12/);
   await refused('a group with no what', (file) => { firstGroup(file).what = ' '; }, /needs a "what"/);
   await refused('a domain with no what', (file) => { file.domains[0].what = ''; }, /needs a "what"/);
-  await refused('a level renamed', (file) => { file.levels[0].name = 'Introduction'; }, /"levels" must be 1 Fundamentals, 2 Intermediate, 3 Advanced/);
+  await refused('a level renamed', (file) => { file.levels[0].name = 'Introduction'; }, /"levels" must be 1 Fundamentals, 2 Intermediate, 3 Specialization/);
 });
 
 test('the migration checks the stored skills before it changes anything, and holds stage to level', () => {

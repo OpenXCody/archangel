@@ -140,7 +140,7 @@ router.get('/', async (req: Request, res: Response) => {
         // The other name a search found it by, when its title did not match.
         alsoCalled: match ? match.otherName : sql<string | null>`NULL`,
         skillCount: sql<number>`(SELECT COUNT(*)::int FROM occupation_skills WHERE occupation_skills.occupation_id = occupations.id)`,
-        // Skills at each level (Fundamentals, Intermediate, Advanced); null when the career has no skills.
+        // Skills at each level (Fundamentals, Intermediate, Specialization); null when the career has no skills.
         levelCounts: sql<[number, number, number] | null>`(
           SELECT CASE WHEN COUNT(*) FILTER (WHERE os.stage IN (1, 2, 3)) = 0 THEN NULL ELSE json_build_array(
             COUNT(*) FILTER (WHERE os.stage = 1), COUNT(*) FILTER (WHERE os.stage = 2), COUNT(*) FILTER (WHERE os.stage = 3)) END

@@ -189,14 +189,14 @@ OUT=$(req a PUT /skills/$SA "{\"group\":\"$GRP2\",\"level\":3,\"aliases\":[\"$RE
 check "a skill's group, level and other names" 200 "$OUT" "\"level\":3,\"group\":{\"slug\":\"$GRP2\""
 expect "the answer names its new domain" "$(domainOf "$GRP2")" "$(printf '%s' "$OUT" | j domain.name)"
 expect "the group fixes the domain's name on the row" "$GRP2|3|$(domainOf "$GRP2")" "$(sql "SELECT group_slug || '|' || level || '|' || category FROM skills WHERE id='$SA'")"
-expect "the change of group and level is on record, in words" "$(groupName "$GRP")>$(groupName "$GRP2")|$(domainOf "$GRP")>$(domainOf "$GRP2")|Fundamentals>Advanced" "$(req a GET "/admin/audit?kind=skill&record=$SA" | j "entries.map((e) => ((c) => c && c.group ? [c.group.join('>'), c.domain.join('>'), c.level.join('>')].join('|') : '')((e.detail || {}).changes))[0]")"
+expect "the change of group and level is on record, in words" "$(groupName "$GRP")>$(groupName "$GRP2")|$(domainOf "$GRP")>$(domainOf "$GRP2")|Fundamentals>Specialization" "$(req a GET "/admin/audit?kind=skill&record=$SA" | j "entries.map((e) => ((c) => c && c.group ? [c.group.join('>'), c.domain.join('>'), c.level.join('>')].join('|') : '')((e.detail || {}).changes))[0]")"
 check "a group that does not exist"   400 "$(req a PUT /skills/$SA '{"group":"no-such-group"}')" '"field":"group"'
 check "a level that is not one"       400 "$(req a PUT /skills/$SA '{"level":0}')" '"field":"level"'
 check "a level cannot be cleared"     400 "$(req a PUT /skills/$SA '{"level":null}')" '"field":"level"'
 expect "the refusals left it where it was" "$GRP2|3" "$(sql "SELECT group_slug || '|' || level FROM skills WHERE id='$SA'")"
 check "the editor reads them back"    200 "$(req a GET /admin/records/skill/$SA)" "\"aliases\":\[\"$REC Etch\"\]"
 expect "with the group's slug and the level" "$GRP2|3|$(domainOf "$GRP2")" "$(req a GET /admin/records/skill/$SA | j "fields.group + '|' + o.fields.level + '|' + o.fields.domain")"
-expect "a search for it says its group and level" "$(groupName "$GRP2") · Advanced|3" "$(req a GET "/admin/records/skill?q=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$REC Plasma Etch")" | j "records.filter((r) => r.id === '$SA').map((r) => r.detail + '|' + r.level)[0]")"
+expect "a search for it says its group and level" "$(groupName "$GRP2") · Specialization|3" "$(req a GET "/admin/records/skill?q=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "$REC Plasma Etch")" | j "records.filter((r) => r.id === '$SA').map((r) => r.detail + '|' + r.level)[0]")"
 check "how a skill is learned and what it is done with" 200 "$(req a PUT /skills/$SA "{\"howLearned\":\"  On the job.  \",\"tools\":[\"Etch tool\",\" etch tool \",\"Gas cabinet\",\"\"]}")" '"howLearned":"On the job."'
 expect "the tools are kept as a list, once each" "Etch tool|Gas cabinet" "$(sql "SELECT array_to_string(tools, '|') FROM skills WHERE id='$SA'")"
 check "the editor reads those back too" 200 "$(req a GET /admin/records/skill/$SA)" '"tools":\["Etch tool","Gas cabinet"\]'
@@ -234,7 +234,7 @@ sql "INSERT INTO occupation_skills (occupation_id, skill_id) VALUES ('$OB', '$SC
 check "change a skill's level"        200 "$(req a PUT /skills/$SC '{"level":3}')" '"level":3'
 expect "it moved in every path it is on" "3 3" "$(sql "SELECT string_agg(stage::text, ' ') FROM occupation_skills WHERE skill_id='$SC'")"
 expect "and on the career's page"     "1 3" "$(req p GET /occupations/$OA | j "skills.map((s) => s.level).join(' ')")"
-expect "the change of level is on record" "Intermediate>Advanced" "$(req a GET "/admin/audit?kind=skill&record=$SC" | j "entries[0].detail.changes.level.join('>')")"
+expect "the change of level is on record" "Intermediate>Specialization" "$(req a GET "/admin/audit?kind=skill&record=$SC" | j "entries[0].detail.changes.level.join('>')")"
 expect "no stage anywhere differs from its skill's level" 0 "$(sql "SELECT COUNT(*) FROM occupation_skills os JOIN skills s ON s.id=os.skill_id WHERE os.stage IS DISTINCT FROM s.level")"
 sql "DELETE FROM occupation_skills WHERE occupation_id='$OB' AND skill_id='$SC'" >/dev/null
 check "approve the path"              200 "$(req a PUT /occupations/$OA/path '{"skills":[],"status":"approved"}')"

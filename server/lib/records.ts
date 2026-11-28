@@ -814,7 +814,7 @@ async function changeSkill(id: string, body: Body, actor: Actor): Promise<SavedR
   if (tools === false) refuse('tools', `What it is done with is a list of up to ${MAX_TOOLS} short names.`);
   // A skill always has a level: one can be changed, never cleared.
   const level = body.level === undefined ? undefined : readLevel(body.level);
-  if (level === null) refuse('level', 'Choose a level: Fundamentals, Intermediate or Advanced.');
+  if (level === null) refuse('level', 'Choose a level: Fundamentals, Intermediate or Specialization.');
 
   return db.transaction(async (tx) => {
     const [before] = await tx.select().from(skills).where(eq(skills.id, id)).limit(1).for('update');

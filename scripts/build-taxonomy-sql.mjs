@@ -6,7 +6,7 @@
 //
 // The taxonomy puts every skill of the catalogue (data/skills/catalogue.json)
 // in one skill group, every group in one domain, and gives every skill one
-// level: 1 Fundamentals, 2 Intermediate, 3 Advanced. Domains, groups and
+// level: 1 Fundamentals, 2 Intermediate, 3 Specialization. Domains, groups and
 // skills are in the order they are shown.
 //
 // --check validates the file and writes nothing. It fails unless:
@@ -45,7 +45,7 @@ const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
 const [input = 'data/skills/taxonomy.json', catalogueFile = 'data/skills/catalogue.json', output = 'migrations/0083_skill_taxonomy_6.sql'] = args.filter((arg) => arg !== '--check');
 
-export const LEVEL_NAMES = ['Fundamentals', 'Intermediate', 'Advanced'];
+export const LEVEL_NAMES = ['Fundamentals', 'Intermediate', 'Specialization'];
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const GROUP_MIN = 2;
 const GROUP_MAX = 12;

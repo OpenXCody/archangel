@@ -281,7 +281,7 @@ expect "the careers list counts the skills at each level" "2,2,2" "$(req anon GE
 
 # The taxonomy: every domain, group and skill in one answer.
 OUT=$(req anon GET /skills/taxonomy)
-check "the taxonomy in one answer"    200 "$OUT" '"levels":\[{"id":1,"name":"Fundamentals"},{"id":2,"name":"Intermediate"},{"id":3,"name":"Advanced"}\]'
+check "the taxonomy in one answer"    200 "$OUT" '"levels":\[{"id":1,"name":"Fundamentals"},{"id":2,"name":"Intermediate"},{"id":3,"name":"Specialization"}\]'
 expect "every domain, in the taxonomy's order" "$(sql "SELECT string_agg(slug, ',' ORDER BY position, slug) FROM skill_domains")" "$(printf '%s' "$OUT" | j "domains.map(d=>d.slug).join()")"
 expect "every group"                  "$(sql "SELECT COUNT(*) FROM skill_groups")" "$(printf '%s' "$OUT" | j "domains.reduce((n,d)=>n+d.groups.length,0)")"
 expect "every placed skill, once"     "$(sql "SELECT COUNT(DISTINCT id) || ' ' || COUNT(*) FROM skills WHERE group_slug IS NOT NULL AND level IS NOT NULL")" "$(printf '%s' "$OUT" | j "domains.flatMap(d=>d.groups.flatMap(g=>g.skills.map(s=>s.id))).reduce((seen,id)=>seen.add(id),new Set()).size+' '+o.domains.flatMap(d=>d.groups.flatMap(g=>g.skills)).length")"

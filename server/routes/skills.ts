@@ -298,7 +298,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
     const level = readLevel(req.body?.level);
     if (!level) {
-      res.status(400).json({ error: 'Choose a level: Fundamentals, Intermediate or Advanced.', field: 'level' });
+      res.status(400).json({ error: 'Choose a level: Fundamentals, Intermediate or Specialization.', field: 'level' });
       return;
     }
     if (howLearned === false || tools === false) {

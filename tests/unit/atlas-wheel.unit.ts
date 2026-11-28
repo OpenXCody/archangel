@@ -22,7 +22,7 @@ const taxonomy: Taxonomy = {
   levels: [
     { id: 1, name: 'Fundamentals' },
     { id: 2, name: 'Intermediate' },
-    { id: 3, name: 'Advanced' },
+    { id: 3, name: 'Specialization' },
   ],
   domains: file.domains.map((domain) => ({
     slug: domain.slug,

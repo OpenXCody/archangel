@@ -71,7 +71,7 @@ export interface MyApplication {
 export interface NextSkill {
   id: string;
   name: string;
-  /** The skill's level: 1 Fundamentals, 2 Intermediate, 3 Advanced. */
+  /** The skill's level: 1 Fundamentals, 2 Intermediate, 3 Specialization. */
   level: SkillLevel | null;
 }
 

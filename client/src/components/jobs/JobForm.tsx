@@ -177,7 +177,7 @@ function JobFormFields({ company, mode, source, onCancel, draftStore, draft, onS
     .slice(0, 8)
     .map((o) => ({ id: o.id, title: o.title }));
 
-  // The career's own skills are the default tags: Advanced optional, the rest required. Where the
+  // The career's own skills are the default tags: Specialization optional, the rest required. Where the
   // company has its own version of the career, that version's skills are the start instead.
   const careerId = career?.id ?? '';
   const versions = useCompanyVersions(company.companyId, !editing);

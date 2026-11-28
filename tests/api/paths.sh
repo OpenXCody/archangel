@@ -34,7 +34,7 @@ expect "and the migration in the repository is what it generates" "" \
   "$(cd "$ROOT" && node scripts/build-career-paths-sql.mjs data/careers/paths.json data/careers/catalogue.json data/skills/catalogue.json data/skills/taxonomy.json "$D/real.sql" > /dev/null 2>&1; cmp -s "$D/real.sql" migrations/0094_career_paths_4.sql || echo stale)"
 
 # --- A small file ------------------------------------------------------------------
-# Twelve skills: S01-S04 at Fundamentals, S05-S09 at Intermediate, S10-S12 at Advanced.
+# Twelve skills: S01-S04 at Fundamentals, S05-S09 at Intermediate, S10-S12 at Specialization.
 cat > "$D/skills.json" <<'JSON'
 { "skills": [ {"name":"E2E Path S01"},{"name":"E2E Path S02"},{"name":"E2E Path S03"},{"name":"E2E Path S04"},{"name":"E2E Path S05"},{"name":"E2E Path S06"},
   {"name":"E2E Path S07"},{"name":"E2E Path S08"},{"name":"E2E Path S09"},{"name":"E2E Path S10"},{"name":"E2E Path S11"},{"name":"E2E Path S12"} ] }
