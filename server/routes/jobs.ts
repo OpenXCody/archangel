@@ -511,7 +511,7 @@ async function readJobSkills(list: unknown[]): Promise<{ error: string } | { row
 }
 
 // POST /api/jobs { companyId, factoryId, occupationId, payMin, payMax, ...optional }
-// Skills default to the career's: Fundamentals and Intermediate required, Advanced optional
+// Skills default to the career's: Fundamentals and Intermediate required, Specialization optional
 // (a path row's stage is the skill's level). Where the company has its own version of the
 // career, they default to that version's skills instead.
 router.post(

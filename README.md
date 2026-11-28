@@ -2,7 +2,7 @@
 
 A workforce map of US manufacturing, live at [o-10.com](https://www.o-10.com).
 
-People explore **Industries → Companies → Factories → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Advanced. A career's path is its skills laid out by those levels. All of the skills are drawn as one wheel, the Atlas of Manufacturing (`/atlas`): five rings from the twelve groups of Fundamentals at the centre out to the rim, with the same tree as a list beside it, and a career can be laid over it. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
+People explore **Industries → Companies → Factories → Jobs → Careers → Skills** on a map and through pages for each. Every skill sits in a group inside a domain and has one level: Fundamentals, Intermediate or Specialization. A career's path is its skills laid out by those levels. All of the skills are drawn as one wheel, the Atlas of Manufacturing (`/atlas`): five rings from the twelve groups of Fundamentals at the centre out to the rim, with the same tree as a list beside it, and a career can be laid over it. Someone looking for work marks the skills they have, sees which careers are within reach, and applies to jobs. A company's people post jobs and read applicants. Admins look after accounts and data. The whole country is covered; Austin, TX is the first area being filled out in depth.
 
 React, TypeScript, Vite and Tailwind in `client/`; Express and Drizzle in `server/`; PostgreSQL. `CLAUDE.md` describes how the code is laid out and the rules it follows.
 
@@ -148,7 +148,7 @@ There is no upload screen. Data arrives five ways. The scripts are in two folder
 
   The path, profile and domain migrations match records by exact name, create no companies or careers, and never overwrite a value set by hand or a path a person has approved. A migration that has been applied is not edited: a later change is a change to the JSON and a new generated migration.
 
-  The skill taxonomy puts every skill of the catalogue in one group, every group in one domain, and gives every skill one level (1 Fundamentals, 2 Intermediate, 3 Advanced). Edit `data/skills/taxonomy.json`, check it, then regenerate its migration:
+  The skill taxonomy puts every skill of the catalogue in one group, every group in one domain, and gives every skill one level (1 Fundamentals, 2 Intermediate, 3 Specialization). Edit `data/skills/taxonomy.json`, check it, then regenerate its migration:
 
   ```bash
   node scripts/build-taxonomy-sql.mjs --check    # validates the file against the catalogue; writes nothing

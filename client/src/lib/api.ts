@@ -73,7 +73,7 @@ export interface RelatedOccupationWithImportance {
 // The skill taxonomy: domain > skill group > skill, and one level per skill
 // ---------------------------------------------------------------------------
 
-/** A skill's level, the same in every career: 1 Fundamentals, 2 Intermediate, 3 Advanced (names in lib/stages.ts). */
+/** A skill's level, the same in every career: 1 Fundamentals, 2 Intermediate, 3 Specialization (names in lib/stages.ts). */
 export type { SkillLevel };
 
 /** A domain or a skill group, by what a link (`slug`) and a label (`name`) need. */
@@ -377,7 +377,7 @@ export interface Occupation {
   createdAt: string;
   skillCount?: number;
   factoryCount?: number;
-  /** How many of its skills are at each level (Fundamentals, Intermediate, Advanced), where a response carries it. */
+  /** How many of its skills are at each level (Fundamentals, Intermediate, Specialization), where a response carries it. */
   levelCounts?: [number, number, number] | null;
   /** The career's home: the domain most of its work is in. Null for a career added by hand without one. */
   home?: TaxonomyRef | null;

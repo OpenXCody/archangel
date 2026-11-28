@@ -220,7 +220,7 @@ export const skills = pgTable(
     category: text('category'),
     // The skill group it is in, which fixes its domain (skill_groups).
     groupSlug: text('group_slug').references(() => skillGroups.slug, { onUpdate: 'cascade' }),
-    // 1 Fundamentals, 2 Intermediate, 3 Advanced (shared/skillLevels.ts): one
+    // 1 Fundamentals, 2 Intermediate, 3 Specialization (shared/skillLevels.ts): one
     // level, the same in every career that uses the skill.
     level: smallint('level'),
     // Its place in its group as data/skills/taxonomy.json orders it; a skill

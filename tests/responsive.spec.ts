@@ -261,7 +261,7 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await expect(tree.locator('[data-skill-tag], .tree-card')).toHaveCount(0);
   // No level is named on the tree. "Fundamentals" there is the Atlas's word for its core groups, the tree's first part,
   // and every part is named as the Atlas names it (Fundamentals, then the fields the path reaches).
-  await expect(tree).not.toContainText(/Intermediate|Advanced/);
+  await expect(tree).not.toContainText(/Intermediate|Specialization/);
   const parts = await tree.locator('[data-atlas-section]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-atlas-section')));
   expect(parts.length, 'the groups stand under the parts of the Atlas').toBeGreaterThan(0);
   if (parts.includes('fundamentals')) expect(parts[0], 'Fundamentals leads').toBe('fundamentals');
@@ -291,7 +291,7 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await expect(head(skillNode(one))).toHaveAttribute('aria-expanded', 'true');
   const card = skillNode(one).locator('[data-skill-preview]');
   await expect(card).toBeVisible();
-  await expect(card.locator('[data-preview-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await expect(card.locator('[data-preview-level]')).toHaveText(/^(Fundamentals|Intermediate|Specialization)$/);
   if (one.description) await expect(card.locator('[data-preview-description]')).toHaveText(`What it is${one.description}`);
   if (one.howLearned) await expect(card.locator('[data-preview-learned]')).toHaveText(`How it is learned${one.howLearned}`);
   await expect(card.getByRole('link')).toHaveCount(1);
@@ -401,7 +401,7 @@ test('a career page shows its skills as one tree, every group closed; a company 
   await page.goto(`/skills/${skill}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-skill-domain]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+$/);
   await expect(page.locator('[data-skill-group]')).toHaveAttribute('href', /^\/explore\?tab=skills&domain=[a-z0-9-]+&group=[a-z0-9-]+$/);
-  await expect(page.locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Advanced)$/);
+  await expect(page.locator('[data-skill-level]')).toHaveText(/^(Fundamentals|Intermediate|Specialization)$/);
 
   // A skill with others in its group is shown among them: the frame the Skills list draws a group in, this skill the one row that is not a link.
   const path = (await (await request.get(`${API}/occupations/${career}`)).json()) as { skills: Array<{ id: string }> };
@@ -834,7 +834,7 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   }
   // A skill is its name alone here: its level is said on its page and in a career's tree.
   await expect(page.locator('[data-skill-tree] [data-skill-level]')).toHaveCount(0);
-  await expect(page.locator('[data-skill-tree]')).not.toContainText(/Fundamentals|Intermediate|Advanced/);
+  await expect(page.locator('[data-skill-tree]')).not.toContainText(/Fundamentals|Intermediate|Specialization/);
   // The other domains stay closed, and the open one's bar holds under the header while its skills scroll.
   await expect(page.locator('[data-skill-tree] [data-band-toggle][aria-expanded="true"]')).toHaveCount(1);
   await assertHealthyLayout(page, '/explore?tab=skills, a domain open');
@@ -887,7 +887,7 @@ test('Explore holds every level, and the header says where you are', async ({ pa
   await assertHealthyLayout(page, narrowed);
   // Sorted another way it is a plain list again; a row's grey line is its group and level.
   await page.goto(`${narrowed}&sort=careers-desc`, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('main a[href^="/skills/"]').first()).toContainText(new RegExp(`${group.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · (Fundamentals|Intermediate|Advanced)`));
+  await expect(page.locator('main a[href^="/skills/"]').first()).toContainText(new RegExp(`${group.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} · (Fundamentals|Intermediate|Specialization)`));
   await expect(page.locator('[data-skill-tree]')).toHaveCount(0);
 
   // The factories list says factories, and a list's own count follows its filters.
@@ -2475,7 +2475,7 @@ test("an employer edits the company's version of a career with a thumb: a tap le
   await expect(editor.locator('[data-edit-skill]')).toHaveCount(every.length);
   // Drawn on the route: one column, sections that open and close, and each row the switch it was.
   await expect(editor.locator('[data-route][data-route-plain]')).toHaveCount(1);
-  await expect(editor).not.toContainText(/Fundamentals|Intermediate|Advanced/);
+  await expect(editor).not.toContainText(/Fundamentals|Intermediate|Specialization/);
   expect(await editor.locator('[data-edit-skill]').evaluateAll((items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().left))).size), 'the rows are one column').toBe(1);
   await expect(editor.locator('[data-edit-skill][data-on="false"]')).toHaveCount(version!.leftOut.length);
   await expect(page.locator('form')).toHaveCount(0);
@@ -3560,7 +3560,7 @@ test("a military career's page: its kind and code above the service's own title,
   // Open, its card says what is missing in the civilian career's own order, every one of them and with no level named, and leads to its page.
   await expect(panel.locator('[data-reach-missing] h4')).toHaveText('Missing');
   expect((await panel.locator('[data-reach-missing] [data-name]').allInnerTexts()).map((name) => name.replace(/[,.]\s*$/, '').trim())).toEqual(closest.missing.map((skill) => skill.name));
-  await expect(reach).not.toContainText(/Fundamentals|Intermediate|Advanced/);
+  await expect(reach).not.toContainText(/Fundamentals|Intermediate|Specialization/);
   await expect(panel.locator('[data-reach-open]')).toHaveAttribute('href', `/occupations/${closest.id}`);
   // One link and nothing else to press: no industries, no atlas, and the skills that carry over are not listed again.
   await expect(panel.getByRole('link')).toHaveCount(1);

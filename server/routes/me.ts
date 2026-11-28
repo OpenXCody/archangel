@@ -39,7 +39,7 @@ const SKILL_STATUSES = new Set(['learning', 'held']);
 interface NextSkill {
   id: string;
   name: string;
-  /** The skill's level: 1 Fundamentals, 2 Intermediate, 3 Advanced. */
+  /** The skill's level: 1 Fundamentals, 2 Intermediate, 3 Specialization. */
   level: number | null;
 }
 

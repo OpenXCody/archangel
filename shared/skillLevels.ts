@@ -15,14 +15,14 @@ export interface SkillLevelInfo {
 export const SKILL_LEVELS: readonly SkillLevelInfo[] = [
   { id: 1, name: 'Fundamentals', gloss: 'The foundation' },
   { id: 2, name: 'Intermediate', gloss: 'The working trade' },
-  { id: 3, name: 'Advanced', gloss: 'The specialties' },
+  { id: 3, name: 'Specialization', gloss: 'The specialties' },
 ];
 
 export function isSkillLevel(value: unknown): value is SkillLevel {
   return value === 1 || value === 2 || value === 3;
 }
 
-/** "Fundamentals", "Intermediate" or "Advanced"; null for a skill with no level. */
+/** "Fundamentals", "Intermediate" or "Specialization"; null for a skill with no level. */
 export function skillLevelName(level: number | null | undefined): string | null {
   return SKILL_LEVELS.find((info) => info.id === level)?.name ?? null;
 }

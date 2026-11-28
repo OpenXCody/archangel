@@ -7,7 +7,7 @@
 //
 // A path is the list of skills a career needs. It names skills and sets no
 // level: each skill sits at its own level (data/skills/taxonomy.json), so the
-// path lays itself out as Fundamentals, Intermediate, Advanced. The file is
+// path lays itself out as Fundamentals, Intermediate, Specialization. The file is
 // the only place the paths are decided; data/paths/*.json are the lists the
 // earlier path migrations (0011, 0016, 0018) were made from, kept as history.
 //
@@ -426,7 +426,7 @@ async function main() {
   if (report) {
     const pct = (share) => `${Math.round(share * 100)}%`;
     console.log(`${input}: valid. ${summary}.\n`);
-    console.log(`Nothing at Advanced (${figures.nothingAdvanced.length}): ${figures.nothingAdvanced.join(', ')}\n`);
+    console.log(`Nothing at Specialization (${figures.nothingAdvanced.length}): ${figures.nothingAdvanced.join(', ')}\n`);
     console.log(`Skills on no path (${figures.onNoPath.length}): ${figures.onNoPath.join(', ')}\n`);
     console.log(`The twenty skills on the most paths:\n${figures.mostUsed.map(([name, count]) => `  ${String(count).padStart(3)}  ${name}`).join('\n')}\n`);
     console.log(`Ladder links, the share of the lower career's skills the upper keeps:\n${figures.links

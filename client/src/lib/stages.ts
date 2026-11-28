@@ -2,7 +2,7 @@ import { SKILL_LEVELS, skillLevelName, type SkillLevel } from '@shared/skillLeve
 
 /**
  * The three levels of a skill, in the order they are learned, with the words
- * used for them everywhere: 1 Fundamentals, 2 Intermediate, 3 Advanced. A
+ * used for them everywhere: 1 Fundamentals, 2 Intermediate, 3 Specialization. A
  * skill has one level, the same in every career, and a career's path is its
  * skills laid out by their levels. The names and glosses are written once, in
  * shared/skillLevels.ts; this file is how the client reads them.

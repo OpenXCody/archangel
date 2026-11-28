@@ -222,7 +222,7 @@ expect "the path written again, the version is as it was" "02,04,05,06|03|02:Haa
 JOB=$(req m POST /jobs "{\"companyId\":\"$CA\",\"factoryId\":\"$FA\",\"occupationId\":\"$O\",\"payMin\":2400,\"payMax\":3000}" | j id)
 OUT=$(req anon GET /jobs/$JOB)
 check "a job posted without skills"                200 "$OUT" '"hasVersion":true'
-expect "takes the version's, Advanced optional"    "02:true,04:true,05:true,06:false" "$(printf '%s' "$OUT" | j "skills.map((s) => s.name.replace('$REC Skill ', '') + ':' + s.required).sort().join(',')")"
+expect "takes the version's, Specialization optional"    "02:true,04:true,05:true,06:false" "$(printf '%s' "$OUT" | j "skills.map((s) => s.name.replace('$REC Skill ', '') + ':' + s.required).sort().join(',')")"
 expect "the version's page lists the job"          "$JOB" "$(req anon GET $V/$O | j 'jobs.map((job) => job.id).join(",")')"
 JOB2=$(req m POST /jobs "{\"companyId\":\"$CA\",\"factoryId\":\"$FA\",\"occupationId\":\"$O2\",\"payMin\":2400,\"payMax\":3000}" | j id)
 OUT=$(req anon GET /jobs/$JOB2)
