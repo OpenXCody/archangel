@@ -444,7 +444,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /api/occupations/:id - Change a career: title, description, onetCode, aliases,
-// `home` (a domain's slug, or null for none) and `leadsTo` (up to three career ids, in order).
+// `home` (a domain's slug, or null for none) and `leadsTo` (up to twelve career ids, in order).
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     res.json(await changeRecord('career', req.params.id, req.body, req.user!));
