@@ -26,8 +26,12 @@ export interface CareerRef {
   title: string;
 }
 
-/** The most careers one career leads to. The catalogue's builder holds the file to the same number. */
-export const MAX_LEADS_TO = 3;
+/**
+ * The most careers one career leads to. The catalogue's builder holds the file to the same number. It was three until the
+ * careers were rebuilt from postings: a mid-level career leads to its specialized variants as well as to its next rung,
+ * and the career page draws a side of more than three with "Show all".
+ */
+export const MAX_LEADS_TO = 12;
 
 /** One fixed key for pg_advisory_xact_lock: two changes to the ladder take turns, so they cannot close it between them. */
 export const LADDER_LOCK = 4127046;

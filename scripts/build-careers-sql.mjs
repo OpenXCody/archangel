@@ -5,7 +5,7 @@
 //   node scripts/build-careers-sql.mjs --check [catalogue.json] [taxonomy.json]
 //
 // The catalogue is the list of careers the product has. Each has a title, a
-// home (one domain of data/skills/taxonomy.json), a `what`, up to three
+// home (one domain of data/skills/taxonomy.json), a `what`, up to twelve
 // `leadsTo` (the next rungs of its ladder) and `was`: the titles the product
 // used to list separately, now other names for this career. `removed` are
 // titles that are not careers of the product: work that is not manufacturing,
@@ -17,7 +17,7 @@
 //   - a title appears once in the whole file, in any letter case: as a
 //     career, in one career's `was`, or under `removed`;
 //   - every `leadsTo` names a career of the file, not the career itself, at
-//     most three of them, none twice, and no chain of them comes back to
+//     most twelve of them, none twice, and no chain of them comes back to
 //     where it started.
 //
 // The migration cannot see the database it will run on, so it decides there,
@@ -66,7 +66,7 @@ const checkOnly = args.includes('--check');
 const [input = 'data/careers/catalogue.json', taxonomyFile = 'data/skills/taxonomy.json', output = 'migrations/0092_careers_catalogue_4.sql'] = args.filter((arg) => arg !== '--check');
 
 /** The most careers one career leads to. */
-export const MAX_LEADS_TO = 3;
+export const MAX_LEADS_TO = 12;
 /** A title row keeps its own path when it has at least this many skills. */
 const OWN_PATH = 10;
 

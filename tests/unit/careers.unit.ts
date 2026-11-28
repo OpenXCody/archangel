@@ -133,7 +133,7 @@ test('every title is used once, every home is a domain, and no ladder comes back
     for (const was of career.was) use(was, `was of ${career.title}`);
     assert.ok(domains.has(career.home), `${career.title}: home ${career.home}`);
     assert.ok(career.what.trim().length > 20, `${career.title} says what it is`);
-    assert.ok(career.leadsTo.length <= 3, `${career.title} leads to at most three`);
+    assert.ok(career.leadsTo.length <= 12, `${career.title} leads to at most twelve`);
     assert.equal(new Set(career.leadsTo).size, career.leadsTo.length, `${career.title} leads to no career twice`);
     for (const next of career.leadsTo) assert.ok(titles.has(next) && next !== career.title, `${career.title} leads to ${next}`);
   }
@@ -207,7 +207,7 @@ test('the check refuses a catalogue that is not whole', async (t) => {
   await refused('a link to a career that is not there', (file) => { first(file).leadsTo = ['Not A Career']; }, /which is not a career of the file/);
   await refused('a link to a folded title', (file) => { first(file).leadsTo = [file.careers.find((career) => career.was.length > 0 && career !== first(file))!.was[0]]; }, /which is not a career of the file/);
   await refused('a career that leads to itself', (file) => { first(file).leadsTo = [first(file).title]; }, /leads to itself/);
-  await refused('a career that leads to four', (file) => { first(file).leadsTo = file.careers.slice(1, 5).map((career) => career.title); }, /at most 3/);
+  await refused('a career that leads to thirteen', (file) => { first(file).leadsTo = file.careers.slice(1, 14).map((career) => career.title); }, /at most 12/);
   await refused('a career that leads to one career twice', (file) => { const { from } = linked(file); from.leadsTo = [from.leadsTo[0], from.leadsTo[0]]; }, /twice/);
   await refused('a ladder of two that comes back', (file) => { const { from, to } = linked(file); to.leadsTo = [from.title]; }, /the ladder comes back on itself/);
   await refused('a ladder of three that comes back', (file) => {

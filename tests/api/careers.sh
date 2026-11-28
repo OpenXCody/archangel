@@ -167,7 +167,9 @@ check "names the steps"                            400 "$OUT" "$REC Operator →
 expect "a refused link changed nothing"            0 "$(sql "SELECT COUNT(*) FROM occupation_links WHERE from_occupation_id = '$E'")"
 check "a career does not lead to itself"           400 "$(req a PUT /occupations/$A "{\"leadsTo\":[\"$A\"]}")" '"field":"leadsTo"'
 check "nor to the same career twice"               400 "$(req a PUT /occupations/$A "{\"leadsTo\":[\"$B\",\"$B\"]}")" '"field":"leadsTo"'
-check "nor to four"                                400 "$(req a PUT /occupations/$A "{\"leadsTo\":[\"$B\",\"$C\",\"$E\",\"$F\"]}")" '"field":"leadsTo"'
+THIRTEEN=$(node -e 'console.log(JSON.stringify({leadsTo: Array.from({length: 13}, () => crypto.randomUUID())}))')
+check "nor to thirteen"                            400 "$(req a PUT /occupations/$A "$THIRTEEN")" '"field":"leadsTo"'
+check "with the most it takes"                     400 "$(req a PUT /occupations/$A "$THIRTEEN")" 'at most 12'
 check "nor to a career that is not there"          400 "$(req a PUT /occupations/$A "{\"leadsTo\":[\"$NOBODY\"]}")" '"field":"leadsTo"'
 check "nor to something that is not a list"        400 "$(req a PUT /occupations/$A '{"leadsTo":"Welder"}')" '"field":"leadsTo"'
 expect "the ladder is as it was"                   "$REC Specialist|$REC Technician" "$(req anon GET /occupations/$A | j 'leadsTo.map((c) => c.title).join("|")')"

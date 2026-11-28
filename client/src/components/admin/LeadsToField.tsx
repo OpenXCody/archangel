@@ -10,7 +10,7 @@ export interface LadderCareer {
 }
 
 /** The most careers one career leads to (MAX_LEADS_TO in server/lib/careers.ts). */
-const MOST = 3;
+const MOST = 12;
 
 interface LeadsToFieldProps {
   /** Id for the search box, so the label and a refusal's focus can find it. */
@@ -24,7 +24,7 @@ interface LeadsToFieldProps {
 }
 
 /**
- * The careers a career leads to: up to three, found by search, kept in the
+ * The careers a career leads to: up to twelve, found by search, kept in the
  * order they are listed. The first is the usual next step. Whether a link
  * would close a ladder on itself is the server's to say; its reason stands
  * under this field.
@@ -55,7 +55,7 @@ export default function LeadsToField({ id, value, onChange, excludeId, invalid, 
               )}
               <button
                 type="button"
-                // With three chosen there is no search box: the first row answers for the field.
+                // With all twelve chosen there is no search box: the first row answers for the field.
                 id={full && index === 0 ? id : undefined}
                 onClick={() => onChange(value.filter((item) => item.id !== career.id))}
                 aria-label={`Remove ${career.title}`}
